@@ -11,6 +11,7 @@ class Registrant(BaseModel):
 
 class Whois(BaseModel):
     contactEmail: str
+    domain: str
     expiresAt: str
     name: str
     nameServers: List[str]

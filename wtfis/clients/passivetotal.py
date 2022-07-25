@@ -27,20 +27,14 @@ class PTClient:
         except (HTTPError, JSONDecodeError):
             raise
 
-    def passive(self, domain: str) -> dict:
+    def _query(self, path: str, query: str) -> Optional[dict]:
         return self._get(
-            "/dns/passive",
-            params={
-                "query": domain,
-            },
+            path,
+            params={"query": query}
         )
 
+    def get_passive_dns(self, domain: str) -> dict:
+        return self._query("/dns/passive", domain)
+
     def get_whois(self, domain: str) -> Optional[Whois]:
-        return Whois.parse_obj(
-            self._get(
-                "/whois",
-                params={
-                    "query": domain
-                }
-            )
-        )
+        return Whois.parse_obj(self._query("/whois", domain))
