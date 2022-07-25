@@ -13,6 +13,7 @@ class Whois(BaseModel):
     contactEmail: str
     domain: str
     expiresAt: str
+    lastLoadedAt: str
     name: str
     nameServers: List[str]
     organization: Optional[str]

@@ -22,17 +22,3 @@ def main():
 
     console = View(whois, domain)
     console.print()
-
-    # console = Console()
-
-    # top = Text(sys.argv[1], style="bold yellow", justify="center", end="\n")
-
-    # text = Text()
-    # text.append("Reputation: ", style="bold magenta")
-    # text.append(f"{domain.reputation}\n")
-    # text.append(f"Registrar: {domain.registrar}\n")
-    # text.append(f"Last DNS Records Date: {iso_date(domain.last_dns_records_date)}")
-
-    # text_group = Group(top, text)
-
-    # console.print(Panel(text_group, title="virustotal", expand=False))

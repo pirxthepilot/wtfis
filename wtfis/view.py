@@ -8,7 +8,7 @@ from typing import Any, Callable, Optional
 
 from wtfis.models.passivetotal import Whois
 from wtfis.models.virustotal import Domain, LastAnalysisStats, PopularityRanks
-# from wtfis.utils import iso_date
+from wtfis.utils import iso_date
 
 
 class Theme:
@@ -54,7 +54,7 @@ class View:
         # Set up table
         grid = Table.grid(expand=False, padding=(0, 1))
         grid.add_column(style=self.theme.table_field)                # Field
-        grid.add_column(style=self.theme.table_value, max_width=60)  # Value
+        grid.add_column(style=self.theme.table_value, max_width=40)  # Value
 
         # Populate rows
         for item in params:
@@ -113,6 +113,9 @@ class View:
             ("Name:", self.whois.name),
             ("E-mail:", self.whois.contactEmail),
             ("Phone:", self.whois.registrant.telephone),
+            ("Registered:", iso_date(self.whois.registered)),
+            ("Updated:", iso_date(self.whois.registryUpdatedAt)),
+            ("Loaded:", iso_date(self.whois.lastLoadedAt)),
         )
         return self._gen_panel("whois", body, heading)
 
@@ -128,18 +131,15 @@ class View:
         # Popularity
         popularity = self._gen_vt_popularity(attributes.popularity_ranks)
 
-        # Reputation style
-        def rep_style(reputation):
-            if reputation > 0:
-                return self.theme.info
-            elif attributes.reputation < 0:
-                return self.theme.error
-
+        # Content
         heading = self._gen_heading_text(self.vt.data.id_)
         body = self._gen_table(
             ("Analysis:", analysis),
             ("Reputation:", reputation),
             ("Popularity:", popularity),
+            ("Created:", iso_date(attributes.creation_date)),
+            ("Updated:", iso_date(attributes.last_modification_date)),
+            ("Last Check:", iso_date(attributes.last_dns_records_date)),
         )
         return self._gen_panel("virustotal", body, heading)
 
