@@ -30,16 +30,13 @@ class PopularityRanks(BaseModel):
     __root__: Dict[str, Popularity]
 
 
-class Domain(BaseModel):
-    """
-    Essential VT domain fields
-    """
+class Attributes(BaseModel):
     creation_date: int
-    jarm: str
+    jarm: Optional[str]
     last_analysis_results: LastAnalysisResults
     last_analysis_stats: LastAnalysisStats
     last_dns_records_date: int
-    last_https_certificate_date: int
+    last_https_certificate_date: Optional[int]
     last_modification_date: int
     last_update_date: int
     popularity_ranks: PopularityRanks
@@ -48,3 +45,19 @@ class Domain(BaseModel):
     tags: List[str]
     whois: str
     whois_date: Optional[int]
+
+
+class Data(BaseModel):
+    attributes: Attributes
+    id_: str
+    type_: str
+
+    class Config:
+        fields = {
+            "id_": "id",
+            "type_": "type",
+        }
+
+
+class Domain(BaseModel):
+    data: Data

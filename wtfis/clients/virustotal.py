@@ -26,7 +26,7 @@ class VTClient:
             resp = self.s.get(self.baseurl + request)
             resp.raise_for_status()
 
-            return json.loads(json.dumps((resp.json())))["data"]["attributes"]
+            return json.loads(json.dumps((resp.json())))
         except (HTTPError, JSONDecodeError):
             raise
 

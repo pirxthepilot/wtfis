@@ -1,12 +1,12 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class Registrant(BaseModel):
-    organization: str
+    organization: Optional[str]
     email: str
     name: str
-    telephone: str
+    telephone: Optional[str]
 
 
 class Whois(BaseModel):
@@ -15,7 +15,7 @@ class Whois(BaseModel):
     expiresAt: str
     name: str
     nameServers: List[str]
-    organization: str
+    organization: Optional[str]
     registered: str
     registrant: Registrant
     registrar: str
