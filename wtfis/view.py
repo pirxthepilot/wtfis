@@ -111,11 +111,11 @@ class View:
             ("Registrar:", self.whois.registrar),
             ("Organization:", self.whois.organization),
             ("Name:", self.whois.name),
-            ("E-mail:", self.whois.contactEmail),
+            ("Email:", self.whois.contactEmail),
             ("Phone:", self.whois.registrant.telephone),
             ("Registered:", iso_date(self.whois.registered)),
             ("Updated:", iso_date(self.whois.registryUpdatedAt)),
-            ("Loaded:", iso_date(self.whois.lastLoadedAt)),
+            ("Expires:", iso_date(self.whois.expiresAt)),
         )
         return self._gen_panel("whois", body, heading)
 
@@ -139,7 +139,7 @@ class View:
             ("Popularity:", popularity),
             ("Created:", iso_date(attributes.creation_date)),
             ("Updated:", iso_date(attributes.last_modification_date)),
-            ("Last Check:", iso_date(attributes.last_dns_records_date)),
+            ("Last Update:", iso_date(attributes.last_dns_records_date)),
         )
         return self._gen_panel("virustotal", body, heading)
 

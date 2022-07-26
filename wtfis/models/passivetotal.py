@@ -4,8 +4,8 @@ from typing import List, Optional
 
 class Registrant(BaseModel):
     organization: Optional[str]
-    email: str
-    name: str
+    email: Optional[str]
+    name: Optional[str]
     telephone: Optional[str]
 
 
