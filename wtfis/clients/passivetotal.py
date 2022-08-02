@@ -1,14 +1,12 @@
-import json
 import requests
 
-from requests.exceptions import HTTPError, JSONDecodeError
-# from pydantic import ValidationError
 from typing import Optional
 
+from wtfis.clients.base import BaseClient
 from wtfis.models.passivetotal import Whois
 
 
-class PTClient:
+class PTClient(BaseClient):
     """
     Passivetotal client
     """
@@ -17,15 +15,6 @@ class PTClient:
     def __init__(self, api_user: str, api_key: str) -> None:
         self.s = requests.Session()
         self.s.auth = (api_user, api_key)
-
-    def _get(self, request: str, params: Optional[dict] = None) -> Optional[dict]:
-        try:
-            resp = self.s.get(self.baseurl + request, params=params)
-            resp.raise_for_status()
-
-            return json.loads(json.dumps((resp.json())))
-        except (HTTPError, JSONDecodeError):
-            raise
 
     def _query(self, path: str, query: str) -> Optional[dict]:
         return self._get(

@@ -61,3 +61,25 @@ class Data(BaseModel):
 
 class Domain(BaseModel):
     data: Data
+
+
+class ResolutionAttributes(BaseModel):
+    date: int
+    host_name: str
+    resolver: str
+    ip_address_last_analysis_stats: LastAnalysisStats
+    ip_address: str
+    host_name_last_analysis_stats: LastAnalysisStats
+
+
+class ResolutionMeta(BaseModel):
+    count: int
+
+
+class ResolutionData(Data):
+    attributes: ResolutionAttributes
+
+
+class Resolutions(BaseModel):
+    meta: ResolutionMeta
+    data: List[ResolutionData]

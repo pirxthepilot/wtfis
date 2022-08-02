@@ -1,14 +1,10 @@
-import json
 import requests
 
-from requests.exceptions import HTTPError, JSONDecodeError
-# from pydantic import ValidationError
-from typing import Optional
-
-from wtfis.models.virustotal import Domain
+from wtfis.clients.base import BaseClient
+from wtfis.models.virustotal import Domain, Resolutions
 
 
-class VTClient:
+class VTClient(BaseClient):
     """
     Virustotal client
     """
@@ -21,14 +17,11 @@ class VTClient:
             "Accept": "application/json",
         }
 
-    def _get(self, request: str) -> Optional[dict]:
-        try:
-            resp = self.s.get(self.baseurl + request)
-            resp.raise_for_status()
-
-            return json.loads(json.dumps((resp.json())))
-        except (HTTPError, JSONDecodeError):
-            raise
-
     def get_domain(self, domain: str) -> Domain:
         return Domain.parse_obj(self._get(f"/domains/{domain}"))
+
+    def get_domain_resolutions(self, domain: str) -> Resolutions:
+        return Resolutions.parse_obj(self._get(f"/domains/{domain}/resolutions"))
+
+    def get_domain_whois(self, domain: str) -> dict:
+        return self._get(f"/domains/{domain}/historical_whois")

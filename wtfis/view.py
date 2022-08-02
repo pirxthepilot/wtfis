@@ -4,10 +4,16 @@ from rich.padding import Padding
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from typing import Any, Callable, Optional
+from typing import Any, Callable, List, Optional
 
+from wtfis.models.ipwhois import IpWhois
 from wtfis.models.passivetotal import Whois
-from wtfis.models.virustotal import Domain, LastAnalysisStats, PopularityRanks
+from wtfis.models.virustotal import (
+    Domain,
+    LastAnalysisStats,
+    PopularityRanks,
+    Resolutions,
+)
 from wtfis.utils import iso_date
 
 
@@ -40,10 +46,20 @@ class View:
     """
     Handles the look of the output
     """
-    def __init__(self, whois: Whois, vt_domain: Domain):
+    def __init__(
+        self,
+        whois: Whois,
+        domain: Domain,
+        resolutions: Resolutions,
+        max_resolutions: int,
+        ip_enrich: Optional[List[IpWhois]] = None,
+    ) -> None:
         self.console = Console()
         self.whois = whois
-        self.vt = vt_domain
+        self.domain = domain
+        self.resolutions = resolutions
+        self.ip_enrich = ip_enrich
+        self.max_resolutions = max_resolutions
         self.theme = Theme()
 
     def _gen_heading_text(self, heading: str) -> Text:
@@ -105,6 +121,11 @@ class View:
                 text.append("\n")
         return text
 
+    def _get_ip_enrichment(self, ip: str) -> Optional[IpWhois]:
+        for ipwhois in self.ip_enrich:
+            if ipwhois.ip == ip:
+                return ipwhois
+
     def whois_panel(self) -> Panel:
         heading = self._gen_heading_text(self.whois.domain)
         body = self._gen_table(
@@ -119,8 +140,8 @@ class View:
         )
         return self._gen_panel("whois", body, heading)
 
-    def vt_panel(self) -> Panel:
-        attributes = self.vt.data.attributes
+    def domain_panel(self) -> Panel:
+        attributes = self.domain.data.attributes
 
         # Analysis
         analysis = self._gen_vt_analysis_stats(attributes.last_analysis_stats)
@@ -132,7 +153,7 @@ class View:
         popularity = self._gen_vt_popularity(attributes.popularity_ranks)
 
         # Content
-        heading = self._gen_heading_text(self.vt.data.id_)
+        heading = self._gen_heading_text(self.domain.data.id_)
         body = self._gen_table(
             ("Analysis:", analysis),
             ("Reputation:", reputation),
@@ -143,9 +164,38 @@ class View:
         )
         return self._gen_panel("virustotal", body, heading)
 
+    def ip_panels(self) -> List[Panel]:
+        panels = []
+        for idx, ip in enumerate(self.resolutions.data):
+            if idx == self.max_resolutions:
+                break
+            attributes = ip.attributes
+
+            # Analysis
+            analysis = self._gen_vt_analysis_stats(attributes.ip_address_last_analysis_stats)
+
+            # IP Enrichment
+            enrich = self._get_ip_enrichment(attributes.ip_address)
+
+            # Content
+            heading = self._gen_heading_text(attributes.ip_address)
+            data = [
+                ("Analysis:", analysis),
+                ("Date:", iso_date(attributes.date)),
+            ]
+            if enrich:
+                data += [
+                    ("ASN:", f"{enrich.connection.asn} ({enrich.connection.org})"),
+                    ("ISP:", enrich.connection.isp),
+                    ("Location:", ", ".join((enrich.city, enrich.region, enrich.country_code))),
+                ]
+            body = self._gen_table(*data)
+            panels.append(self._gen_panel("ip address", body, heading))
+        return panels
+
     def print(self):
         renderables = [
             self.whois_panel(),
-            self.vt_panel(),
-        ]
+            self.domain_panel(),
+        ] + self.ip_panels()
         self.console.print(Padding(Columns(renderables), (1, 0)))
