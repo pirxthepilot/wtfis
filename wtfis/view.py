@@ -28,6 +28,7 @@ class Theme:
     table_field = "bold bright_magenta"
     table_value = "none"
     inline_stat = "cyan"
+    vendor_list = "cyan"
     info = "bold green"
     warn = "bold yellow"
     error = "bold red"
@@ -67,6 +68,13 @@ class View:
         self.max_resolutions = max_resolutions
         self.theme = Theme()
 
+    def _vendors_who_flagged_malicious(self) -> List[Optional[str]]:
+        vendors = []
+        for key, result in self.domain.data.attributes.last_analysis_results.__root__.items():
+            if result.category == "malicious":
+                vendors.append(key)
+        return vendors
+
     def _gen_heading_text(self, heading: str) -> Text:
         return Text(heading, style=self.theme.heading, justify="center", end="\n")
 
@@ -102,13 +110,26 @@ class View:
         """ Conditional style """
         return func(item) if not self.theme.nocolor else "none"
 
-    def _gen_vt_analysis_stats(self, stats: LastAnalysisStats) -> Text:
+    def _gen_vt_analysis_stats(
+        self,
+        stats: LastAnalysisStats,
+        vendors: Optional[List[str]] = None
+    ) -> Text:
         # Custom style
         def stats_style(malicious):
             return self.theme.error if malicious >= 1 else self.theme.info
 
+        # Total count
         total = stats.harmless + stats.malicious + stats.suspicious + stats.timeout + stats.undetected
-        return Text(f"{stats.malicious}/{total} malicious", style=self._cond_style(stats.malicious, stats_style))
+
+        # Text
+        text = Text(f"{stats.malicious}/{total} malicious", style=self._cond_style(stats.malicious, stats_style))
+
+        # Include list of vendors that flagged malicious
+        if vendors:
+            text.append("\n" + smart_join(*vendors), style=self.theme.vendor_list)
+
+        return text
 
     def _gen_vt_reputation(self, reputation: int) -> Text:
         # Custom style
@@ -156,7 +177,10 @@ class View:
         attributes = self.domain.data.attributes
 
         # Analysis
-        analysis = self._gen_vt_analysis_stats(attributes.last_analysis_stats)
+        analysis = self._gen_vt_analysis_stats(
+            attributes.last_analysis_stats,
+            self._vendors_who_flagged_malicious()
+        )
 
         # Reputation
         reputation = self._gen_vt_reputation(attributes.reputation)
