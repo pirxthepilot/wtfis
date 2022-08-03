@@ -29,6 +29,7 @@ class Theme:
     table_value = "none"
     inline_stat = "cyan"
     vendor_list = "cyan"
+    footer = "cyan"
     info = "bold green"
     warn = "bold yellow"
     error = "bold red"
@@ -194,9 +195,8 @@ class View:
             ("Analysis:", analysis),
             ("Reputation:", reputation),
             ("Popularity:", popularity),
-            ("Created:", iso_date(attributes.creation_date)),
-            ("Updated:", iso_date(attributes.last_modification_date)),
-            ("Last Update:", iso_date(attributes.last_dns_records_date)),
+            ("Last Modified:", iso_date(attributes.last_modification_date)),
+            ("Last Seen:", iso_date(attributes.last_dns_records_date)),
         )
         return self._gen_panel("virustotal", self._gen_info(body, heading))
 
@@ -235,6 +235,16 @@ class View:
                 idx < len(self.resolutions.data) - 1
             ):
                 content.append("")
+
+        # Info about how many more IPs were not shown
+        if self.max_resolutions < self.resolutions.meta.count:
+            content.append(
+                Text(
+                    f"\n+{self.resolutions.meta.count - self.max_resolutions} more",
+                    justify="center",
+                    style=self.theme.footer,
+                )
+            )
 
         # Render results, if existent
         if content:
