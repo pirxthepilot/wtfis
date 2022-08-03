@@ -1,5 +1,10 @@
 from rich.columns import Columns
-from rich.console import Console, Group
+from rich.console import (
+    Console,
+    Group,
+    RenderableType,
+    group,
+)
 from rich.padding import Padding
 from rich.panel import Panel
 from rich.table import Table
@@ -81,9 +86,18 @@ class View:
 
         return grid
 
-    def _gen_panel(self, title: str, body: Text, heading: Optional[Text] = None) -> Panel:
+    @group()
+    def _gen_group(self, content: List[RenderableType]) -> Group:
+        for item in content:
+            yield item
+
+    def _gen_info(self, body: Text, heading: Optional[Text] = None) -> Group:
+        return Group(heading, body) if heading else body
+
+    def _gen_panel(self, title: str, renderable: RenderableType) -> Panel:
         panel_title = Text(title, style=self.theme.panel_title)
-        renderable = Group(heading, body) if heading else body
+        # renderable = Group(heading, body) if heading else body
+        # renderable = self._gen_info_block(body, heading)
         return Panel(renderable, title=panel_title, expand=False)
 
     def _cond_style(self, item: Any, func: Callable) -> Optional[str]:
@@ -138,7 +152,7 @@ class View:
             ("Updated:", iso_date(self.whois.registryUpdatedAt)),
             ("Expires:", iso_date(self.whois.expiresAt)),
         )
-        return self._gen_panel("whois", body, heading)
+        return self._gen_panel("whois", self._gen_info(body, heading))
 
     def domain_panel(self) -> Panel:
         attributes = self.domain.data.attributes
@@ -162,10 +176,10 @@ class View:
             ("Updated:", iso_date(attributes.last_modification_date)),
             ("Last Update:", iso_date(attributes.last_dns_records_date)),
         )
-        return self._gen_panel("virustotal", body, heading)
+        return self._gen_panel("virustotal", self._gen_info(body, heading))
 
-    def ip_panels(self) -> List[Panel]:
-        panels = []
+    def resolutions_panel(self) -> Optional[Panel]:
+        content = []
         for idx, ip in enumerate(self.resolutions.data):
             if idx == self.max_resolutions:
                 break
@@ -187,15 +201,27 @@ class View:
                 data += [
                     ("ASN:", f"{enrich.connection.asn} ({enrich.connection.org})"),
                     ("ISP:", enrich.connection.isp),
-                    ("Location:", ", ".join((enrich.city, enrich.region, enrich.country_code))),
+                    ("Location:", ", ".join((enrich.city, enrich.region, enrich.country))),
                 ]
             body = self._gen_table(*data)
-            panels.append(self._gen_panel("ip address", body, heading))
-        return panels
+
+            content.append(self._gen_info(body, heading))
+
+            # Add extra line break if not last item in list
+            if (
+                idx < self.max_resolutions - 1 and
+                idx < len(self.resolutions.data) - 1
+            ):
+                content.append("")
+
+        # Render results, if existent
+        if content:
+            return self._gen_panel("resolutions", self._gen_group(content))
 
     def print(self):
-        renderables = [
-            self.whois_panel(),
+        renderables = [i for i in (
             self.domain_panel(),
-        ] + self.ip_panels()
+            self.resolutions_panel(),
+            self.whois_panel(),
+        ) if i is not None]
         self.console.print(Padding(Columns(renderables), (1, 0)))

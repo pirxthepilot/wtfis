@@ -10,14 +10,14 @@ class Registrant(BaseModel):
 
 
 class Whois(BaseModel):
-    contactEmail: str
+    contactEmail: Optional[str]
     domain: str
-    expiresAt: str
+    expiresAt: Optional[str]
     lastLoadedAt: str
     name: str
     nameServers: List[str]
     organization: Optional[str]
-    registered: str
+    registered: Optional[str]
     registrant: Registrant
-    registrar: str
-    registryUpdatedAt: str
+    registrar: Optional[str]
+    registryUpdatedAt: Optional[str]
