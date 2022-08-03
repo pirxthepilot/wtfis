@@ -19,7 +19,7 @@ from wtfis.models.virustotal import (
     PopularityRanks,
     Resolutions,
 )
-from wtfis.utils import iso_date
+from wtfis.utils import iso_date, smart_join
 
 
 class Theme:
@@ -96,8 +96,6 @@ class View:
 
     def _gen_panel(self, title: str, renderable: RenderableType) -> Panel:
         panel_title = Text(title, style=self.theme.panel_title)
-        # renderable = Group(heading, body) if heading else body
-        # renderable = self._gen_info_block(body, heading)
         return Panel(renderable, title=panel_title, expand=False)
 
     def _cond_style(self, item: Any, func: Callable) -> Optional[str]:
@@ -195,13 +193,13 @@ class View:
             heading = self._gen_heading_text(attributes.ip_address)
             data = [
                 ("Analysis:", analysis),
-                ("Date:", iso_date(attributes.date)),
+                ("Last Seen:", iso_date(attributes.date)),
             ]
             if enrich:
                 data += [
                     ("ASN:", f"{enrich.connection.asn} ({enrich.connection.org})"),
                     ("ISP:", enrich.connection.isp),
-                    ("Location:", ", ".join((enrich.city, enrich.region, enrich.country))),
+                    ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
                 ]
             body = self._gen_table(*data)
 
