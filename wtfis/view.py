@@ -42,11 +42,11 @@ class Theme:
             and not attr.startswith("__")
         ]
 
-    def __init__(self, nocolor: Optional[bool] = False):
+    def __init__(self, no_color: Optional[bool] = False):
         for attr in type(self)._get_theme_vars():
-            value = getattr(self, attr) if not nocolor else "none"
+            value = getattr(self, attr) if not no_color else "none"
             setattr(self, attr, value)
-        self.nocolor = nocolor
+        self.nocolor = no_color
 
 
 class View:
@@ -58,8 +58,9 @@ class View:
         whois: Whois,
         domain: Domain,
         resolutions: Resolutions,
-        max_resolutions: int,
         ip_enrich: Optional[List[IpWhois]] = None,
+        max_resolutions: Optional[int] = 3,
+        no_color: Optional[bool] = False,
     ) -> None:
         self.console = Console()
         self.whois = whois
@@ -67,7 +68,7 @@ class View:
         self.resolutions = resolutions
         self.ip_enrich = ip_enrich
         self.max_resolutions = max_resolutions
-        self.theme = Theme()
+        self.theme = Theme(no_color=no_color)
 
     def _vendors_who_flagged_malicious(self) -> List[Optional[str]]:
         vendors = []
@@ -201,6 +202,10 @@ class View:
         return self._gen_panel("virustotal", self._gen_info(body, heading))
 
     def resolutions_panel(self) -> Optional[Panel]:
+        # Skip if no resolutions data
+        if not self.resolutions:
+            return
+
         content = []
         for idx, ip in enumerate(self.resolutions.data):
             if idx == self.max_resolutions:
