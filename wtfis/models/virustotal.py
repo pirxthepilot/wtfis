@@ -1,5 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import Dict, List, Optional
+
+
+class Meta(BaseModel):
+    count: int
 
 
 class AnalysisResult(BaseModel):
@@ -70,14 +74,69 @@ class ResolutionAttributes(BaseModel):
     host_name_last_analysis_stats: LastAnalysisStats
 
 
-class ResolutionMeta(BaseModel):
-    count: int
-
-
 class ResolutionData(Data):
     attributes: ResolutionAttributes
 
 
 class Resolutions(BaseModel):
-    meta: ResolutionMeta
+    meta: Meta
     data: List[ResolutionData]
+
+
+class HistoricalWhoisMap(BaseModel):
+    domain: str
+    registrar: str
+    name_servers: List[str]
+    creation_date: str
+    expiry_date: str
+    updated_date: str
+    admin_city: Optional[str]
+    admin_state: Optional[str]
+    admin_country: Optional[str]
+    admin_postal_code: Optional[str]
+    admin_email: Optional[str]
+    registrant_name: Optional[str]
+    registrant_email: Optional[str]
+
+    class Config:
+        fields = {
+            "domain": "Domain Name",
+            "registrar": "Registrar",
+            "name_servers": "Name Server",
+            "creation_date": "Creation Date",
+            "expiry_date": "Registry Expiry Date",
+            "updated_date": "Updated Date",
+            "admin_city": "Admin City",
+            "admin_state": "Admin State/Province",
+            "admin_country": "Admin Country",
+            "admin_postal_code": "Admin Postal Code",
+            "admin_email": "Admin Email",
+            "registrant_name": "Registrant Name",
+            "registrant_email": "Registrant Email",
+        }
+
+    @validator("name_servers", pre=True)
+    def transform_nameservers(cls, v):
+        return v.split(" | ")
+
+    @validator("*")
+    def dedupe_values(cls, v):
+        if "|" in v:
+            return v.split(" | ")[0]
+        return v
+
+
+class HistoricalWhoisAttributes(BaseModel):
+    first_seen_date: int
+    whois_map: HistoricalWhoisMap
+    registrant_country: Optional[str]
+    last_updated: int
+
+
+class HistoricalWhoisData(Data):
+    attributes: HistoricalWhoisAttributes
+
+
+class HistoricalWhois(BaseModel):
+    meta: Meta
+    data: List[HistoricalWhoisData]

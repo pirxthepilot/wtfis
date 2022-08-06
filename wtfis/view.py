@@ -9,12 +9,13 @@ from rich.padding import Padding
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, List, Optional, Union
 
 from wtfis.models.ipwhois import IpWhois
 from wtfis.models.passivetotal import Whois
 from wtfis.models.virustotal import (
     Domain,
+    HistoricalWhois,
     LastAnalysisStats,
     PopularityRanks,
     Resolutions,
@@ -55,17 +56,17 @@ class View:
     """
     def __init__(
         self,
-        whois: Whois,
         domain: Domain,
         resolutions: Resolutions,
+        whois: Union[Whois, HistoricalWhois],
         ip_enrich: Optional[List[IpWhois]] = None,
         max_resolutions: Optional[int] = 3,
         no_color: Optional[bool] = False,
     ) -> None:
         self.console = Console()
-        self.whois = whois
         self.domain = domain
         self.resolutions = resolutions
+        self.whois = whois
         self.ip_enrich = ip_enrich
         self.max_resolutions = max_resolutions
         self.theme = Theme(no_color=no_color)
@@ -161,18 +162,49 @@ class View:
             if ipwhois.ip == ip:
                 return ipwhois
 
-    def whois_panel(self) -> Panel:
-        heading = self._gen_heading_text(self.whois.domain)
-        body = self._gen_table(
-            ("Registrar:", self.whois.registrar),
-            ("Organization:", self.whois.organization),
-            ("Name:", self.whois.name),
-            ("Email:", self.whois.contactEmail),
-            ("Phone:", self.whois.registrant.telephone),
-            ("Registered:", iso_date(self.whois.registered)),
-            ("Updated:", iso_date(self.whois.registryUpdatedAt)),
-            ("Expires:", iso_date(self.whois.expiresAt)),
-        )
+    def whois_panel(self) -> Optional[Panel]:
+        # Using PT Whois
+        if isinstance(self.whois, Whois):
+            heading = self._gen_heading_text(self.whois.domain)
+            body = self._gen_table(
+                ("Registrar:", self.whois.registrar),
+                ("Organization:", self.whois.organization),
+                ("Name:", self.whois.name),
+                ("Email:", self.whois.contactEmail),
+                ("Phone:", self.whois.registrant.telephone),
+                ("Registered:", iso_date(self.whois.registered)),
+                ("Updated:", iso_date(self.whois.registryUpdatedAt)),
+                ("Expires:", iso_date(self.whois.expiresAt)),
+                ("Nameservers:", smart_join(*self.whois.nameServers)),
+            )
+        # Using VT HistoricalWhois
+        else:
+            if not self.whois.data:
+                return None
+
+            # Use the first, i.e. latest whois entry
+            attribs = self.whois.data[0].attributes
+
+            # Admin location
+            admin_location = smart_join(
+                attribs.whois_map.admin_city,
+                attribs.whois_map.admin_state,
+                attribs.whois_map.admin_country,
+            )
+
+            heading = self._gen_heading_text(attribs.whois_map.domain)
+            body = self._gen_table(
+                ("Registrar:", attribs.whois_map.registrar),
+                ("Name:", attribs.whois_map.registrant_name),
+                ("Email:", attribs.whois_map.registrant_email),
+                ("Country:", attribs.registrant_country),
+                ("Admin Location:", admin_location),
+                ("Registered:", attribs.whois_map.creation_date),
+                ("Updated:", attribs.whois_map.updated_date),
+                ("Expires:", attribs.whois_map.expiry_date),
+                ("Nameservers:", smart_join(*attribs.whois_map.name_servers)),
+            )
+
         return self._gen_panel("whois", self._gen_info(body, heading))
 
     def domain_panel(self) -> Panel:

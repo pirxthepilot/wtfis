@@ -3,7 +3,7 @@ import requests
 from typing import Optional
 
 from wtfis.clients.base import BaseClient
-from wtfis.models.virustotal import Domain, Resolutions
+from wtfis.models.virustotal import Domain, HistoricalWhois, Resolutions
 
 
 class VTClient(BaseClient):
@@ -25,5 +25,5 @@ class VTClient(BaseClient):
     def get_domain_resolutions(self, domain: str) -> Optional[Resolutions]:
         return Resolutions.parse_obj(self._get(f"/domains/{domain}/resolutions"))
 
-    def get_domain_whois(self, domain: str) -> dict:
-        return self._get(f"/domains/{domain}/historical_whois")
+    def get_domain_whois(self, domain: str) -> HistoricalWhois:
+        return HistoricalWhois.parse_obj(self._get(f"/domains/{domain}/historical_whois"))
