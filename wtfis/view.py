@@ -30,6 +30,7 @@ class Theme:
     table_value = "none"
     inline_stat = "cyan"
     vendor_list = "cyan"
+    nameserver_list = "cyan"
     footer = "cyan"
     info = "bold green"
     warn = "bold yellow"
@@ -86,12 +87,12 @@ class View:
         # Set up table
         grid = Table.grid(expand=False, padding=(0, 1))
         grid.add_column(style=self.theme.table_field)                # Field
-        grid.add_column(style=self.theme.table_value, max_width=40)  # Value
+        grid.add_column(style=self.theme.table_value, max_width=38)  # Value
 
         # Populate rows
         for item in params:
             field, value = item
-            if value is None:  # Skip if no value
+            if value is None or value == "":  # Skip if no value
                 continue
             grid.add_row(field, value)
 
@@ -130,7 +131,8 @@ class View:
 
         # Include list of vendors that flagged malicious
         if vendors:
-            text.append("\n" + smart_join(*vendors), style=self.theme.vendor_list)
+            text.append("\n")
+            text.append(smart_join(*vendors, style=self.theme.vendor_list))
 
         return text
 
@@ -175,7 +177,7 @@ class View:
                 ("Registered:", iso_date(self.whois.registered)),
                 ("Updated:", iso_date(self.whois.registryUpdatedAt)),
                 ("Expires:", iso_date(self.whois.expiresAt)),
-                ("Nameservers:", smart_join(*self.whois.nameServers)),
+                ("Nameservers:", smart_join(*self.whois.nameServers, style=self.theme.nameserver_list)),
             )
         # Using VT HistoricalWhois
         else:
@@ -202,7 +204,7 @@ class View:
                 ("Registered:", attribs.whois_map.creation_date),
                 ("Updated:", attribs.whois_map.updated_date),
                 ("Expires:", attribs.whois_map.expiry_date),
-                ("Nameservers:", smart_join(*attribs.whois_map.name_servers)),
+                ("Nameservers:", smart_join(*attribs.whois_map.name_servers, style=self.theme.nameserver_list)),
             )
 
         return self._gen_panel("whois", self._gen_info(body, heading))
