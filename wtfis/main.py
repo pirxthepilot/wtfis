@@ -32,6 +32,7 @@ def parse_args():
     parser.add_argument("hostname", help="Hostname or domain")
     parser.add_argument("-n", "--no-color", help="Show output without colors", action="store_true")
     parser.add_argument("-m", "--max-resolutions", help="Maximum number of resolutions to show", type=int, default=3)
+    parser.add_argument("-1", "--one-column", help="Display results in one column", action="store_true")
 
     # Validation
     parsed = parser.parse_args()
@@ -79,4 +80,4 @@ def main():
         max_resolutions=args.max_resolutions,
         no_color=args.no_color,
     )
-    console.print()
+    console.print(one_column=args.one_column)

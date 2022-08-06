@@ -289,10 +289,14 @@ class View:
         if content:
             return self._gen_panel("resolutions", self._gen_group(content))
 
-    def print(self):
+    def print(self, one_column: bool = False) -> None:
         renderables = [i for i in (
             self.domain_panel(),
             self.resolutions_panel(),
             self.whois_panel(),
         ) if i is not None]
-        self.console.print(Padding(Columns(renderables), (1, 0)))
+
+        if one_column:
+            self.console.print(Group(*renderables))
+        else:
+            self.console.print(Padding(Columns(renderables), (1, 0)))
