@@ -1,3 +1,5 @@
+import sys
+
 from datetime import datetime, timezone
 from typing import Optional, Union
 
@@ -21,4 +23,8 @@ def smart_join(*items: str, style: Optional[str] = None) -> Optional[Text]:
         if item != items[-1]:
             text.append(", ", style="default")
     return text
-    # return ", ".join([i for i in items if i])
+
+
+def error_and_exit(message: str, status: int = 1):
+    print(message, file=sys.stderr)
+    raise SystemExit(status)
