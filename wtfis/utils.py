@@ -1,6 +1,6 @@
 import sys
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Union
 
 from rich.text import Text
@@ -13,6 +13,11 @@ def iso_date(ts: Union[str, int]) -> str:
         return datetime.fromtimestamp(ts, tz=timezone.utc).strftime(std_utc)
     elif isinstance(ts, str):
         return datetime.fromisoformat(ts).astimezone(timezone.utc).strftime(std_utc)
+
+
+def older_than(ts: int, days: int) -> bool:
+    """ Tells if a timestamp is older than X days. "ts" must be epoch format """
+    return datetime.fromtimestamp(ts) < datetime.now() - timedelta(days=days)
 
 
 def smart_join(*items: str, style: Optional[str] = None) -> Optional[Text]:

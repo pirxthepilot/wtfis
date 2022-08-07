@@ -20,7 +20,7 @@ from wtfis.models.virustotal import (
     PopularityRanks,
     Resolutions,
 )
-from wtfis.utils import iso_date, smart_join
+from wtfis.utils import iso_date, older_than, smart_join
 
 
 class Theme:
@@ -31,6 +31,7 @@ class Theme:
     inline_stat = "cyan"
     vendor_list = "cyan"
     nameserver_list = "cyan"
+    disclaimer = "reverse red"
     footer = "cyan"
     info = "bold green"
     warn = "bold yellow"
@@ -268,7 +269,15 @@ class View:
                     ("ISP:", enrich.connection.isp),
                     ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
                 ]
-            body = self._gen_table(*data)
+
+            # Include a disclaimer if last seen is older than 1 year
+            if older_than(attributes.date, 365):
+                body = Group(
+                    self._gen_table(*data),
+                    Text("* Enrichment data may be inaccurate", style=self.theme.disclaimer),
+                )
+            else:
+                body = self._gen_table(*data)
 
             content.append(self._gen_info(body, heading))
 
