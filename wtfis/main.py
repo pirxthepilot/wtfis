@@ -12,6 +12,7 @@ from wtfis.clients.virustotal import VTClient
 from wtfis.utils import error_and_exit
 from wtfis.ui.progress import get_progress
 from wtfis.ui.view import View
+from wtfis.version import get_version
 
 
 def parse_env():
@@ -32,11 +33,24 @@ def parse_env():
 
 
 def parse_args():
+    DEFAULT_MAX_RESOLUTIONS = 3
+
     parser = argparse.ArgumentParser()
     parser.add_argument("hostname", help="Hostname or domain")
+    parser.add_argument(
+        "-m", "--max-resolutions", metavar="N",
+        help=f"Maximum number of resolutions to show (default: {DEFAULT_MAX_RESOLUTIONS})",
+        type=int,
+        default=DEFAULT_MAX_RESOLUTIONS
+    )
     parser.add_argument("-n", "--no-color", help="Show output without colors", action="store_true")
-    parser.add_argument("-m", "--max-resolutions", help="Maximum number of resolutions to show", type=int, default=3)
     parser.add_argument("-1", "--one-column", help="Display results in one column", action="store_true")
+    parser.add_argument(
+        "-V", "--version",
+        help="Print version number",
+        action="version",
+        version=get_version()
+    )
 
     # Validation
     parsed = parser.parse_args()
