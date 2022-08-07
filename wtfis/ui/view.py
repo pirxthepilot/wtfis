@@ -297,6 +297,6 @@ class View:
         ) if i is not None]
 
         if one_column:
-            self.console.print(Group(*renderables))
+            self.console.print(Group(*([""] + renderables)))
         else:
             self.console.print(Padding(Columns(renderables), (1, 0)))

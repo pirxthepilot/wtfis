@@ -10,7 +10,8 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.utils import error_and_exit
-from wtfis.view import View
+from wtfis.ui.progress import get_progress
+from wtfis.ui.view import View
 
 
 def parse_env():
@@ -52,33 +53,50 @@ def main():
     # Args
     args = parse_args()
 
+    # Progress animation controller
+    progress = get_progress()
+
     # Fetch data
-    try:
-        # Virustotal domain
-        vt = VTClient(os.environ.get("VT_API_KEY"))
-        domain = vt.get_domain(args.hostname)
+    with progress:
+        try:
+            # Virustotal domain
+            task1 = progress.add_task("Fetching data from Virustotal", total=3)
+            vt = VTClient(os.environ.get("VT_API_KEY"))
+            progress.update(task1, advance=1)
+            domain = vt.get_domain(args.hostname)
+            progress.update(task1, advance=1)
 
-        # Resolutions and IP enrichments
-        if args.max_resolutions != 0:
-            resolutions = vt.get_domain_resolutions(args.hostname)
+            # Resolutions and IP enrichments
+            if args.max_resolutions != 0:
+                resolutions = vt.get_domain_resolutions(args.hostname)
+                progress.update(task1, advance=1)
 
-            ipwhois = IpWhoisClient()
-            ip_enrich = ipwhois.bulk_get_ipwhois(resolutions, args.max_resolutions)
-        else:
-            resolutions = None
-            ip_enrich = []
+                task2 = progress.add_task("Fetching IP enrichments from IPWhois", total=2)
+                ipwhois = IpWhoisClient()
+                progress.update(task2, advance=1)
+                ip_enrich = ipwhois.bulk_get_ipwhois(resolutions, args.max_resolutions)
+                progress.update(task2, advance=1)
+            else:
+                resolutions = None
+                ip_enrich = []
+            progress.update(task1, complete=3)
 
-        # Whois
-        # Use Passivetotal if relevant environment variables exist, otherwise keep using VT
-        if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
-            pt = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
-            whois = pt.get_whois(args.hostname)
-        else:
-            whois = vt.get_domain_whois(args.hostname)
-    except (HTTPError, JSONDecodeError) as e:
-        error_and_exit(f"Error fetching data: {e}")
-    except ValidationError as e:
-        error_and_exit(f"Data model validation error: {e}")
+            # Whois
+            # Use Passivetotal if relevant environment variables exist, otherwise keep using VT
+            if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
+                task3 = progress.add_task("Fetching domain whois from Passivetotal", total=2)
+                pt = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
+                progress.update(task3, advance=1)
+                whois = pt.get_whois(args.hostname)
+                progress.update(task3, advance=1)
+            else:
+                task3 = progress.add_task("Fetching domain whois from Virustotal", total=1)
+                whois = vt.get_domain_whois(args.hostname)
+                progress.update(task3, advance=1)
+        except (HTTPError, JSONDecodeError) as e:
+            error_and_exit(f"Error fetching data: {e}")
+        except ValidationError as e:
+            error_and_exit(f"Data model validation error: {e}")
 
     # Output
     console = View(
