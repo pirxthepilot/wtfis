@@ -174,10 +174,14 @@ class View:
                 ("Name:", self.whois.name),
                 ("Email:", self.whois.contactEmail),
                 ("Phone:", self.whois.registrant.telephone),
+                ("Street:", self.whois.registrant.street),
+                ("City:", self.whois.registrant.city),
+                ("State:", self.whois.registrant.state),
+                ("Country:", self.whois.registrant.country),
+                ("Nameservers:", smart_join(*self.whois.nameServers, style=self.theme.nameserver_list)),
                 ("Registered:", iso_date(self.whois.registered)),
                 ("Updated:", iso_date(self.whois.registryUpdatedAt)),
                 ("Expires:", iso_date(self.whois.expiresAt)),
-                ("Nameservers:", smart_join(*self.whois.nameServers, style=self.theme.nameserver_list)),
             )
         # Using VT HistoricalWhois
         else:
@@ -201,10 +205,10 @@ class View:
                 ("Email:", attribs.whois_map.registrant_email),
                 ("Country:", attribs.registrant_country),
                 ("Admin Location:", admin_location),
+                ("Nameservers:", smart_join(*attribs.whois_map.name_servers, style=self.theme.nameserver_list)),
                 ("Registered:", attribs.whois_map.creation_date),
                 ("Updated:", attribs.whois_map.updated_date),
                 ("Expires:", attribs.whois_map.expiry_date),
-                ("Nameservers:", smart_join(*attribs.whois_map.name_servers, style=self.theme.nameserver_list)),
             )
 
         return self._gen_panel("whois", self._gen_info(body, heading))

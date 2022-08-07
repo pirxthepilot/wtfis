@@ -74,42 +74,44 @@ def main():
     with progress:
         try:
             # Virustotal domain
-            task1 = progress.add_task("Fetching data from Virustotal", total=3)
+            task1 = progress.add_task("Fetching data from Virustotal")
             vt = VTClient(os.environ.get("VT_API_KEY"))
-            progress.update(task1, advance=1)
+            progress.update(task1, advance=33)
             domain = vt.get_domain(args.hostname)
-            progress.update(task1, advance=1)
+            progress.update(task1, advance=33)
 
             # Resolutions and IP enrichments
             if args.max_resolutions != 0:
                 resolutions = vt.get_domain_resolutions(args.hostname)
-                progress.update(task1, advance=1)
+                progress.update(task1, advance=33)
 
-                task2 = progress.add_task("Fetching IP enrichments from IPWhois", total=2)
+                task2 = progress.add_task("Fetching IP enrichments from IPWhois")
                 ipwhois = IpWhoisClient()
-                progress.update(task2, advance=1)
+                progress.update(task2, advance=50)
                 ip_enrich = ipwhois.bulk_get_ipwhois(resolutions, args.max_resolutions)
-                progress.update(task2, advance=1)
+                progress.update(task2, advance=50)
             else:
                 resolutions = None
                 ip_enrich = []
-            progress.update(task1, complete=3)
+            progress.update(task1, completed=100)
 
             # Whois
             # Use Passivetotal if relevant environment variables exist, otherwise keep using VT
             if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
-                task3 = progress.add_task("Fetching domain whois from Passivetotal", total=2)
+                task3 = progress.add_task("Fetching domain whois from Passivetotal")
                 pt = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
-                progress.update(task3, advance=1)
+                progress.update(task3, advance=50)
                 whois = pt.get_whois(args.hostname)
-                progress.update(task3, advance=1)
+                progress.update(task3, advance=50)
             else:
-                task3 = progress.add_task("Fetching domain whois from Virustotal", total=1)
+                task3 = progress.add_task("Fetching domain whois from Virustotal")
                 whois = vt.get_domain_whois(args.hostname)
-                progress.update(task3, advance=1)
+                progress.update(task3, advance=100)
         except (HTTPError, JSONDecodeError) as e:
+            progress.stop()
             error_and_exit(f"Error fetching data: {e}")
         except ValidationError as e:
+            progress.stop()
             error_and_exit(f"Data model validation error: {e}")
 
     # Output

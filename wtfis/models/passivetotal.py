@@ -7,6 +7,11 @@ class Registrant(BaseModel):
     email: Optional[str]
     name: Optional[str]
     telephone: Optional[str]
+    street: Optional[str]
+    city: Optional[str]
+    state: Optional[str]
+    country: Optional[str]
+    postalCode: Optional[str]
 
 
 class Whois(BaseModel):
