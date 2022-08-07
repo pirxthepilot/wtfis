@@ -22,7 +22,7 @@ def smart_join(*items: str, style: Optional[str] = None) -> Optional[Text]:
             text.append(item, style=style)
         if item != items[-1]:
             text.append(", ", style="default")
-    return text
+    return text if str(text) != "" else None
 
 
 def error_and_exit(message: str, status: int = 1):

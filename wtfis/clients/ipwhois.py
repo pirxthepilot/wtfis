@@ -17,7 +17,8 @@ class IpWhoisClient(BaseClient):
         self.s = requests.Session()
 
     def get_ipwhois(self, ip: str) -> Optional[IpWhois]:
-        return IpWhois.parse_obj(self._get(f"/{ip}"))
+        result = self._get(f"/{ip}")
+        return IpWhois.parse_obj(result) if result.get("success") is True else None
 
     def bulk_get_ipwhois(
         self,
