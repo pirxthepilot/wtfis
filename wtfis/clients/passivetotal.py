@@ -1,5 +1,3 @@
-import requests
-
 from typing import Optional
 
 from wtfis.clients.base import BaseClient
@@ -13,7 +11,7 @@ class PTClient(BaseClient):
     baseurl = "https://api.riskiq.net/pt/v2"
 
     def __init__(self, api_user: str, api_key: str) -> None:
-        self.s = requests.Session()
+        super().__init__()
         self.s.auth = (api_user, api_key)
 
     def _query(self, path: str, query: str) -> Optional[dict]:
@@ -22,7 +20,7 @@ class PTClient(BaseClient):
             params={"query": query}
         )
 
-    def get_passive_dns(self, domain: str) -> dict:
+    def get_passive_dns(self, domain: str) -> Optional[dict]:
         return self._query("/dns/passive", domain)
 
     def get_whois(self, domain: str) -> Optional[Whois]:

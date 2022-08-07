@@ -6,13 +6,14 @@ from typing import Optional, Union
 from rich.text import Text
 
 
-def iso_date(ts: Union[str, int]) -> str:
+def iso_date(ts: Optional[Union[str, int]]) -> Optional[str]:
     """ Convert any time to a standard format """
     std_utc = "%Y-%m-%dT%H:%M:%SZ"
     if isinstance(ts, int):
         return datetime.fromtimestamp(ts, tz=timezone.utc).strftime(std_utc)
     elif isinstance(ts, str):
         return datetime.fromisoformat(ts).astimezone(timezone.utc).strftime(std_utc)
+    return None
 
 
 def older_than(ts: int, days: int) -> bool:
@@ -20,14 +21,14 @@ def older_than(ts: int, days: int) -> bool:
     return datetime.fromtimestamp(ts) < datetime.now() - timedelta(days=days)
 
 
-def smart_join(*items: str, style: Optional[str] = None) -> Optional[Text]:
+def smart_join(*items: Optional[str], style: Optional[str] = None) -> Union[Text, str]:
     text = Text()
     for item in items:
         if item:
             text.append(item, style=style)
         if item != items[-1]:
             text.append(", ", style="default")
-    return text if str(text) != "" else None
+    return text if str(text) != "" else ""
 
 
 def error_and_exit(message: str, status: int = 1):

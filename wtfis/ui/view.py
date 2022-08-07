@@ -7,9 +7,10 @@ from rich.console import (
 )
 from rich.padding import Padding
 from rich.panel import Panel
+from rich.style import Style
 from rich.table import Table
 from rich.text import Text
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Generator, List, Optional, Union
 
 from wtfis.models.ipwhois import IpWhois
 from wtfis.models.passivetotal import Whois
@@ -45,7 +46,7 @@ class Theme:
             and not attr.startswith("__")
         ]
 
-    def __init__(self, no_color: Optional[bool] = False):
+    def __init__(self, no_color: bool = False):
         for attr in type(self)._get_theme_vars():
             value = getattr(self, attr) if not no_color else "none"
             setattr(self, attr, value)
@@ -61,9 +62,9 @@ class View:
         domain: Domain,
         resolutions: Resolutions,
         whois: Union[Whois, HistoricalWhois],
-        ip_enrich: Optional[List[IpWhois]] = None,
-        max_resolutions: Optional[int] = 3,
-        no_color: Optional[bool] = False,
+        ip_enrich: List[IpWhois] = [],
+        max_resolutions: int = 3,
+        no_color: bool = False,
     ) -> None:
         self.console = Console()
         self.domain = domain
@@ -73,7 +74,7 @@ class View:
         self.max_resolutions = max_resolutions
         self.theme = Theme(no_color=no_color)
 
-    def _vendors_who_flagged_malicious(self) -> List[Optional[str]]:
+    def _vendors_who_flagged_malicious(self) -> List[str]:
         vendors = []
         for key, result in self.domain.data.attributes.last_analysis_results.__root__.items():
             if result.category == "malicious":
@@ -93,25 +94,25 @@ class View:
         # Populate rows
         for item in params:
             field, value = item
-            if value is None or value == "":  # Skip if no value
+            if value is None or str(value) == "":  # Skip if no value
                 continue
             grid.add_row(field, value)
 
         return grid
 
     @group()
-    def _gen_group(self, content: List[RenderableType]) -> Group:
+    def _gen_group(self, content: List[RenderableType]) -> Generator:
         for item in content:
             yield item
 
-    def _gen_info(self, body: Text, heading: Optional[Text] = None) -> Group:
+    def _gen_info(self, body: RenderableType, heading: Optional[Text] = None) -> RenderableType:
         return Group(heading, body) if heading else body
 
     def _gen_panel(self, title: str, renderable: RenderableType) -> Panel:
         panel_title = Text(title, style=self.theme.panel_title)
         return Panel(renderable, title=panel_title, expand=False)
 
-    def _cond_style(self, item: Any, func: Callable) -> Optional[str]:
+    def _cond_style(self, item: Any, func: Callable) -> Union[str, Style]:
         """ Conditional style """
         return func(item) if not self.theme.nocolor else "none"
 
@@ -164,6 +165,7 @@ class View:
         for ipwhois in self.ip_enrich:
             if ipwhois.ip == ip:
                 return ipwhois
+        return None
 
     def whois_panel(self) -> Optional[Panel]:
         # Using PT Whois
@@ -243,7 +245,7 @@ class View:
     def resolutions_panel(self) -> Optional[Panel]:
         # Skip if no resolutions data
         if not self.resolutions:
-            return
+            return None
 
         content = []
         for idx, ip in enumerate(self.resolutions.data):
@@ -275,7 +277,7 @@ class View:
                 body = Group(
                     self._gen_table(*data),
                     Text("* Enrichment data may be inaccurate", style=self.theme.disclaimer),
-                )
+                )  # type: Union[Group, Table]
             else:
                 body = self._gen_table(*data)
 
@@ -302,6 +304,9 @@ class View:
         if content:
             return self._gen_panel("resolutions", self._gen_group(content))
 
+        # No result
+        return None
+
     def print(self, one_column: bool = False) -> None:
         renderables = [i for i in (
             self.domain_panel(),
@@ -310,6 +315,6 @@ class View:
         ) if i is not None]
 
         if one_column:
-            self.console.print(Group(*([""] + renderables)))
+            self.console.print(Group(*([""] + renderables)))  # type: ignore
         else:
             self.console.print(Padding(Columns(renderables), (1, 0)))

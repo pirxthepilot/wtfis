@@ -1,5 +1,17 @@
 from pydantic import BaseModel, validator
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
+
+
+class BaseData(BaseModel):
+    attributes: Any
+    id_: str
+    type_: str
+
+    class Config:
+        fields = {
+            "id_": "id",
+            "type_": "type",
+        }
 
 
 class Meta(BaseModel):
@@ -49,7 +61,7 @@ class Attributes(BaseModel):
     tags: List[str]
 
 
-class Data(BaseModel):
+class Data(BaseData):
     attributes: Attributes
     id_: str
     type_: str
@@ -74,7 +86,7 @@ class ResolutionAttributes(BaseModel):
     host_name_last_analysis_stats: LastAnalysisStats
 
 
-class ResolutionData(Data):
+class ResolutionData(BaseData):
     attributes: ResolutionAttributes
 
 
@@ -133,7 +145,7 @@ class HistoricalWhoisAttributes(BaseModel):
     last_updated: int
 
 
-class HistoricalWhoisData(Data):
+class HistoricalWhoisData(BaseData):
     attributes: HistoricalWhoisAttributes
 
 

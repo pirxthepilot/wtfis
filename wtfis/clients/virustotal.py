@@ -1,5 +1,3 @@
-import requests
-
 from typing import Optional
 
 from wtfis.clients.base import BaseClient
@@ -13,11 +11,11 @@ class VTClient(BaseClient):
     baseurl = "https://www.virustotal.com/api/v3"
 
     def __init__(self, api_key: str) -> None:
-        self.s = requests.Session()
-        self.s.headers = {
+        super().__init__()
+        self.s.headers.update({
             "x-apikey": api_key,
             "Accept": "application/json",
-        }
+        })
 
     def get_domain(self, domain: str) -> Domain:
         return Domain.parse_obj(self._get(f"/domains/{domain}"))
