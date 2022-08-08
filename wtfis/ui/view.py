@@ -263,7 +263,7 @@ class View:
             heading = self._gen_heading_text(attributes.ip_address)
             data = [
                 ("Analysis:", analysis),
-                ("Last Seen:", iso_date(attributes.date)),
+                ("Resolved:", iso_date(attributes.date)),
             ]
             if enrich:
                 data += [

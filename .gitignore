@@ -161,3 +161,6 @@ cython_debug/
 
 # VSCode
 .vscode/
+
+# Custom env
+.env.wtfis
