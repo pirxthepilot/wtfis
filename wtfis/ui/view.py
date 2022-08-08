@@ -32,7 +32,7 @@ class Theme:
     inline_stat = "cyan"
     vendor_list = "cyan"
     nameserver_list = "cyan"
-    disclaimer = "reverse red"
+    disclaimer = "italic white on red"
     footer = "cyan"
     info = "bold green"
     warn = "bold yellow"
