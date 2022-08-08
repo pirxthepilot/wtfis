@@ -5,6 +5,7 @@ Passive domain lookup commandline tool with human-readable output
 
 ## TODOs
 
-* Shodan integration
 * JSON output
+* Shodan integration
+* IP address lookup
 * Keyring support

@@ -276,7 +276,7 @@ class View:
             if older_than(attributes.date, 365):
                 body = Group(
                     self._gen_table(*data),
-                    Text("* Enrichment data may be inaccurate", style=self.theme.disclaimer),
+                    Text("**Enrichment data may be inaccurate", style=self.theme.disclaimer),
                 )  # type: Union[Group, Table]
             else:
                 body = self._gen_table(*data)
