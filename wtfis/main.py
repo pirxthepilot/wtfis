@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from pydantic import ValidationError
 from requests.exceptions import HTTPError, JSONDecodeError
+from rich.console import Console
 
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
@@ -67,8 +68,11 @@ def main():
     # Args
     args = parse_args()
 
+    # Instantiate the console
+    console = Console(no_color=True) if args.no_color else Console()
+
     # Progress animation controller
-    progress = get_progress()
+    progress = get_progress(console)
 
     # Fetch data
     with progress:
@@ -115,7 +119,8 @@ def main():
             error_and_exit(f"Data model validation error: {e}")
 
     # Output
-    console = View(
+    view = View(
+        console,
         domain,
         resolutions,
         whois,
@@ -123,4 +128,4 @@ def main():
         max_resolutions=args.max_resolutions,
         no_color=args.no_color,
     )
-    console.print(one_column=args.one_column)
+    view.print(one_column=args.one_column)

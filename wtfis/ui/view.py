@@ -59,6 +59,7 @@ class View:
     """
     def __init__(
         self,
+        console: Console,
         domain: Domain,
         resolutions: Resolutions,
         whois: Union[Whois, HistoricalWhois],
@@ -66,7 +67,7 @@ class View:
         max_resolutions: int = 3,
         no_color: bool = False,
     ) -> None:
-        self.console = Console()
+        self.console = console
         self.domain = domain
         self.resolutions = resolutions
         self.whois = whois
