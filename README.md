@@ -2,6 +2,8 @@
 
 Passive host and domain name lookup tool for human eyes
 
+![wtfis](./imgs/demo.gif)
+
 
 ## WTF is it?
 
@@ -47,7 +49,7 @@ IP address enrichments for VT resolutions. For each IP, retrieves the ASN, Org, 
 pip install .
 ```
 
-## Configure
+## Setup
 
 wtfis uses these environment variables:
 
@@ -74,7 +76,11 @@ You can increase or decrease the maximum number of displayed IP resolutions with
 
 To show all panels in one column, use the `-1` or `--one-column` flag.
 
+![one column](./imgs/example-one-column.png)
+
 Panels can be displayed with no color with `-n` or `--no-color`. 
+
+![no color](./imgs/example-no-color.png)
 
 Finally, there's a help flag (`-h` or `--help`) if you need it.
 
