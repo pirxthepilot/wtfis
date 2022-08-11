@@ -2,7 +2,7 @@
 
 Passive host and domain name lookup tool for human eyes
 
-![wtfis](./imgs/demo.gif)
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/demo.gif?raw=true)
 
 
 ## WTF is it?
@@ -10,6 +10,8 @@ Passive host and domain name lookup tool for human eyes
 **wtfis** is a commandline tool that gathers information about a domain or FQDN using various OSINT services. Unlike other tools of its kind, it's built specifically for human consumption, providing results that are pretty (YMMV) and easy to read and understand.
 
 This tool assumes that you are using free tier / community level accounts, and so makes as few API calls as possible to minimize hitting quotas and rate limits.
+
+The project name is a play on "whois".
 
 
 ## Data Sources
@@ -76,11 +78,11 @@ You can increase or decrease the maximum number of displayed IP resolutions with
 
 To show all panels in one column, use the `-1` or `--one-column` flag.
 
-![one column](./imgs/example-one-column.png)
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-one-column.png?raw=true)
 
 Panels can be displayed with no color with `-n` or `--no-color`. 
 
-![no color](./imgs/example-no-color.png)
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-no-color.png?raw=true)
 
 Finally, there's a help flag (`-h` or `--help`) if you need it.
 
