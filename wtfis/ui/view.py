@@ -106,12 +106,12 @@ class View:
 
     def _gen_vt_reputation(self, reputation: int) -> Text:
         # Custom style
-        def rep_style(reputation: int) -> Optional[bool]:
+        def rep_style(reputation: int) -> str:
             if reputation > 0:
                 return self.theme.info
             elif reputation < 0:
                 return self.theme.error
-            return None
+            return "default"
 
         return Text(str(reputation), style=rep_style(reputation))
 
