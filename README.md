@@ -48,7 +48,7 @@ IP address enrichments for VT resolutions. For each IP, retrieves the ASN, Org, 
 ## Install
 
 ```
-pip install .
+$ pip install wtfis
 ```
 
 ## Setup

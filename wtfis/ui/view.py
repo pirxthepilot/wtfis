@@ -7,10 +7,9 @@ from rich.console import (
 )
 from rich.padding import Padding
 from rich.panel import Panel
-from rich.style import Style
 from rich.table import Table
 from rich.text import Text
-from typing import Any, Callable, Generator, List, Optional, Union
+from typing import Generator, List, Optional, Union
 
 from wtfis.models.ipwhois import IpWhois
 from wtfis.models.passivetotal import Whois
@@ -21,36 +20,8 @@ from wtfis.models.virustotal import (
     PopularityRanks,
     Resolutions,
 )
+from wtfis.ui.theme import Theme
 from wtfis.utils import iso_date, older_than, smart_join
-
-
-class Theme:
-    panel_title = "bright_blue"
-    heading = "bold yellow"
-    table_field = "bold bright_magenta"
-    table_value = "none"
-    inline_stat = "cyan"
-    vendor_list = "cyan"
-    nameserver_list = "cyan"
-    disclaimer = "italic white on red"
-    footer = "cyan"
-    info = "bold green"
-    warn = "bold yellow"
-    error = "bold red"
-
-    @classmethod
-    def _get_theme_vars(cls):
-        return [
-            attr for attr in dir(cls)
-            if not callable(getattr(cls, attr))
-            and not attr.startswith("__")
-        ]
-
-    def __init__(self, no_color: bool = False):
-        for attr in type(self)._get_theme_vars():
-            value = getattr(self, attr) if not no_color else "none"
-            setattr(self, attr, value)
-        self.nocolor = no_color
 
 
 class View:
@@ -65,7 +36,6 @@ class View:
         whois: Union[Whois, HistoricalWhois],
         ip_enrich: List[IpWhois] = [],
         max_resolutions: int = 3,
-        no_color: bool = False,
     ) -> None:
         self.console = console
         self.domain = domain
@@ -73,7 +43,7 @@ class View:
         self.whois = whois
         self.ip_enrich = ip_enrich
         self.max_resolutions = max_resolutions
-        self.theme = Theme(no_color=no_color)
+        self.theme = Theme()
 
     def _vendors_who_flagged_malicious(self) -> List[str]:
         vendors = []
@@ -113,24 +83,19 @@ class View:
         panel_title = Text(title, style=self.theme.panel_title)
         return Panel(renderable, title=panel_title, expand=False)
 
-    def _cond_style(self, item: Any, func: Callable) -> Union[str, Style]:
-        """ Conditional style """
-        return func(item) if not self.theme.nocolor else "none"
-
     def _gen_vt_analysis_stats(
         self,
         stats: LastAnalysisStats,
         vendors: Optional[List[str]] = None
     ) -> Text:
         # Custom style
-        def stats_style(malicious):
-            return self.theme.error if malicious >= 1 else self.theme.info
+        stats_style = self.theme.error if stats.malicious >= 1 else self.theme.info
 
         # Total count
         total = stats.harmless + stats.malicious + stats.suspicious + stats.timeout + stats.undetected
 
         # Text
-        text = Text(f"{stats.malicious}/{total} malicious", style=self._cond_style(stats.malicious, stats_style))
+        text = Text(f"{stats.malicious}/{total} malicious", style=stats_style)
 
         # Include list of vendors that flagged malicious
         if vendors:
@@ -141,13 +106,14 @@ class View:
 
     def _gen_vt_reputation(self, reputation: int) -> Text:
         # Custom style
-        def rep_style(reputation):
+        def rep_style(reputation: int) -> Optional[bool]:
             if reputation > 0:
                 return self.theme.info
             elif reputation < 0:
                 return self.theme.error
+            return None
 
-        return Text(str(reputation), style=self._cond_style(reputation, rep_style))
+        return Text(str(reputation), style=rep_style(reputation))
 
     def _gen_vt_popularity(self, popularity_ranks: PopularityRanks) -> Optional[Text]:
         if len(popularity_ranks.__root__) == 0:

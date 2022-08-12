@@ -126,6 +126,5 @@ def main():
         whois,
         ip_enrich,
         max_resolutions=args.max_resolutions,
-        no_color=args.no_color,
     )
     view.print(one_column=args.one_column)
