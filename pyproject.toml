@@ -38,11 +38,16 @@ path = "wtfis/__about__.py"
 
 [tool.hatch.envs.test]
 dependencies = [
+    "freezegun",
     "mypy",
+    "pytest",
+    "pytest-cov",
     "types-requests~=2.28.1",
 ]
 [tool.hatch.envs.test.scripts]
 typecheck = "mypy -p wtfis --ignore-missing-imports --no-implicit-optional --warn-unreachable"
+test = "pytest -vv tests/"
+test-cov = "pytest --cov-config=setup.cfg --cov=wtfis tests/"
 
 [tool.hatch.envs.style]
 detached = true
