@@ -74,6 +74,8 @@ $ wtfis FQDN_OR_DOMAIN
 
 and you will get results organized by panel, similar to the image above.
 
+If your terminal supports it, FQDN, domain, and IP headings are clickable hyperlinks that point to the appropriate pages on the VT or PT (RiskIQ) website.
+
 You can increase or decrease the maximum number of displayed IP resolutions with `-m NUMBER` or `--max-resolutions=NUMBER`. The upper limit is 10. If you don't need resolutions at all, set the number to `0`.
 
 To show all panels in one column, use the `-1` or `--one-column` flag.

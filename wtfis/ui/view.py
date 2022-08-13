@@ -28,6 +28,10 @@ class View:
     """
     Handles the look of the output
     """
+    vt_gui_baseurl_domain = "https://virustotal.com/gui/domain"
+    vt_gui_baseurl_ip = "https://virustotal.com/gui/ip-address"
+    pt_gui_baseurl = "https://community.riskiq.com/search"
+
     def __init__(
         self,
         console: Console,
@@ -52,8 +56,10 @@ class View:
                 vendors.append(key)
         return vendors
 
-    def _gen_heading_text(self, heading: str) -> Text:
-        return Text(heading, style=self.theme.heading, justify="center", end="\n")
+    def _gen_heading_text(self, heading: str, hyperlink: Optional[str] = None) -> Text:
+        text = Text(justify="center", end="\n")
+        style = f"{self.theme.heading} link {hyperlink}" if hyperlink else self.theme.heading
+        return text.append(heading, style=style)
 
     def _gen_table(self, *params) -> Table:
         """ Each param should be a tuple of (field, value) """
@@ -137,7 +143,10 @@ class View:
     def whois_panel(self) -> Optional[Panel]:
         # Using PT Whois
         if isinstance(self.whois, Whois):
-            heading = self._gen_heading_text(self.whois.domain)
+            heading = self._gen_heading_text(
+                self.whois.domain,
+                hyperlink=f"{self.pt_gui_baseurl}/{self.whois.domain}/whois"
+            )
             body = self._gen_table(
                 ("Registrar:", self.whois.registrar),
                 ("Organization:", self.whois.organization),
@@ -199,7 +208,10 @@ class View:
         popularity = self._gen_vt_popularity(attributes.popularity_ranks)
 
         # Content
-        heading = self._gen_heading_text(self.domain.data.id_)
+        heading = self._gen_heading_text(
+            self.domain.data.id_,
+            hyperlink=f"{self.vt_gui_baseurl_domain}/{self.domain.data.id_}"
+        )
         body = self._gen_table(
             ("Analysis:", analysis),
             ("Reputation:", reputation),
@@ -227,7 +239,10 @@ class View:
             enrich = self._get_ip_enrichment(attributes.ip_address)
 
             # Content
-            heading = self._gen_heading_text(attributes.ip_address)
+            heading = self._gen_heading_text(
+                attributes.ip_address,
+                hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}"
+            )
             data = [
                 ("Analysis:", analysis),
                 ("Resolved:", iso_date(attributes.date)),
