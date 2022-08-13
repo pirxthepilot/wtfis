@@ -1,6 +1,6 @@
 # wtfis
 
-Passive host and domain name lookup tool for human eyes
+Passive host and domain name lookup tool for non-robots
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/demo.gif?raw=true)
 
@@ -20,7 +20,7 @@ The project name is a play on "whois".
 
 The primary source of information. Retrieves:
 
-* [Hostname (FQDN) or domain](https://developers.virustotal.com/reference/domains-1))
+* [Hostname (FQDN) or domain](https://developers.virustotal.com/reference/domains-1)
     * Latest analysis stats with vendor detail
     * Reputation score (based on VT community votes)
     * Popularity ranks (Alexa, Cisco Umbrella, etc.)
