@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, root_validator, validator
 from typing import Any, Dict, List, Optional
 
 
@@ -97,11 +97,11 @@ class Resolutions(BaseModel):
 
 class HistoricalWhoisMap(BaseModel):
     domain: str
-    registrar: str
-    name_servers: List[str]
-    creation_date: str
-    expiry_date: str
-    updated_date: str
+    registrar: Optional[str]
+    name_servers: Optional[List[str]] = []
+    creation_date: Optional[str]
+    expiry_date: Optional[str]
+    updated_date: Optional[str]
     admin_city: Optional[str]
     admin_state: Optional[str]
     admin_country: Optional[str]
@@ -139,10 +139,17 @@ class HistoricalWhoisMap(BaseModel):
 
 
 class HistoricalWhoisAttributes(BaseModel):
-    first_seen_date: int
-    whois_map: HistoricalWhoisMap
+    first_seen_date: Optional[int]
+    whois_map: Optional[HistoricalWhoisMap]
     registrant_country: Optional[str]
-    last_updated: int
+    registrar_name: Optional[str]
+    last_updated: Optional[int]
+
+    @root_validator(pre=True)
+    def remove_empty_whois_map(cls, v):
+        if v.get("whois_map") == {}:
+            v.pop("whois_map")
+        return v
 
 
 class HistoricalWhoisData(BaseData):

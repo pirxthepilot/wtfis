@@ -170,12 +170,19 @@ class View:
             # Use the first, i.e. latest whois entry
             attribs = self.whois.data[0].attributes
 
+            # Check for empty whois map
+            if not attribs.whois_map:
+                return self._gen_panel("whois", Text("Unable to gather whois data", style=self.theme.disclaimer))
+
             # Admin location
             admin_location = smart_join(
                 attribs.whois_map.admin_city,
                 attribs.whois_map.admin_state,
                 attribs.whois_map.admin_country,
             )
+
+            # Name servers
+            name_servers = attribs.whois_map.name_servers if attribs.whois_map.name_servers else []
 
             heading = self._gen_heading_text(attribs.whois_map.domain)
             body = self._gen_table(
@@ -184,7 +191,7 @@ class View:
                 ("Email:", attribs.whois_map.registrant_email),
                 ("Country:", attribs.registrant_country),
                 ("Admin Location:", admin_location),
-                ("Nameservers:", smart_join(*attribs.whois_map.name_servers, style=self.theme.nameserver_list)),
+                ("Nameservers:", smart_join(*name_servers, style=self.theme.nameserver_list)),
                 ("Registered:", attribs.whois_map.creation_date),
                 ("Updated:", attribs.whois_map.updated_date),
                 ("Expires:", attribs.whois_map.expiry_date),
