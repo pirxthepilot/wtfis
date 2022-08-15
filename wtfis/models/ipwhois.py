@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Dict
 
 
 class Flag(BaseModel):
@@ -37,3 +38,7 @@ class IpWhois(BaseModel):
         fields = {
             "type_": "type",
         }
+
+
+class IpWhoisMap(BaseModel):
+    __root__: Dict[str, IpWhois]

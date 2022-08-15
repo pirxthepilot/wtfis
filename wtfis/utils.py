@@ -25,7 +25,7 @@ def smart_join(*items: Optional[str], style: Optional[str] = None) -> Union[Text
     text = Text()
     for idx, item in enumerate(items):
         if item:
-            text.append(item, style=style)
+            text.append(str(item), style=style)
             if idx < len(items) - 1:
                 text.append(", ", style="default")
     return text if str(text) != "" else ""

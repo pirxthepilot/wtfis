@@ -11,8 +11,9 @@ from rich.table import Table
 from rich.text import Text
 from typing import Generator, List, Optional, Union
 
-from wtfis.models.ipwhois import IpWhois
+from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.passivetotal import Whois
+from wtfis.models.shodan import ShodanIp, ShodanIpMap
 from wtfis.models.virustotal import (
     Domain,
     HistoricalWhois,
@@ -38,7 +39,7 @@ class View:
         domain: Domain,
         resolutions: Optional[Resolutions],
         whois: Union[Whois, HistoricalWhois],
-        ip_enrich: List[IpWhois] = [],
+        ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         max_resolutions: int = 3,
     ) -> None:
         self.console = console
@@ -137,11 +138,34 @@ class View:
                 text.append("\n")
         return text
 
-    def _get_ip_enrichment(self, ip: str) -> Optional[IpWhois]:
-        for ipwhois in self.ip_enrich:
-            if ipwhois.ip == ip:
-                return ipwhois
-        return None
+    def _gen_shodan_ports(self, ip: ShodanIp) -> Optional[Text]:
+        if len(ip.data) == 0:
+            return None
+
+        # Grouped list
+        grouped = ip.group_ports_by_product()
+
+        # Return a simple port list if no identified ports
+        if (
+            len(list(grouped.keys())) == 1 and
+            list(grouped.keys())[0] == "<No ID>"
+        ):
+            return smart_join(*grouped["<No ID>"], style=self.theme.inline_stat)
+
+        # Return grouped display of there are identified ports
+        text = Text()
+        for product, ports in grouped.items():
+            text.append(product, style=self.theme.port_info)
+            # text.append(f" ({', '.join(ports)})")
+            text.append(" (")
+            text.append(smart_join(*ports, style=self.theme.inline_stat))
+            text.append(")")
+            if product != list(grouped.keys())[-1]:
+                text.append("\n")
+        return text
+
+    def _get_ip_enrichment(self, ip: str) -> Optional[Union[IpWhois, ShodanIp]]:
+        return self.ip_enrich.__root__[ip] if ip in self.ip_enrich.__root__.keys() else None
 
     def whois_panel(self) -> Optional[Panel]:
         # Using PT Whois
@@ -247,9 +271,6 @@ class View:
             # Analysis
             analysis = self._gen_vt_analysis_stats(attributes.ip_address_last_analysis_stats)
 
-            # IP Enrichment
-            enrich = self._get_ip_enrichment(attributes.ip_address)
-
             # Content
             heading = self._gen_heading_text(
                 attributes.ip_address,
@@ -259,15 +280,34 @@ class View:
                 ("Analysis:", analysis),
                 ("Resolved:", iso_date(attributes.date)),
             ]
+
+            # IP Enrichment
+            enrich = self._get_ip_enrichment(attributes.ip_address)
+
             if enrich:
-                data += [
-                    ("ASN:", f"{enrich.connection.asn} ({enrich.connection.org})"),
-                    ("ISP:", enrich.connection.isp),
-                    ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
-                ]
+                if isinstance(enrich, IpWhois):
+                    # IPWhois
+                    data += [
+                        ("ASN:", f"{enrich.connection.asn} ({enrich.connection.org})"),
+                        ("ISP:", enrich.connection.isp),
+                        ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
+                    ]
+                else:
+                    # Shodan
+                    asn = f"{enrich.asn.replace('AS', '')} ({enrich.org})" if enrich.asn else None
+                    tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+                    data += [
+                        ("ASN:", asn),
+                        ("ISP:", enrich.isp),
+                        ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
+                        ("OS:", enrich.os),
+                        ("Services:", self._gen_shodan_ports(enrich)),
+                        ("Tags:", tags),
+                        ("Last Scan:", iso_date(f"{enrich.last_update}+00:00")),  # Timestamps are UTC (source: Google)
+                    ]
 
             # Include a disclaimer if last seen is older than 1 year
-            if older_than(attributes.date, 365):
+            if enrich and older_than(attributes.date, 365):
                 body = Group(
                     self._gen_table(*data),
                     Text("**Enrichment data may be inaccurate", style=self.theme.disclaimer),

@@ -1,5 +1,5 @@
 class Theme:
-    panel_title = "bright_blue"
+    panel_title = "default"
     heading = "bold yellow"
     table_field = "bold bright_magenta"
     table_value = "none"
@@ -7,6 +7,8 @@ class Theme:
     vendor_list = "cyan"
     nameserver_list = "cyan"
     disclaimer = "italic white on red"
+    tags = "default"
+    port_info = "dim yellow"
     footer = "cyan"
     info = "bold green"
     warn = "bold yellow"
