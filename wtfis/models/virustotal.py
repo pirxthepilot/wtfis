@@ -109,8 +109,9 @@ class HistoricalWhoisMap(BaseModel):
     admin_email: Optional[str]
     last_updated: Optional[str]
     registered_on: Optional[str]
-    registrant_name: Optional[str]
     registrant_email: Optional[str]
+    registrant_name: Optional[str]
+    registrant_org: Optional[str]
     updated_date: Optional[str]
 
     class Config:
@@ -128,8 +129,9 @@ class HistoricalWhoisMap(BaseModel):
             "admin_email": "Admin Email",
             "last_updated": "Last updated",
             "registered_on": "Registered on",
-            "registrant_name": "Registrant Name",
             "registrant_email": "Registrant Email",
+            "registrant_name": "Registrant Name",
+            "registrant_org": "Registrant Organization",
             "updated_date": "Updated Date",
         }
 
