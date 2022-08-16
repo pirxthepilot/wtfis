@@ -40,6 +40,12 @@ Optionally used if creds are provided. Retrieves:
 * [Whois](https://api.riskiq.net/api/whois_pt/)
     * Various whois data about the domain itself
 
+Passivetotal is recommended over Virustotal for whois data for a couple of reasons:
+
+* VT whois data format is less consistent
+* PT whois data tends to be of better quality than VT. Also, VT's registrant data is apparently [anonymized](https://developers.virustotal.com/reference/whois).
+* You can save one VT API call by offloading to PT
+
 ### IPWhois ([ipwhois.io](https://ipwhois.io/documentation))
 
 IP address enrichments for VT resolutions. For each IP, retrieves the ASN, Org, ISP and Geolcoation.
