@@ -8,7 +8,7 @@ from wtfis.models.virustotal import (
 
 class TestVirustotalModels:
     def test_domain_1(self, test_data):
-        domain = Domain.parse_obj(json.loads(test_data("vt_domain_1.json")))
+        domain = Domain.parse_obj(json.loads(test_data("vt_domain_gist.json")))
 
         assert domain.data.id_ == "gist.github.com"
         assert domain.data.type_ == "domain"
@@ -22,7 +22,7 @@ class TestVirustotalModels:
         ]
 
     def test_resolutions_1(self, test_data):
-        res = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_1.json")))
+        res = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
 
         assert res.meta.count == 37
         assert len(res.data) == 10
@@ -34,7 +34,7 @@ class TestVirustotalModels:
         assert res.data[1].attributes.date == 1655835054
 
     def test_historical_whois_1(self, test_data):
-        whois = HistoricalWhois.parse_obj(json.loads(test_data("vt_historical_whois_1.json")))
+        whois = HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_bbc.json")))
 
         assert whois.meta.count == 5
         assert whois.data[0].attributes.whois_map.domain == ""
@@ -42,7 +42,7 @@ class TestVirustotalModels:
         assert whois.data[0].attributes.whois_map.registrant_org is None
 
     def test_historical_whois_2(self, test_data):
-        whois = HistoricalWhois.parse_obj(json.loads(test_data("vt_historical_whois_2.json")))
+        whois = HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_example.json")))
 
         assert whois.meta.count == 9
         assert whois.data[0].attributes.whois_map.domain == "example.com"
