@@ -61,7 +61,7 @@ class View:
         style = f"{self.theme.heading} link {hyperlink}" if hyperlink else self.theme.heading
         return text.append(heading, style=style)
 
-    def _gen_table(self, *params) -> Table:
+    def _gen_table(self, *params) -> Union[Table, str]:
         """ Each param should be a tuple of (field, value) """
         # Set up table
         grid = Table.grid(expand=False, padding=(0, 1))
@@ -69,13 +69,16 @@ class View:
         grid.add_column(style=self.theme.table_value, max_width=38)  # Value
 
         # Populate rows
+        valid_rows = 0
         for item in params:
             field, value = item
             if value is None or str(value) == "":  # Skip if no value
                 continue
             grid.add_row(field, value)
+            valid_rows += 1
 
-        return grid
+        # Return None if no rows generated
+        return grid if valid_rows > 0 else ""
 
     @group()
     def _gen_group(self, content: List[RenderableType]) -> Generator:
@@ -192,12 +195,13 @@ class View:
                 ("Country:", attribs.registrant_country),
                 ("Admin Location:", admin_location),
                 ("Nameservers:", smart_join(*name_servers, style=self.theme.nameserver_list)),
-                ("Registered:", attribs.whois_map.creation_date),
-                ("Updated:", attribs.whois_map.updated_date),
-                ("Expires:", attribs.whois_map.expiry_date),
+                ("Registered:", attribs.whois_map.creation_date or attribs.whois_map.registered_on),
+                ("Updated:", attribs.whois_map.updated_date or attribs.whois_map.last_updated),
+                ("Expires:", attribs.whois_map.expiry_date or attribs.whois_map.expiry_date_alt),
             )
 
-        return self._gen_panel("whois", self._gen_info(body, heading))
+        # Return None if body is empty
+        return self._gen_panel("whois", self._gen_info(body, heading)) if body else None
 
     def domain_panel(self) -> Panel:
         attributes = self.domain.data.attributes
@@ -266,7 +270,7 @@ class View:
                 body = Group(
                     self._gen_table(*data),
                     Text("**Enrichment data may be inaccurate", style=self.theme.disclaimer),
-                )  # type: Union[Group, Table]
+                )  # type: Union[Group, Table, str]
             else:
                 body = self._gen_table(*data)
 
