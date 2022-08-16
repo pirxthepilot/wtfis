@@ -96,19 +96,22 @@ class Resolutions(BaseModel):
 
 
 class HistoricalWhoisMap(BaseModel):
-    domain: str
+    domain: str = ""
     registrar: Optional[str]
-    name_servers: Optional[List[str]] = []
+    name_servers: List[str] = []
     creation_date: Optional[str]
     expiry_date: Optional[str]
-    updated_date: Optional[str]
+    expiry_date_alt: Optional[str]
     admin_city: Optional[str]
     admin_state: Optional[str]
     admin_country: Optional[str]
     admin_postal_code: Optional[str]
     admin_email: Optional[str]
+    last_updated: Optional[str]
+    registered_on: Optional[str]
     registrant_name: Optional[str]
     registrant_email: Optional[str]
+    updated_date: Optional[str]
 
     class Config:
         fields = {
@@ -117,14 +120,17 @@ class HistoricalWhoisMap(BaseModel):
             "name_servers": "Name Server",
             "creation_date": "Creation Date",
             "expiry_date": "Registry Expiry Date",
-            "updated_date": "Updated Date",
+            "expiry_date_alt": "Expiry date",
             "admin_city": "Admin City",
             "admin_state": "Admin State/Province",
             "admin_country": "Admin Country",
             "admin_postal_code": "Admin Postal Code",
             "admin_email": "Admin Email",
+            "last_updated": "Last updated",
+            "registered_on": "Registered on",
             "registrant_name": "Registrant Name",
             "registrant_email": "Registrant Email",
+            "updated_date": "Updated Date",
         }
 
     @validator("name_servers", pre=True)
