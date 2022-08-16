@@ -47,7 +47,7 @@ dependencies = [
 [tool.hatch.envs.test.scripts]
 typecheck = "mypy -p wtfis --ignore-missing-imports --no-implicit-optional --warn-unreachable"
 test = "pytest -vv tests/"
-test-cov = "pytest --cov-config=setup.cfg --cov=wtfis tests/"
+test-cov = "pytest --cov-config=setup.cfg --cov-report=term-missing --cov=wtfis tests/"
 
 [tool.hatch.envs.style]
 detached = true
