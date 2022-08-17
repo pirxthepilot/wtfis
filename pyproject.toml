@@ -36,6 +36,9 @@ wtfis = "wtfis.main:main"
 [tool.hatch.version]
 path = "wtfis/__about__.py"
 
+[[tool.hatch.envs.test.matrix]]
+python = ["38", "39", "310"]
+
 [tool.hatch.envs.test]
 dependencies = [
     "freezegun",
@@ -48,6 +51,9 @@ dependencies = [
 typecheck = "mypy -p wtfis --ignore-missing-imports --no-implicit-optional --warn-unreachable"
 test = "pytest -vv tests/"
 test-cov = "pytest --cov-config=setup.cfg --cov-report=term-missing --cov=wtfis tests/"
+
+[[tool.hatch.envs.style.matrix]]
+python = ["38", "39", "310"]
 
 [tool.hatch.envs.style]
 detached = true
