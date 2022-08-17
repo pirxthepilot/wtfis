@@ -36,7 +36,7 @@ class View:
         self,
         console: Console,
         domain: Domain,
-        resolutions: Resolutions,
+        resolutions: Optional[Resolutions],
         whois: Union[Whois, HistoricalWhois],
         ip_enrich: List[IpWhois] = [],
         max_resolutions: int = 3,

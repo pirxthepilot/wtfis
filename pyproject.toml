@@ -51,6 +51,10 @@ dependencies = [
 typecheck = "mypy -p wtfis --ignore-missing-imports --no-implicit-optional --warn-unreachable"
 test = "pytest -vv tests/"
 test-cov = "pytest --cov-config=setup.cfg --cov-report=term-missing --cov=wtfis tests/"
+all = [
+    "typecheck",
+    "test-cov",
+]
 
 [[tool.hatch.envs.style.matrix]]
 python = ["38", "39", "310"]
