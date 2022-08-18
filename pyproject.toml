@@ -36,6 +36,19 @@ wtfis = "wtfis.main:main"
 [tool.hatch.version]
 path = "wtfis/__about__.py"
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.github",
+]
+
+[tool.hatch.build.targets.wheel]
+
+[tool.hatch.envs.default]
+python = "3.9"
+
+[tool.hatch.envs.default.env-vars]
+HATCH_ENV_TYPE_VIRTUAL_PATH = ".venv"
+
 [[tool.hatch.envs.test.matrix]]
 python = ["38", "39", "310"]
 
@@ -48,16 +61,13 @@ dependencies = [
     "types-requests~=2.28.1",
 ]
 [tool.hatch.envs.test.scripts]
-typecheck = "mypy -p wtfis --ignore-missing-imports --no-implicit-optional --warn-unreachable"
+typecheck = "mypy -p wtfis"
 test = "pytest -vv tests/"
-test-cov = "pytest --cov-config=setup.cfg --cov-report=term-missing --cov=wtfis tests/"
+test-cov = "pytest --cov-config=pyproject.toml --cov-report=term-missing --cov=wtfis tests/"
 all = [
     "typecheck",
     "test-cov",
 ]
-
-[[tool.hatch.envs.style.matrix]]
-python = ["38", "39", "310"]
 
 [tool.hatch.envs.style]
 detached = true
@@ -69,3 +79,19 @@ lint = "flake8 wtfis"
 
 [tool.hatch.publish.index]
 disable = true
+
+# mypy
+[tool.mypy]
+ignore_missing_imports = true
+no_implicit_optional = true
+warn_unreachable = true
+pretty = true
+
+# pytest-cov
+[tool.coverage.run]
+omit = [
+    "*/__init__.py",
+    "*/__about__.py",
+    "wtfis/version.py",
+    "wtfis/ui/progress.py",
+]
