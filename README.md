@@ -1,5 +1,8 @@
 # wtfis
 
+[![Tests](https://github.com/pirxthepilot/wtfis/actions/workflows/tests.yml/badge.svg)](https://github.com/pirxthepilot/wtfis/actions/workflows/tests.yml)
+[![PyPI](https://img.shields.io/pypi/v/wtfis?color=blue&logo=pypi&logoColor=gold)](https://pypi.org/project/wtfis/)
+
 Passive host and domain name lookup tool for non-robots
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/demo.gif?raw=true)
