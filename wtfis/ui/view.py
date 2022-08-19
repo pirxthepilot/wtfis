@@ -36,7 +36,7 @@ class View:
         self,
         console: Console,
         domain: Domain,
-        resolutions: Resolutions,
+        resolutions: Optional[Resolutions],
         whois: Union[Whois, HistoricalWhois],
         ip_enrich: List[IpWhois] = [],
         max_resolutions: int = 3,
@@ -190,6 +190,7 @@ class View:
             heading = self._gen_heading_text(attribs.whois_map.domain)
             body = self._gen_table(
                 ("Registrar:", attribs.whois_map.registrar),
+                ("Organization:", attribs.whois_map.registrant_org),
                 ("Name:", attribs.whois_map.registrant_name),
                 ("Email:", attribs.whois_map.registrant_email),
                 ("Country:", attribs.registrant_country),

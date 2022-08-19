@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "wtfis"
 description = "Passive host and domain name lookup tool for non-robots"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 license = {file = "LICENSE"}
 keywords = ["passive lookup", "security", "virustotal", "passivetotal", "whois"]
 authors = [
@@ -36,21 +36,63 @@ wtfis = "wtfis.main:main"
 [tool.hatch.version]
 path = "wtfis/__about__.py"
 
-[tool.hatch.envs.test]
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/.github",
+]
+
+[tool.hatch.build.targets.wheel]
+
+[tool.hatch.publish.index]
+disable = true
+
+# Hatch default env
+[tool.hatch.envs.default]
+python = "3.9"
 dependencies = [
+    "freezegun",
     "mypy",
+    "pytest",
+    "pytest-cov",
     "types-requests~=2.28.1",
 ]
-[tool.hatch.envs.test.scripts]
-typecheck = "mypy -p wtfis --ignore-missing-imports --no-implicit-optional --warn-unreachable"
+[tool.hatch.envs.default.scripts]
+typecheck = "mypy -p {args:wtfis}"
+test = "pytest -vv {args:tests/}"
+test-cov = "pytest --cov-config=pyproject.toml --cov-report=term-missing --cov=wtfis {args:tests/}"
+test-all = [
+    "typecheck",
+    "test-cov",
+]
 
-[tool.hatch.envs.style]
+# Hatch test env
+[[tool.hatch.envs.test.matrix]]
+python = ["38", "39", "310"]
+
+# Hatch lint env
+[tool.hatch.envs.lint]
 detached = true
 dependencies = [
     "flake8",
 ]
-[tool.hatch.envs.style.scripts]
-lint = "flake8 wtfis"
+[tool.hatch.envs.lint.scripts]
+flake = "flake8 {args:wtfis}"
+all = [
+    "flake",
+]
 
-[tool.hatch.publish.index]
-disable = true
+# mypy
+[tool.mypy]
+ignore_missing_imports = true
+no_implicit_optional = true
+warn_unreachable = true
+pretty = true
+
+# pytest-cov
+[tool.coverage.run]
+omit = [
+    "*/__init__.py",
+    "*/__about__.py",
+    "wtfis/version.py",
+    "wtfis/ui/progress.py",
+]

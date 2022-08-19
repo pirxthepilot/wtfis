@@ -1,3 +1,2 @@
-# For flake8 settings only
 [flake8]
 max-line-length = 120
