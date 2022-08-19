@@ -1,0 +1,40 @@
+name: tests
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  run:
+    name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Ensure latest pip
+      run: python -m pip install --upgrade pip
+
+    - name: Install hatch
+      run: pip install hatch
+
+    - if: matrix.python-version == '3.9' && runner.os == 'Linux'
+      name: Lint
+      run: hatch run lint:all
+
+    - name: Run tests
+      run: hatch run test-all
