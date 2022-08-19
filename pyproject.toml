@@ -43,16 +43,12 @@ exclude = [
 
 [tool.hatch.build.targets.wheel]
 
+[tool.hatch.publish.index]
+disable = true
+
+# Hatch default env
 [tool.hatch.envs.default]
 python = "3.9"
-
-[tool.hatch.envs.default.env-vars]
-HATCH_ENV_TYPE_VIRTUAL_PATH = ".venv"
-
-[[tool.hatch.envs.test.matrix]]
-python = ["38", "39", "310"]
-
-[tool.hatch.envs.test]
 dependencies = [
     "freezegun",
     "mypy",
@@ -60,25 +56,30 @@ dependencies = [
     "pytest-cov",
     "types-requests~=2.28.1",
 ]
-[tool.hatch.envs.test.scripts]
-typecheck = "mypy -p wtfis"
-test = "pytest -vv tests/"
-test-cov = "pytest --cov-config=pyproject.toml --cov-report=term-missing --cov=wtfis tests/"
-all = [
+[tool.hatch.envs.default.scripts]
+typecheck = "mypy -p {args:wtfis}"
+test = "pytest -vv {args:tests/}"
+test-cov = "pytest --cov-config=pyproject.toml --cov-report=term-missing --cov=wtfis {args:tests/}"
+test-all = [
     "typecheck",
     "test-cov",
 ]
 
-[tool.hatch.envs.style]
+# Hatch test env
+[[tool.hatch.envs.test.matrix]]
+python = ["38", "39", "310"]
+
+# Hatch lint env
+[tool.hatch.envs.lint]
 detached = true
 dependencies = [
     "flake8",
 ]
-[tool.hatch.envs.style.scripts]
-lint = "flake8 wtfis"
-
-[tool.hatch.publish.index]
-disable = true
+[tool.hatch.envs.lint.scripts]
+flake = "flake8 {args:wtfis}"
+all = [
+    "flake",
+]
 
 # mypy
 [tool.mypy]
