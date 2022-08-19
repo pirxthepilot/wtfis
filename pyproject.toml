@@ -48,7 +48,6 @@ disable = true
 
 # Hatch default env
 [tool.hatch.envs.default]
-python = "3.9"
 dependencies = [
     "freezegun",
     "mypy",
