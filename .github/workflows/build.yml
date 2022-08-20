@@ -36,6 +36,7 @@ jobs:
     needs:
     - build
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
     - uses: actions/download-artifact@v3
