@@ -8,6 +8,7 @@ on:
     - '**.md'
     - 'imgs/**'
     - 'LICENSE'
+    - '**/__about__.py'
 
   pull_request:
     branches:
@@ -16,6 +17,7 @@ on:
     - '**.md'
     - 'imgs/**'
     - 'LICENSE'
+    - '**/__about__.py'
 
 jobs:
   run:

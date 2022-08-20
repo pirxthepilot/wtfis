@@ -31,17 +31,6 @@ jobs:
         path: dist/*
         if-no-files-found: error
     
-    - name: Create release from tag
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
-        draft: false
-        prerelease: true
-
   publish:
     name: Publish release
     needs:
@@ -60,3 +49,23 @@ jobs:
         skip_existing: true
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+
+  release:
+    name: Create release
+    needs:
+    - publish
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Create release from tag
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        draft: false
+        prerelease: false
