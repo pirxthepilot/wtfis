@@ -138,7 +138,7 @@ class View:
                 text.append("\n")
         return text
 
-    def _gen_shodan_services(self, ip: ShodanIp) -> Optional[Text]:
+    def _gen_shodan_services(self, ip: ShodanIp) -> Optional[Union[Text, str]]:
         if len(ip.data) == 0:
             return None
 

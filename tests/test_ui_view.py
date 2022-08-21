@@ -7,7 +7,8 @@ from rich.table import Table
 from rich.text import Span, Text
 from unittest.mock import MagicMock
 
-from wtfis.models.ipwhois import IpWhois
+from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.passivetotal import Whois
 from wtfis.models.virustotal import (
     Domain,
@@ -17,15 +18,27 @@ from wtfis.models.virustotal import (
 from wtfis.ui.view import View
 
 
+def mock_get_ipwhois(ip, pool) -> IpWhois:
+    """ Mock replacement for IpWhoisClient().get_ipwhois() """
+    return IpWhois.parse_obj(pool[ip])
+
+
 @pytest.fixture()
 def view01(test_data):
     """ gist.github.com with PT whois. Complete test of all panels. """
+    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+
+    ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
+    ipwhois_client = IpWhoisClient()
+    ipwhois_client.get_ipwhois = MagicMock(side_effect=lambda ip: mock_get_ipwhois(ip, ipwhois_pool))
+    ip_enrich = ipwhois_client.bulk_get_ipwhois(resolutions, 3)
+
     return View(
         console=Console(),
         domain=Domain.parse_obj(json.loads(test_data("vt_domain_gist.json"))),
-        resolutions=Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json"))),
+        resolutions=resolutions,
         whois=Whois.parse_obj(json.loads(test_data("pt_whois_gist.json"))),
-        ip_enrich=[IpWhois.parse_obj(o) for o in json.loads(test_data("ipwhois_gist.json"))],
+        ip_enrich=ip_enrich,
     )
 
 
@@ -40,7 +53,7 @@ def view02(test_data):
         domain=MagicMock(),
         resolutions=Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json"))),
         whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_gist.json"))),
-        ip_enrich=[],
+        ip_enrich=IpWhoisMap(__root__={}),
         max_resolutions=1,
     )
 

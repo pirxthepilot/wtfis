@@ -22,9 +22,9 @@ def older_than(ts: int, days: int) -> bool:
 
 
 def smart_join(
-        *items: Optional[Union[Text, str]],
-        style: Optional[str] = None
-    ) -> Union[Text, str]:
+    *items: Optional[Union[Text, str]],
+    style: Optional[str] = None
+) -> Union[Text, str]:
     text = Text()
     for idx, item in enumerate(items):
         if item:

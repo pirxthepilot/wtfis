@@ -8,7 +8,7 @@ class Theme:
     nameserver_list = "cyan"
     disclaimer = "italic white on red"
     tags = "bright_white on black"
-    product = "bright_red"
+    product = "orange_red1"
     port = "bright_cyan"
     transport = "cyan"
     footer = "cyan"
