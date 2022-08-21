@@ -21,11 +21,17 @@ def older_than(ts: int, days: int) -> bool:
     return datetime.fromtimestamp(ts) < datetime.now() - timedelta(days=days)
 
 
-def smart_join(*items: Optional[str], style: Optional[str] = None) -> Union[Text, str]:
+def smart_join(
+        *items: Optional[Union[Text, str]],
+        style: Optional[str] = None
+    ) -> Union[Text, str]:
     text = Text()
     for idx, item in enumerate(items):
         if item:
-            text.append(str(item), style=style)
+            if isinstance(item, Text):
+                text.append(item)
+            else:
+                text.append(item, style=style)
             if idx < len(items) - 1:
                 text.append(", ", style="default")
     return text if str(text) != "" else ""

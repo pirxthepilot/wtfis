@@ -138,9 +138,18 @@ class View:
                 text.append("\n")
         return text
 
-    def _gen_shodan_ports(self, ip: ShodanIp) -> Optional[Text]:
+    def _gen_shodan_services(self, ip: ShodanIp) -> Optional[Text]:
         if len(ip.data) == 0:
             return None
+
+        # Styling for port/transport list
+        def ports_stylized(ports: list) -> Generator:
+            for port in ports:
+                yield (
+                    Text()
+                    .append(str(port.port), style=self.theme.port)
+                    .append(f"/{port.transport}", style=self.theme.transport)
+                )
 
         # Grouped list
         grouped = ip.group_ports_by_product()
@@ -150,15 +159,15 @@ class View:
             len(list(grouped.keys())) == 1 and
             list(grouped.keys())[0] == "<No ID>"
         ):
-            return smart_join(*grouped["<No ID>"], style=self.theme.inline_stat)
+            return smart_join(*ports_stylized(grouped["<No ID>"]))
 
         # Return grouped display of there are identified ports
         text = Text()
         for product, ports in grouped.items():
-            text.append(product, style=self.theme.port_info)
-            # text.append(f" ({', '.join(ports)})")
+            print(ports)
+            text.append(product, style=self.theme.product)
             text.append(" (")
-            text.append(smart_join(*ports, style=self.theme.inline_stat))
+            text.append(smart_join(*ports_stylized(ports)))
             text.append(")")
             if product != list(grouped.keys())[-1]:
                 text.append("\n")
@@ -301,7 +310,7 @@ class View:
                         ("ISP:", enrich.isp),
                         ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
                         ("OS:", enrich.os),
-                        ("Services:", self._gen_shodan_ports(enrich)),
+                        ("Services:", self._gen_shodan_services(enrich)),
                         ("Tags:", tags),
                         ("Last Scan:", iso_date(f"{enrich.last_update}+00:00")),  # Timestamps are UTC (source: Google)
                     ]

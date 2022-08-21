@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from pydantic import BaseModel
 from typing import Dict, List, Optional
 
@@ -25,14 +25,15 @@ class ShodanIp(BaseModel):
     tags: Optional[List[str]]
 
     def group_ports_by_product(self) -> dict:
+        PortProtocol = namedtuple("PortProtocol", "port transport")
         result = defaultdict(list)
         unknown = []  # Save ports with no product for adding later as last result item
         for port in self.data:
-            port_text = f"{port.port}/{port.transport}"
+            port_data = PortProtocol(port.port, port.transport)
             if port.product:
-                result[port.product].append(port_text)
+                result[port.product].append(port_data)
             else:
-                unknown.append(port_text)
+                unknown.append(port_data)
         if unknown:
             result["<No ID>"] = unknown
         return result
