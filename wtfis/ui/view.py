@@ -164,7 +164,6 @@ class View:
         # Return grouped display of there are identified ports
         text = Text()
         for product, ports in grouped.items():
-            print(ports)
             text.append(product, style=self.theme.product)
             text.append(" (")
             text.append(smart_join(*ports_stylized(ports)))

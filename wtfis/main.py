@@ -6,6 +6,7 @@ from pathlib import Path
 from pydantic import ValidationError
 from requests.exceptions import HTTPError, JSONDecodeError
 from rich.console import Console
+from shodan.exception import APIError
 
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
@@ -59,6 +60,8 @@ def parse_args():
     parsed = parser.parse_args()
     if parsed.max_resolutions > 10:
         argparse.ArgumentParser().error("Maximum --max-resolutions value is 10")
+    if parsed.use_shodan and not os.environ.get("SHODAN_API_KEY"):
+        argparse.ArgumentParser().error("SHODAN_API_KEY is not set")
 
     return parsed
 
@@ -122,7 +125,7 @@ def main():
                 task3 = progress.add_task("Fetching domain whois from Virustotal")
                 whois = vt.get_domain_whois(args.hostname)
                 progress.update(task3, advance=100)
-        except (HTTPError, JSONDecodeError) as e:
+        except (HTTPError, JSONDecodeError, APIError) as e:
             progress.stop()
             error_and_exit(f"Error fetching data: {e}")
         except ValidationError as e:

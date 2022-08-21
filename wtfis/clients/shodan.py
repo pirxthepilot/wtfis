@@ -26,8 +26,11 @@ class ShodanClient:
                 break
             try:
                 ip_data = self.get_ip(ip.attributes.ip_address)
-            except APIError:
-                ip_data = None
+            except APIError as e:
+                if str(e) == "Invalid API key":
+                    raise APIError("Invalid Shodan API key")
+                else:
+                    ip_data = None
             if ip_data:
                 shodan_map[ip_data.ip_str] = ip_data
         return ShodanIpMap(__root__=shodan_map)
