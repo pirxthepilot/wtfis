@@ -32,6 +32,7 @@ class View:
     vt_gui_baseurl_domain = "https://virustotal.com/gui/domain"
     vt_gui_baseurl_ip = "https://virustotal.com/gui/ip-address"
     pt_gui_baseurl = "https://community.riskiq.com/search"
+    shodan_gui_baseurl = "https://www.shodan.io/host"
 
     def __init__(
         self,
@@ -280,9 +281,13 @@ class View:
             analysis = self._gen_vt_analysis_stats(attributes.ip_address_last_analysis_stats)
 
             # Content
+            hyperlink_base = (
+                self.vt_gui_baseurl_ip if isinstance(self.ip_enrich, IpWhoisMap)
+                else self.shodan_gui_baseurl
+            )
             heading = self._gen_heading_text(
                 attributes.ip_address,
-                hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}"
+                hyperlink=f"{hyperlink_base}/{attributes.ip_address}"
             )
             data = [
                 ("Analysis:", analysis),
