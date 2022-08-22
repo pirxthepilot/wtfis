@@ -6,9 +6,11 @@ from pathlib import Path
 from pydantic import ValidationError
 from requests.exceptions import HTTPError, JSONDecodeError
 from rich.console import Console
+from shodan.exception import APIError
 
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
+from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.utils import error_and_exit
 from wtfis.ui.progress import get_progress
@@ -44,6 +46,7 @@ def parse_args():
         type=int,
         default=DEFAULT_MAX_RESOLUTIONS
     )
+    parser.add_argument("-s", "--use-shodan", help="Use Shodan to enrich IPs", action="store_true")
     parser.add_argument("-n", "--no-color", help="Show output without colors", action="store_true")
     parser.add_argument("-1", "--one-column", help="Display results in one column", action="store_true")
     parser.add_argument(
@@ -57,6 +60,8 @@ def parse_args():
     parsed = parser.parse_args()
     if parsed.max_resolutions > 10:
         argparse.ArgumentParser().error("Maximum --max-resolutions value is 10")
+    if parsed.use_shodan and not os.environ.get("SHODAN_API_KEY"):
+        argparse.ArgumentParser().error("SHODAN_API_KEY is not set")
 
     return parsed
 
@@ -89,11 +94,20 @@ def main():
                 resolutions = vt.get_domain_resolutions(args.hostname)
                 progress.update(task1, advance=33)
 
-                task2 = progress.add_task("Fetching IP enrichments from IPWhois")
-                ipwhois = IpWhoisClient()
-                progress.update(task2, advance=50)
-                ip_enrich = ipwhois.bulk_get_ipwhois(resolutions, args.max_resolutions)
-                progress.update(task2, advance=50)
+                if args.use_shodan:
+                    # Shodan
+                    task2 = progress.add_task("Fetching IP enrichments from Shodan")
+                    shodan = ShodanClient(os.environ.get("SHODAN_API_KEY"))
+                    progress.update(task2, advance=50)
+                    ip_enrich = shodan.bulk_get_ip(resolutions, args.max_resolutions)
+                    progress.update(task2, advance=50)
+                else:
+                    # IPWhois
+                    task2 = progress.add_task("Fetching IP enrichments from IPWhois")
+                    ipwhois = IpWhoisClient()
+                    progress.update(task2, advance=50)
+                    ip_enrich = ipwhois.bulk_get_ipwhois(resolutions, args.max_resolutions)
+                    progress.update(task2, advance=50)
             else:
                 resolutions = None
                 ip_enrich = []
@@ -111,7 +125,7 @@ def main():
                 task3 = progress.add_task("Fetching domain whois from Virustotal")
                 whois = vt.get_domain_whois(args.hostname)
                 progress.update(task3, advance=100)
-        except (HTTPError, JSONDecodeError) as e:
+        except (HTTPError, JSONDecodeError, APIError) as e:
             progress.stop()
             error_and_exit(f"Error fetching data: {e}")
         except ValidationError as e:

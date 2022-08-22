@@ -7,8 +7,17 @@ name = "wtfis"
 description = "Passive host and domain name lookup tool for non-robots"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {file = "LICENSE"}
-keywords = ["passive lookup", "security", "virustotal", "passivetotal", "whois"]
+license = "MIT"
+keywords = [
+    "ipinfo",
+    "osint",
+    "passive lookup",
+    "passivetotal",
+    "security",
+    "shodan",
+    "virustotal",
+    "whois",
+]
 authors = [
     {name = "pirxthepilot", email = "pirxthepilot@users.noreply.github.com"}
 ]
@@ -24,6 +33,7 @@ dependencies = [
     "python-dotenv~=0.20.0",
     "requests~=2.28.1",
     "rich~=12.5.1",
+    "shodan~=1.28.0",
 ]
 dynamic = ["version"]
 

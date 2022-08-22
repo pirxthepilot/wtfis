@@ -7,8 +7,11 @@ from rich.table import Table
 from rich.text import Span, Text
 from unittest.mock import MagicMock
 
-from wtfis.models.ipwhois import IpWhois
+from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.shodan import ShodanClient
+from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.passivetotal import Whois
+from wtfis.models.shodan import ShodanIp
 from wtfis.models.virustotal import (
     Domain,
     HistoricalWhois,
@@ -17,15 +20,32 @@ from wtfis.models.virustotal import (
 from wtfis.ui.view import View
 
 
+def mock_get_ipwhois(ip, pool) -> IpWhois:
+    """ Mock replacement for IpWhoisClient().get_ipwhois() """
+    return IpWhois.parse_obj(pool[ip])
+
+
+def mock_shodan_get_ip(ip, pool) -> ShodanIp:
+    """ Mock replacement for ShodanClient().get_ip() """
+    return ShodanIp.parse_obj(pool[ip])
+
+
 @pytest.fixture()
 def view01(test_data):
     """ gist.github.com with PT whois. Complete test of all panels. """
+    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+
+    ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
+    ipwhois_client = IpWhoisClient()
+    ipwhois_client.get_ipwhois = MagicMock(side_effect=lambda ip: mock_get_ipwhois(ip, ipwhois_pool))
+    ip_enrich = ipwhois_client.bulk_get_ipwhois(resolutions, 3)
+
     return View(
         console=Console(),
         domain=Domain.parse_obj(json.loads(test_data("vt_domain_gist.json"))),
-        resolutions=Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json"))),
+        resolutions=resolutions,
         whois=Whois.parse_obj(json.loads(test_data("pt_whois_gist.json"))),
-        ip_enrich=[IpWhois.parse_obj(o) for o in json.loads(test_data("ipwhois_gist.json"))],
+        ip_enrich=ip_enrich,
     )
 
 
@@ -40,7 +60,7 @@ def view02(test_data):
         domain=MagicMock(),
         resolutions=Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json"))),
         whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_gist.json"))),
-        ip_enrich=[],
+        ip_enrich=IpWhoisMap(__root__={}),
         max_resolutions=1,
     )
 
@@ -93,6 +113,65 @@ def view06(test_data):
         resolutions=MagicMock(),
         whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_example_2.json"))),
         ip_enrich=[],
+    )
+
+
+@pytest.fixture()
+def view07(test_data):
+    """ gist.github.com with Shodan. Only test resolution and IP enrich. """
+    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+
+    shodan_pool = json.loads(test_data("shodan_gist.json"))
+    shodan_client = ShodanClient(MagicMock())
+    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.bulk_get_ip(resolutions, 3)
+
+    return View(
+        console=Console(),
+        domain=MagicMock(),
+        resolutions=resolutions,
+        whois=MagicMock(),
+        ip_enrich=ip_enrich,
+    )
+
+
+@pytest.fixture()
+def view08(test_data):
+    """ www.wired.com with Shodan. Only test resolution and IP enrich. """
+    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_wired.json")))
+
+    shodan_pool = json.loads(test_data("shodan_wired.json"))
+    shodan_client = ShodanClient(MagicMock())
+    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.bulk_get_ip(resolutions, 1)
+
+    return View(
+        console=Console(),
+        domain=MagicMock(),
+        resolutions=resolutions,
+        whois=MagicMock(),
+        ip_enrich=ip_enrich,
+        max_resolutions=1,
+    )
+
+
+@pytest.fixture()
+def view09(test_data):
+    """ one.one.one.one with Shodan. Only test resolution and IP enrich. """
+    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_one.json")))
+
+    shodan_pool = json.loads(test_data("shodan_one.json"))
+    shodan_client = ShodanClient(MagicMock())
+    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.bulk_get_ip(resolutions, 1)
+
+    return View(
+        console=Console(),
+        domain=MagicMock(),
+        resolutions=resolutions,
+        whois=MagicMock(),
+        ip_enrich=ip_enrich,
+        max_resolutions=1,
     )
 
 
@@ -501,3 +580,360 @@ class TestView06:
 
         # Warning message
         assert whois.renderable == Text("Unable to gather whois data")
+
+
+class TestView07:
+    def test_resolutions_panel(self, view07):
+        res = view07.resolutions_panel()
+        assert type(res) is Panel
+
+        # Entry 1
+        group = res.renderable.renderables[0].renderables
+
+        # Heading
+        assert group[0] == Text(
+            "13.234.210.38",
+            spans=[Span(0, 13, "bold yellow link https://www.shodan.io/host/13.234.210.38")],
+        )
+
+        # Table
+        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].justify == "left"
+        assert group[1].columns[0]._cells == [
+            "Analysis:",
+            "Resolved:",
+            "ASN:",
+            "ISP:",
+            "Location:",
+            "Services:",
+            "Tags:",
+            "Last Scan:",
+        ]
+        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].justify == "left"
+        assert group[1].columns[1]._cells == [
+            Text("0/94 malicious"),
+            "2022-08-06T14:56:20Z",
+            "16509 (Amazon Data Services India)",
+            "Amazon.com, Inc.",
+            Text(
+                "Mumbai, India",
+                spans=[
+                    Span(6, 8, "default"),
+                ]
+            ),
+            Text(
+                "22/tcp, 80/tcp, 443/tcp",
+                spans=[
+                    Span(0, 6, ""),
+                    Span(0, 2, "bright_cyan"),
+                    Span(2, 6, "cyan"),
+                    Span(6, 8, "default"),
+                    Span(8, 14, ""),
+                    Span(8, 10, "bright_cyan"),
+                    Span(10, 14, "cyan"),
+                    Span(14, 16, "default"),
+                    Span(16, 23, ""),
+                    Span(16, 19, "bright_cyan"),
+                    Span(19, 23, "cyan"),
+                ]
+            ),
+            Text(
+                "cloud",
+                spans=[
+                    Span(0, 5, 'bright_white on black')
+                ]
+            ),
+            "2022-08-21T07:21:05Z"
+        ]
+
+        # Spacing
+        assert res.renderable.renderables[1] == ""
+
+        # Entry 2
+        group = res.renderable.renderables[2].renderables
+
+        # Heading
+        assert group[0] == Text(
+            "192.30.255.113",
+            spans=[Span(0, 14, "bold yellow link https://www.shodan.io/host/192.30.255.113")],
+        )
+
+        # Table
+        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].justify == "left"
+        assert group[1].columns[0]._cells == [
+            "Analysis:",
+            "Resolved:",
+            "ASN:",
+            "ISP:",
+            "Location:",
+            "Services:",
+            "Last Scan:",
+        ]
+        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].justify == "left"
+        assert group[1].columns[1]._cells == [
+            Text("1/94 malicious"),
+            "2022-06-21T18:10:54Z",
+            "36459 (GitHub, Inc.)",
+            "GitHub, Inc.",
+            Text(
+                "Seattle, United States",
+                spans=[
+                    Span(7, 9, "default"),
+                ]
+            ),
+            Text(
+                "22/tcp, 80/tcp, 443/tcp",
+                spans=[
+                    Span(0, 6, ""),
+                    Span(0, 2, "bright_cyan"),
+                    Span(2, 6, "cyan"),
+                    Span(6, 8, "default"),
+                    Span(8, 14, ""),
+                    Span(8, 10, "bright_cyan"),
+                    Span(10, 14, "cyan"),
+                    Span(14, 16, "default"),
+                    Span(16, 23, ""),
+                    Span(16, 19, "bright_cyan"),
+                    Span(19, 23, "cyan")
+                ]
+            ),
+            "2022-08-21T22:33:53Z"
+        ]
+
+        # Spacing
+        assert res.renderable.renderables[3] == ""
+
+        # Entry 3 (NOTE: Timestamp on data modified to be really old)
+        group = res.renderable.renderables[4].renderables
+
+        # Heading
+        assert group[0] == Text(
+            "13.234.176.102",
+            spans=[Span(0, 14, "bold yellow link https://www.shodan.io/host/13.234.176.102")],
+        )
+
+        # Unlike the previous entries, the table is inside a group of (Table, Text) due to
+        # old timestamp warning
+        table = group[1].renderables[0]
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Analysis:",
+            "Resolved:",
+            "ASN:",
+            "ISP:",
+            "Location:",
+            "Services:",
+            "Tags:",
+            "Last Scan:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text("0/94 malicious"),
+            "2015-08-17T07:11:53Z",
+            "16509 (Amazon Data Services India)",
+            "Amazon.com, Inc.",
+            Text(
+                "Mumbai, India",
+                spans=[
+                    Span(6, 8, "default"),
+                ]
+            ),
+            Text(
+                "22/tcp, 80/tcp, 443/tcp",
+                spans=[
+                    Span(0, 6, ""),
+                    Span(0, 2, "bright_cyan"),
+                    Span(2, 6, "cyan"),
+                    Span(6, 8, "default"),
+                    Span(8, 14, ""),
+                    Span(8, 10, "bright_cyan"),
+                    Span(10, 14, "cyan"),
+                    Span(14, 16, "default"),
+                    Span(16, 23, ""),
+                    Span(16, 19, "bright_cyan"),
+                    Span(19, 23, "cyan"),
+                ]
+            ),
+            Text(
+                "cloud",
+                spans=[
+                    Span(0, 5, 'bright_white on black')
+                ]
+            ),
+            "2022-08-21T02:13:35Z"
+        ]
+
+        # Old timestamp warning
+        assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
+
+        # Spacing and remaining count
+        assert res.renderable.renderables[5] == Text("\n+34 more")
+
+
+class TestView08:
+    def test_resolutions_panel(self, view08):
+        res = view08.resolutions_panel()
+        assert type(res) is Panel
+
+        # Entry 1
+        group = res.renderable.renderables[0].renderables
+
+        # Heading
+        assert group[0] == Text(
+            "199.232.34.194",
+            spans=[Span(0, 14, "bold yellow link https://www.shodan.io/host/199.232.34.194")],
+        )
+
+        # Table
+        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].justify == "left"
+        assert group[1].columns[0]._cells == [
+            "Analysis:",
+            "Resolved:",
+            "ASN:",
+            "ISP:",
+            "Location:",
+            "Services:",
+            "Tags:",
+            "Last Scan:",
+        ]
+        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].justify == "left"
+        assert group[1].columns[1]._cells == [
+            Text("0/93 malicious"),
+            "2022-06-03T22:32:19Z",
+            "54113 (Fastly, Inc.)",
+            "Fastly, Inc.",
+            Text(
+                "Atlanta, United States",
+                spans=[
+                    Span(7, 9, "default"),
+                ]
+            ),
+            Text(
+                "Varnish HTTP Cache (80/tcp)\n<No ID> (443/tcp)",
+                spans=[
+                    Span(0, 18, "orange_red1"),
+                    Span(20, 26, ""),
+                    Span(20, 26, ""),
+                    Span(20, 22, "bright_cyan"),
+                    Span(22, 26, "cyan"),
+                    Span(28, 35, "orange_red1"),
+                    Span(37, 44, ""),
+                    Span(37, 44, ""),
+                    Span(37, 40, "bright_cyan"),
+                    Span(40, 44, "cyan"),
+                ]
+            ),
+            Text(
+                "cdn",
+                spans=[
+                    Span(0, 3, 'bright_white on black'),
+                ]
+            ),
+            "2022-08-21T01:33:13Z"
+        ]
+
+        # Spacing
+        assert res.renderable.renderables[1] == Text("\n+199 more")
+
+
+class TestView09:
+    def test_resolutions_panel(self, view09):
+        res = view09.resolutions_panel()
+        assert type(res) is Panel
+
+        # Entry 1
+        group = res.renderable.renderables[0].renderables
+
+        # Heading
+        assert group[0] == Text(
+            "1.0.0.1",
+            spans=[Span(0, 7, "bold yellow link https://www.shodan.io/host/1.0.0.1")],
+        )
+
+        # Table
+        table = group[1].renderables[0]
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Analysis:",
+            "Resolved:",
+            "ASN:",
+            "ISP:",
+            "Location:",
+            "Services:",
+            "Last Scan:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text("2/94 malicious"),
+            "2020-08-01T22:07:20Z",
+            "13335 (APNIC and Cloudflare DNS Resolver project)",
+            "Cloudflare, Inc.",
+            Text(
+                "Los Angeles, United States",
+                spans=[
+                    Span(11, 13, "default"),
+                ]
+            ),
+            Text(
+                (
+                    "CloudFlare (80/tcp, 8080/tcp)\n<No ID> (53/tcp, 53/udp, 443/tcp, 2082/tcp, "
+                    "2086/tcp, 2087/tcp, 8443/tcp)"
+                ),
+                spans=[
+                    Span(0, 10, "orange_red1"),
+                    Span(12, 28, ""),
+                    Span(12, 18, ""),
+                    Span(12, 14, "bright_cyan"),
+                    Span(14, 18, "cyan"),
+                    Span(18, 20, "default"),
+                    Span(20, 28, ""),
+                    Span(20, 24, "bright_cyan"),
+                    Span(24, 28, "cyan"),
+                    Span(30, 37, "orange_red1"),
+                    Span(39, 102, ""),
+                    Span(39, 45, ""),
+                    Span(39, 41, "bright_cyan"),
+                    Span(41, 45, "cyan"),
+                    Span(45, 47, "default"),
+                    Span(47, 53, ""),
+                    Span(47, 49, "bright_cyan"),
+                    Span(49, 53, "cyan"),
+                    Span(53, 55, "default"),
+                    Span(55, 62, ""),
+                    Span(55, 58, "bright_cyan"),
+                    Span(58, 62, "cyan"),
+                    Span(62, 64, "default"),
+                    Span(64, 72, ""),
+                    Span(64, 68, "bright_cyan"),
+                    Span(68, 72, "cyan"),
+                    Span(72, 74, "default"),
+                    Span(74, 82, ""),
+                    Span(74, 78, "bright_cyan"),
+                    Span(78, 82, "cyan"),
+                    Span(82, 84, "default"),
+                    Span(84, 92, ""),
+                    Span(84, 88, "bright_cyan"),
+                    Span(88, 92, "cyan"),
+                    Span(92, 94, "default"),
+                    Span(94, 102, ""),
+                    Span(94, 98, "bright_cyan"),
+                    Span(98, 102, "cyan"),
+                ]
+            ),
+            "2022-08-22T02:35:34Z"
+        ]
+
+        # Old timestamp warning
+        assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
+
+        # Spacing
+        assert res.renderable.renderables[1] == Text("\n+1 more")

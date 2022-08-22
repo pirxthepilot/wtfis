@@ -1,8 +1,8 @@
 from wtfis.clients.base import BaseClient
-from wtfis.models.ipwhois import IpWhois
+from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.virustotal import Resolutions
 
-from typing import List, Optional
+from typing import Optional
 
 
 class IpWhoisClient(BaseClient):
@@ -19,12 +19,12 @@ class IpWhoisClient(BaseClient):
         self,
         resolutions: Resolutions,
         max_ips_to_enrich: int
-    ) -> List[IpWhois]:
-        results = []
+    ) -> IpWhoisMap:
+        ipwhois_map = {}
         for idx, ip in enumerate(resolutions.data):
             if idx == max_ips_to_enrich:
                 break
             ipwhois = self.get_ipwhois(ip.attributes.ip_address)
             if ipwhois:
-                results.append(ipwhois)
-        return results
+                ipwhois_map[ipwhois.ip] = ipwhois
+        return IpWhoisMap(__root__=ipwhois_map)
