@@ -132,7 +132,8 @@ class View:
 
         text = Text()
         for source, popularity in popularity_ranks.__root__.items():
-            text.append(f"{source} (")
+            text.append(source, style=self.theme.popularity_source)
+            text.append(" (")
             text.append(str(popularity.rank), style=self.theme.inline_stat)
             text.append(")")
             if source != list(popularity_ranks.__root__.keys())[-1]:

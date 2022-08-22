@@ -207,7 +207,9 @@ class TestView01:
             Text(
                 "Majestic (532)\nCisco Umbrella (39463)",
                 spans=[
+                    Span(0, 8, "bright_cyan"),
                     Span(10, 13, "cyan"),
+                    Span(15, 29, "bright_cyan"),
                     Span(31, 36, "cyan"),
                 ]
             ),
@@ -517,10 +519,15 @@ class TestView04:
             Text(
                 "Majestic (1)\nStatvoo (1)\nAlexa (1)\nCisco Umbrella (2)\nQuantcast (1)",
                 spans=[
+                    Span(0, 8, "bright_cyan"),
                     Span(10, 11, "cyan"),
+                    Span(13, 20, "bright_cyan"),
                     Span(22, 23, "cyan"),
+                    Span(25, 30, "bright_cyan"),
                     Span(32, 33, "cyan"),
+                    Span(35, 49, "bright_cyan"),
                     Span(51, 52, "cyan"),
+                    Span(54, 63, "bright_cyan"),
                     Span(65, 66, "cyan"),
                 ]
             ),

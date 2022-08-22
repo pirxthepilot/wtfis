@@ -3,6 +3,7 @@ class Theme:
     heading = "bold yellow"
     table_field = "bold bright_magenta"
     table_value = "none"
+    popularity_source = "bright_cyan"
     inline_stat = "cyan"
     vendor_list = "cyan"
     nameserver_list = "cyan"
