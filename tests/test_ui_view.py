@@ -308,7 +308,8 @@ class TestView01:
 
         # Unlike the previous entries, the table is inside a group of (Table, Text) due to
         # old timestamp warning
-        table = group[1].renderables[0]
+        # table = group[1].renderables[0]
+        table = group[1]
         assert table.columns[0].style == "bold bright_magenta"
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
@@ -335,7 +336,7 @@ class TestView01:
         ]
 
         # Old timestamp warning
-        assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
+        # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing and remaining count
         assert res.renderable.renderables[5] == Text("\n+34 more")
@@ -724,7 +725,8 @@ class TestView07:
 
         # Unlike the previous entries, the table is inside a group of (Table, Text) due to
         # old timestamp warning
-        table = group[1].renderables[0]
+        # table = group[1].renderables[0]
+        table = group[1]
         assert table.columns[0].style == "bold bright_magenta"
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
@@ -776,7 +778,7 @@ class TestView07:
         ]
 
         # Old timestamp warning
-        assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
+        # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing and remaining count
         assert res.renderable.renderables[5] == Text("\n+34 more")
@@ -823,18 +825,18 @@ class TestView08:
                 ]
             ),
             Text(
-                "Varnish HTTP Cache (80/tcp)\n<No ID> (443/tcp)",
+                "Varnish HTTP Cache (80/tcp)\nOther (443/tcp)",
                 spans=[
                     Span(0, 18, "orange_red1"),
                     Span(20, 26, ""),
                     Span(20, 26, ""),
                     Span(20, 22, "bright_cyan"),
                     Span(22, 26, "cyan"),
-                    Span(28, 35, "orange_red1"),
-                    Span(37, 44, ""),
-                    Span(37, 44, ""),
-                    Span(37, 40, "bright_cyan"),
-                    Span(40, 44, "cyan"),
+                    Span(28, 33, "orange_red1"),
+                    Span(35, 42, ""),
+                    Span(35, 42, ""),
+                    Span(35, 38, "bright_cyan"),
+                    Span(38, 42, "cyan"),
                 ]
             ),
             Text(
@@ -865,7 +867,8 @@ class TestView09:
         )
 
         # Table
-        table = group[1].renderables[0]
+        # table = group[1].renderables[0]
+        table = group[1]
         assert table.columns[0].style == "bold bright_magenta"
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
@@ -892,7 +895,7 @@ class TestView09:
             ),
             Text(
                 (
-                    "CloudFlare (80/tcp, 8080/tcp)\n<No ID> (53/tcp, 53/udp, 443/tcp, 2082/tcp, "
+                    "CloudFlare (80/tcp, 8080/tcp)\nOther (53/tcp, 53/udp, 443/tcp, 2082/tcp, "
                     "2086/tcp, 2087/tcp, 8443/tcp)"
                 ),
                 spans=[
@@ -905,42 +908,42 @@ class TestView09:
                     Span(20, 28, ""),
                     Span(20, 24, "bright_cyan"),
                     Span(24, 28, "cyan"),
-                    Span(30, 37, "orange_red1"),
-                    Span(39, 102, ""),
-                    Span(39, 45, ""),
-                    Span(39, 41, "bright_cyan"),
-                    Span(41, 45, "cyan"),
-                    Span(45, 47, "default"),
-                    Span(47, 53, ""),
-                    Span(47, 49, "bright_cyan"),
-                    Span(49, 53, "cyan"),
-                    Span(53, 55, "default"),
-                    Span(55, 62, ""),
-                    Span(55, 58, "bright_cyan"),
-                    Span(58, 62, "cyan"),
-                    Span(62, 64, "default"),
-                    Span(64, 72, ""),
-                    Span(64, 68, "bright_cyan"),
-                    Span(68, 72, "cyan"),
-                    Span(72, 74, "default"),
-                    Span(74, 82, ""),
-                    Span(74, 78, "bright_cyan"),
-                    Span(78, 82, "cyan"),
-                    Span(82, 84, "default"),
-                    Span(84, 92, ""),
-                    Span(84, 88, "bright_cyan"),
-                    Span(88, 92, "cyan"),
-                    Span(92, 94, "default"),
-                    Span(94, 102, ""),
-                    Span(94, 98, "bright_cyan"),
-                    Span(98, 102, "cyan"),
+                    Span(30, 35, "orange_red1"),
+                    Span(37, 100, ""),
+                    Span(37, 43, ""),
+                    Span(37, 39, "bright_cyan"),
+                    Span(39, 43, "cyan"),
+                    Span(43, 45, "default"),
+                    Span(45, 51, ""),
+                    Span(45, 47, "bright_cyan"),
+                    Span(47, 51, "cyan"),
+                    Span(51, 53, "default"),
+                    Span(53, 60, ""),
+                    Span(53, 56, "bright_cyan"),
+                    Span(56, 60, "cyan"),
+                    Span(60, 62, "default"),
+                    Span(62, 70, ""),
+                    Span(62, 66, "bright_cyan"),
+                    Span(66, 70, "cyan"),
+                    Span(70, 72, "default"),
+                    Span(72, 80, ""),
+                    Span(72, 76, "bright_cyan"),
+                    Span(76, 80, "cyan"),
+                    Span(80, 82, "default"),
+                    Span(82, 90, ""),
+                    Span(82, 86, "bright_cyan"),
+                    Span(86, 90, "cyan"),
+                    Span(90, 92, "default"),
+                    Span(92, 100, ""),
+                    Span(92, 96, "bright_cyan"),
+                    Span(96, 100, "cyan"),
                 ]
             ),
             "2022-08-22T02:35:34Z"
         ]
 
         # Old timestamp warning
-        assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
+        # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing
         assert res.renderable.renderables[1] == Text("\n+1 more")

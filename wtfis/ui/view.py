@@ -22,7 +22,7 @@ from wtfis.models.virustotal import (
     Resolutions,
 )
 from wtfis.ui.theme import Theme
-from wtfis.utils import iso_date, older_than, smart_join
+from wtfis.utils import iso_date, smart_join
 
 
 class View:
@@ -159,9 +159,9 @@ class View:
         # Return a simple port list if no identified ports
         if (
             len(list(grouped.keys())) == 1 and
-            list(grouped.keys())[0] == "<No ID>"
+            list(grouped.keys())[0] == "Other"
         ):
-            return smart_join(*ports_stylized(grouped["<No ID>"]))
+            return smart_join(*ports_stylized(grouped["Other"]))
 
         # Return grouped display of there are identified ports
         text = Text()
@@ -321,14 +321,17 @@ class View:
                     ]
 
             # Include a disclaimer if last seen is older than 1 year
-            if enrich and older_than(attributes.date, 365):
-                body = Group(
-                    self._gen_table(*data),
-                    Text("**Enrichment data may be inaccurate", style=self.theme.disclaimer),
-                )  # type: Union[Group, Table, str]
-            else:
-                body = self._gen_table(*data)
+            # Note: Disabled for now because I originally understood that the resolution date was the last time
+            # the domain was resolved, but it may actually be he first time the IP itself was seen with the domain.
+            # if enrich and older_than(attributes.date, 365):
+            #     body = Group(
+            #         self._gen_table(*data),
+            #         Text("**Enrichment data may be inaccurate", style=self.theme.disclaimer),
+            #     )  # type: Union[Group, Table, str]
+            # else:
+            #     body = self._gen_table(*data)
 
+            body = self._gen_table(*data)
             content.append(self._gen_info(body, heading))
 
             # Add extra line break if not last item in list
