@@ -49,16 +49,16 @@ Passivetotal is recommended over Virustotal for whois data for a couple of reaso
 * PT whois data tends to be of better quality than VT. Also, VT's registrant data is apparently [anonymized](https://developers.virustotal.com/reference/whois).
 * You can save one VT API call by offloading to PT
 
-### IPWhois ([ipwhois.io](https://ipwhois.io/documentation))
+### IPWhois
 
 IP address enrichments for VT resolutions. For each IP, retrieves the ASN, Org, ISP and Geolcoation.
 
 ### Shodan
 
-Alternative IP address enrichment source. For each IP, retrieves:
+Alternative IP address enrichment source. GETs data from the `/shodan/host/{ip}` endpoint (see [doc](https://developer.shodan.io/api)). For each IP, retrieves:
 
 * ASN, Org, ISP and Geolocation
-* Operating System (if available)
+* Operating system (if available)
 * List of open ports and detected services
 * Tags (assigned by Shodan)
 
@@ -116,6 +116,8 @@ If your terminal supports it, FQDN, domain, and IP headings are clickable hyperl
 Shodan can be used to enrich the IP addresses (instead of IPWhois). Invoke with the `-s` or `--use-shodan` flag.
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-shodan.png?raw=true)
+
+The IP address hyperlink also changes to point to the Shodan web interface.
 
 ### Display options
 
