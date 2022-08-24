@@ -35,7 +35,7 @@ class ShodanIp(BaseModel):
             else:
                 unknown.append(port_data)
         if unknown:
-            result["<No ID>"] = unknown
+            result["Other"] = unknown
         return result
 
 

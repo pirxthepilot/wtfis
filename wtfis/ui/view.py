@@ -159,9 +159,9 @@ class View:
         # Return a simple port list if no identified ports
         if (
             len(list(grouped.keys())) == 1 and
-            list(grouped.keys())[0] == "<No ID>"
+            list(grouped.keys())[0] == "Other"
         ):
-            return smart_join(*ports_stylized(grouped["<No ID>"]))
+            return smart_join(*ports_stylized(grouped["Other"]))
 
         # Return grouped display of there are identified ports
         text = Text()
