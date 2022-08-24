@@ -53,6 +53,15 @@ Passivetotal is recommended over Virustotal for whois data for a couple of reaso
 
 IP address enrichments for VT resolutions. For each IP, retrieves the ASN, Org, ISP and Geolcoation.
 
+### Shodan
+
+Alternative IP address enrichment source. For each IP, retrieves:
+
+* ASN, Org, ISP and Geolocation
+* Operating System (if available)
+* List of open ports and detected services
+* Tags (assigned by Shodan)
+
 
 ## Install
 
@@ -67,6 +76,7 @@ wtfis uses these environment variables:
 * `VT_API_KEY` (required) - Virustotal API key
 * `PT_API_KEY` (optional) - Passivetotal API key
 * `PT_API_USER` (optional) - Passivetotal API user
+* `SHODAN_API_KEY` (optional) - Shodan API key
 
 Set these using your own method.
 
@@ -74,6 +84,22 @@ Alternatively, create a file in your home directory `~/.env.wtfis` with the abov
 
 
 ## Usage
+
+```
+usage: wtfis [-h] [-m N] [-s] [-n] [-1] [-V] hostname
+
+positional arguments:
+  hostname              Hostname or domain
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m N, --max-resolutions N
+                        Maximum number of resolutions to show (default: 3)
+  -s, --use-shodan      Use Shodan to enrich IPs
+  -n, --no-color        Show output without colors
+  -1, --one-column      Display results in one column
+  -V, --version         Print version number
+```
 
 Basically:
 
@@ -85,6 +111,14 @@ and you will get results organized by panel, similar to the image above.
 
 If your terminal supports it, FQDN, domain, and IP headings are clickable hyperlinks that point to the appropriate pages on the VT or PT (RiskIQ) website.
 
+### Shodan enrichment
+
+Shodan can be used to enrich the IP addresses (instead of IPWhois). Invoke with the `-s` or `--use-shodan` flag.
+
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-shodan.png?raw=true)
+
+### Display options
+
 You can increase or decrease the maximum number of displayed IP resolutions with `-m NUMBER` or `--max-resolutions=NUMBER`. The upper limit is 10. If you don't need resolutions at all, set the number to `0`.
 
 To show all panels in one column, use the `-1` or `--one-column` flag.
@@ -95,12 +129,9 @@ Panels can be displayed with no color with `-n` or `--no-color`.
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-no-color.png?raw=true)
 
-Finally, there's a help flag (`-h` or `--help`) if you need it.
-
 
 ## TODOs
 
-* JSON output
-* Shodan integration
 * IP address lookup
 * Keyring support
+* JSON output
