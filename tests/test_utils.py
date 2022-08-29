@@ -8,6 +8,7 @@ from wtfis.utils import (
     older_than,
     smart_join,
     error_and_exit,
+    refang,
 )
 
 
@@ -65,3 +66,6 @@ class TestUtils:
         with pytest.raises(SystemExit) as e:
             error_and_exit("foo", 2)
         assert e.value.code == 2
+
+    def test_refang(self):
+        assert refang("foo[.]bar[.]com") == "foo.bar.com"

@@ -40,3 +40,8 @@ def smart_join(
 def error_and_exit(message: str, status: int = 1):
     print(message, file=sys.stderr)
     raise SystemExit(status)
+
+
+def refang(text: str) -> str:
+    """ Strip []s out of text """
+    return text.replace("[", "").replace("]", "")

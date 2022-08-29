@@ -2,6 +2,7 @@ from typing import Optional
 
 from wtfis.clients.base import BaseClient
 from wtfis.models.passivetotal import Whois
+from wtfis.utils import refang
 
 
 class PTClient(BaseClient):
@@ -21,7 +22,7 @@ class PTClient(BaseClient):
         )
 
     def get_passive_dns(self, domain: str) -> Optional[dict]:
-        return self._query("/dns/passive", domain)
+        return self._query("/dns/passive", refang(domain))
 
     def get_whois(self, domain: str) -> Optional[Whois]:
-        return Whois.parse_obj(self._query("/whois", domain))
+        return Whois.parse_obj(self._query("/whois", refang(domain)))
