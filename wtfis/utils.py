@@ -1,3 +1,4 @@
+import re
 import sys
 
 from datetime import datetime, timedelta, timezone
@@ -45,3 +46,9 @@ def error_and_exit(message: str, status: int = 1):
 def refang(text: str) -> str:
     """ Strip []s out of text """
     return text.replace("[", "").replace("]", "")
+
+
+def is_ip(text: str) -> bool:
+    """ Detect whether text is IPv4 or not """
+    pattern = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
+    return bool(pattern.match(text))

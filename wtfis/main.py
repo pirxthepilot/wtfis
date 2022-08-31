@@ -12,7 +12,8 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
-from wtfis.utils import error_and_exit
+from wtfis.models.virustotal import Domain
+from wtfis.utils import error_and_exit, is_ip
 from wtfis.ui.progress import get_progress
 from wtfis.ui.view import View
 from wtfis.version import get_version
@@ -39,7 +40,7 @@ def parse_args():
     DEFAULT_MAX_RESOLUTIONS = 3
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("hostname", help="Hostname or domain")
+    parser.add_argument("entity", help="Hostname, domain or IP")
     parser.add_argument(
         "-m", "--max-resolutions", metavar="N",
         help=f"Maximum number of resolutions to show (default: {DEFAULT_MAX_RESOLUTIONS})",
@@ -62,6 +63,8 @@ def parse_args():
         argparse.ArgumentParser().error("Maximum --max-resolutions value is 10")
     if parsed.use_shodan and not os.environ.get("SHODAN_API_KEY"):
         argparse.ArgumentParser().error("SHODAN_API_KEY is not set")
+    if is_ip(parsed.entity) and parsed.max_resolutions != DEFAULT_MAX_RESOLUTIONS:
+        argparse.ArgumentParser().error("--max-resolutions is not applicable to IPs")
 
     return parsed
 
@@ -86,12 +89,15 @@ def main():
             task1 = progress.add_task("Fetching data from Virustotal")
             vt = VTClient(os.environ.get("VT_API_KEY"))
             progress.update(task1, advance=33)
-            domain = vt.get_domain(args.hostname)
+            if is_ip(args.entity):
+                entity = vt.get_ip_address(args.entity)
+            else:
+                entity = vt.get_domain(args.entity)
             progress.update(task1, advance=33)
 
             # Resolutions and IP enrichments
             if args.max_resolutions != 0:
-                resolutions = vt.get_domain_resolutions(args.hostname)
+                resolutions = vt.get_domain_resolutions(args.entity)
                 progress.update(task1, advance=33)
 
                 if args.use_shodan:
@@ -119,11 +125,11 @@ def main():
                 task3 = progress.add_task("Fetching domain whois from Passivetotal")
                 pt = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
                 progress.update(task3, advance=50)
-                whois = pt.get_whois(args.hostname)
+                whois = pt.get_whois(args.entity)
                 progress.update(task3, advance=50)
             else:
                 task3 = progress.add_task("Fetching domain whois from Virustotal")
-                whois = vt.get_domain_whois(args.hostname)
+                whois = vt.get_domain_whois(args.entity)
                 progress.update(task3, advance=100)
         except (HTTPError, JSONDecodeError, APIError) as e:
             progress.stop()
@@ -135,7 +141,7 @@ def main():
     # Output
     view = View(
         console,
-        domain,
+        entity,
         resolutions,
         whois,
         ip_enrich,
