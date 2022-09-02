@@ -7,6 +7,7 @@ from wtfis.models.virustotal import (
     HistoricalWhois,
     Resolutions,
 )
+from wtfis.utils import is_ip
 
 
 class VTClient(BaseClient):
@@ -33,3 +34,13 @@ class VTClient(BaseClient):
 
     def get_ip_address(self, ip: str) -> IpAddress:
         return IpAddress.parse_obj(self._get(f"/ip_addresses/{ip}"))
+
+    def get_ip_whois(self, ip: str) -> HistoricalWhois:
+        return HistoricalWhois.parse_obj(self._get(f"/ip_addresses/{ip}/historical_whois"))
+
+    def get_whois(self, entity: str) -> HistoricalWhois:
+        """ Generalized for domain and IP """
+        if is_ip(entity):
+            return self.get_ip_whois(entity)
+        else:
+            return self.get_domain_whois(entity)

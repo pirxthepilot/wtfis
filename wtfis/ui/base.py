@@ -9,15 +9,13 @@ from rich.console import (
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from typing import Generator, List, Optional, Union
+from typing import Any, Generator, List, Optional, Union
 
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.passivetotal import Whois
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
 from wtfis.models.virustotal import (
-    Domain,
     HistoricalWhois,
-    IpAddress,
     LastAnalysisStats,
     PopularityRanks,
 )
@@ -37,7 +35,7 @@ class BaseView(abc.ABC):
     def __init__(
         self,
         console: Console,
-        entity: Union[Domain, IpAddress],
+        entity: Any,
         whois: Union[Whois, HistoricalWhois],
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
     ) -> None:

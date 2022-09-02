@@ -2,244 +2,44 @@ from rich.columns import Columns
 from rich.console import (
     Console,
     Group,
-    RenderableType,
-    group,
 )
 from rich.padding import Padding
 from rich.panel import Panel
-from rich.table import Table
 from rich.text import Text
-from typing import Generator, List, Optional, Union
+from typing import Optional, Union
 
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.passivetotal import Whois
-from wtfis.models.shodan import ShodanIp, ShodanIpMap
+from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.virustotal import (
     Domain,
     HistoricalWhois,
-    LastAnalysisStats,
-    PopularityRanks,
+    IpAddress,
     Resolutions,
 )
-from wtfis.ui.theme import Theme
+from wtfis.ui.base import BaseView
 from wtfis.utils import iso_date, smart_join
 
 
-class View:
+class DomainView(BaseView):
     """
-    Handles the look of the output
+    Handler for FQDN and domain lookup output
     """
-    vt_gui_baseurl_domain = "https://virustotal.com/gui/domain"
-    vt_gui_baseurl_ip = "https://virustotal.com/gui/ip-address"
-    pt_gui_baseurl = "https://community.riskiq.com/search"
-    shodan_gui_baseurl = "https://www.shodan.io/host"
-
     def __init__(
         self,
         console: Console,
-        domain: Domain,
+        entity: Domain,
         resolutions: Optional[Resolutions],
         whois: Union[Whois, HistoricalWhois],
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         max_resolutions: int = 3,
     ) -> None:
-        self.console = console
-        self.domain = domain
+        super().__init__(console, entity, whois, ip_enrich)
         self.resolutions = resolutions
-        self.whois = whois
-        self.ip_enrich = ip_enrich
         self.max_resolutions = max_resolutions
-        self.theme = Theme()
-
-    def _vendors_who_flagged_malicious(self) -> List[str]:
-        vendors = []
-        for key, result in self.domain.data.attributes.last_analysis_results.__root__.items():
-            if result.category == "malicious":
-                vendors.append(key)
-        return vendors
-
-    def _gen_heading_text(self, heading: str, hyperlink: Optional[str] = None) -> Text:
-        text = Text(justify="center", end="\n")
-        style = f"{self.theme.heading} link {hyperlink}" if hyperlink else self.theme.heading
-        return text.append(heading, style=style)
-
-    def _gen_table(self, *params) -> Union[Table, str]:
-        """ Each param should be a tuple of (field, value) """
-        # Set up table
-        grid = Table.grid(expand=False, padding=(0, 1))
-        grid.add_column(style=self.theme.table_field)                # Field
-        grid.add_column(style=self.theme.table_value, max_width=38)  # Value
-
-        # Populate rows
-        valid_rows = 0
-        for item in params:
-            field, value = item
-            if value is None or str(value) == "":  # Skip if no value
-                continue
-            grid.add_row(field, value)
-            valid_rows += 1
-
-        # Return None if no rows generated
-        return grid if valid_rows > 0 else ""
-
-    @group()
-    def _gen_group(self, content: List[RenderableType]) -> Generator:
-        for item in content:
-            yield item
-
-    def _gen_info(self, body: RenderableType, heading: Optional[Text] = None) -> RenderableType:
-        return Group(heading, body) if heading else body
-
-    def _gen_panel(self, title: str, renderable: RenderableType) -> Panel:
-        panel_title = Text(title, style=self.theme.panel_title)
-        return Panel(renderable, title=panel_title, expand=False)
-
-    def _gen_vt_analysis_stats(
-        self,
-        stats: LastAnalysisStats,
-        vendors: Optional[List[str]] = None
-    ) -> Text:
-        # Custom style
-        stats_style = self.theme.error if stats.malicious >= 1 else self.theme.info
-
-        # Total count
-        total = stats.harmless + stats.malicious + stats.suspicious + stats.timeout + stats.undetected
-
-        # Text
-        text = Text(f"{stats.malicious}/{total} malicious", style=stats_style)
-
-        # Include list of vendors that flagged malicious
-        if vendors:
-            text.append("\n")
-            text.append(smart_join(*vendors, style=self.theme.vendor_list))
-
-        return text
-
-    def _gen_vt_reputation(self, reputation: int) -> Text:
-        # Custom style
-        def rep_style(reputation: int) -> str:
-            if reputation > 0:
-                return self.theme.info
-            elif reputation < 0:
-                return self.theme.error
-            return "default"
-
-        return Text(str(reputation), style=rep_style(reputation))
-
-    def _gen_vt_popularity(self, popularity_ranks: PopularityRanks) -> Optional[Text]:
-        if len(popularity_ranks.__root__) == 0:
-            return None
-
-        text = Text()
-        for source, popularity in popularity_ranks.__root__.items():
-            text.append(source, style=self.theme.popularity_source)
-            text.append(" (")
-            text.append(str(popularity.rank), style=self.theme.inline_stat)
-            text.append(")")
-            if source != list(popularity_ranks.__root__.keys())[-1]:
-                text.append("\n")
-        return text
-
-    def _gen_shodan_services(self, ip: ShodanIp) -> Optional[Union[Text, str]]:
-        if len(ip.data) == 0:
-            return None
-
-        # Styling for port/transport list
-        def ports_stylized(ports: list) -> Generator:
-            for port in ports:
-                yield (
-                    Text()
-                    .append(str(port.port), style=self.theme.port)
-                    .append(f"/{port.transport}", style=self.theme.transport)
-                )
-
-        # Grouped list
-        grouped = ip.group_ports_by_product()
-
-        # Return a simple port list if no identified ports
-        if (
-            len(list(grouped.keys())) == 1 and
-            list(grouped.keys())[0] == "Other"
-        ):
-            return smart_join(*ports_stylized(grouped["Other"]))
-
-        # Return grouped display of there are identified ports
-        text = Text()
-        for product, ports in grouped.items():
-            text.append(product, style=self.theme.product)
-            text.append(" (")
-            text.append(smart_join(*ports_stylized(ports)))
-            text.append(")")
-            if product != list(grouped.keys())[-1]:
-                text.append("\n")
-        return text
-
-    def _get_ip_enrichment(self, ip: str) -> Optional[Union[IpWhois, ShodanIp]]:
-        return self.ip_enrich.__root__[ip] if ip in self.ip_enrich.__root__.keys() else None
-
-    def whois_panel(self) -> Optional[Panel]:
-        # Using PT Whois
-        if isinstance(self.whois, Whois):
-            heading = self._gen_heading_text(
-                self.whois.domain,
-                hyperlink=f"{self.pt_gui_baseurl}/{self.whois.domain}/whois"
-            )
-            body = self._gen_table(
-                ("Registrar:", self.whois.registrar),
-                ("Organization:", self.whois.organization),
-                ("Name:", self.whois.name),
-                ("Email:", self.whois.contactEmail),
-                ("Phone:", self.whois.registrant.telephone),
-                ("Street:", self.whois.registrant.street),
-                ("City:", self.whois.registrant.city),
-                ("State:", self.whois.registrant.state),
-                ("Country:", self.whois.registrant.country),
-                ("Nameservers:", smart_join(*self.whois.nameServers, style=self.theme.nameserver_list)),
-                ("Registered:", iso_date(self.whois.registered)),
-                ("Updated:", iso_date(self.whois.registryUpdatedAt)),
-                ("Expires:", iso_date(self.whois.expiresAt)),
-            )
-        # Using VT HistoricalWhois
-        else:
-            if not self.whois.data:
-                return None
-
-            # Use the first, i.e. latest whois entry
-            attribs = self.whois.data[0].attributes
-
-            # Check for empty whois map
-            if not attribs.whois_map:
-                return self._gen_panel("whois", Text("Unable to gather whois data", style=self.theme.disclaimer))
-
-            # Admin location
-            admin_location = smart_join(
-                attribs.whois_map.admin_city,
-                attribs.whois_map.admin_state,
-                attribs.whois_map.admin_country,
-            )
-
-            # Name servers
-            name_servers = attribs.whois_map.name_servers if attribs.whois_map.name_servers else []
-
-            heading = self._gen_heading_text(attribs.whois_map.domain)
-            body = self._gen_table(
-                ("Registrar:", attribs.whois_map.registrar),
-                ("Organization:", attribs.whois_map.registrant_org),
-                ("Name:", attribs.whois_map.registrant_name),
-                ("Email:", attribs.whois_map.registrant_email),
-                ("Country:", attribs.registrant_country),
-                ("Admin Location:", admin_location),
-                ("Nameservers:", smart_join(*name_servers, style=self.theme.nameserver_list)),
-                ("Registered:", attribs.whois_map.creation_date or attribs.whois_map.registered_on),
-                ("Updated:", attribs.whois_map.updated_date or attribs.whois_map.last_updated),
-                ("Expires:", attribs.whois_map.expiry_date or attribs.whois_map.expiry_date_alt),
-            )
-
-        # Return None if body is empty
-        return self._gen_panel("whois", self._gen_info(body, heading)) if body else None
 
     def domain_panel(self) -> Panel:
-        attributes = self.domain.data.attributes
+        attributes = self.entity.data.attributes
 
         # Analysis
         analysis = self._gen_vt_analysis_stats(
@@ -255,8 +55,8 @@ class View:
 
         # Content
         heading = self._gen_heading_text(
-            self.domain.data.id_,
-            hyperlink=f"{self.vt_gui_baseurl_domain}/{self.domain.data.id_}"
+            self.entity.data.id_,
+            hyperlink=f"{self.vt_gui_baseurl_domain}/{self.entity.data.id_}"
         )
         body = self._gen_table(
             ("Analysis:", analysis),
@@ -362,6 +162,85 @@ class View:
         renderables = [i for i in (
             self.domain_panel(),
             self.resolutions_panel(),
+            self.whois_panel(),
+        ) if i is not None]
+
+        if one_column:
+            self.console.print(Group(*([""] + renderables)))  # type: ignore
+        else:
+            self.console.print(Padding(Columns(renderables), (1, 0)))
+
+
+class IpAddressView(BaseView):
+    """
+    Handler for IP Address lookup output
+    """
+    def __init__(
+        self,
+        console: Console,
+        entity: IpAddress,
+        whois: Union[Whois, HistoricalWhois],
+        ip_enrich: Union[IpWhoisMap, ShodanIpMap],
+    ) -> None:
+        super().__init__(console, entity, whois, ip_enrich)
+
+    def ip_panel(self) -> Panel:
+        attributes = self.entity.data.attributes
+
+        # Analysis
+        analysis = self._gen_vt_analysis_stats(
+            attributes.last_analysis_stats,
+            self._vendors_who_flagged_malicious()
+        )
+
+        # Reputation
+        reputation = self._gen_vt_reputation(attributes.reputation)
+
+        # Content
+        data = [
+            ("Analysis:", analysis),
+            ("Reputation:", reputation),
+            ("Last Modified:", iso_date(attributes.last_modification_date)),
+        ]
+
+        # IP Enrichment
+        enrich = self._get_ip_enrichment(self.entity.data.id_)
+
+        if enrich:
+            if isinstance(enrich, IpWhois):
+                # IPWhois
+                hyperlink_base = self.vt_gui_baseurl_ip
+                data += [
+                    ("ASN:", f"{enrich.connection.asn} ({enrich.connection.org})"),
+                    ("ISP:", enrich.connection.isp),
+                    ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
+                ]
+            else:
+                # Shodan
+                hyperlink_base = self.shodan_gui_baseurl
+                asn = f"{enrich.asn.replace('AS', '')} ({enrich.org})" if enrich.asn else None
+                tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+                data += [
+                    ("ASN:", asn),
+                    ("ISP:", enrich.isp),
+                    ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
+                    ("OS:", enrich.os),
+                    ("Services:", self._gen_shodan_services(enrich)),
+                    ("Tags:", tags),
+                    ("Last Scan:", iso_date(f"{enrich.last_update}+00:00")),  # Timestamps are UTC (source: Google)
+                ]
+
+        heading = self._gen_heading_text(
+            self.entity.data.id_,
+            hyperlink=f"{hyperlink_base}/{self.entity.data.id_}"
+        )
+        body = self._gen_table(*data)
+
+        return self._gen_panel("ip", self._gen_info(body, heading))
+
+    def print(self, one_column: bool = False) -> None:
+        renderables = [i for i in (
+            self.ip_panel(),
             self.whois_panel(),
         ) if i is not None]
 

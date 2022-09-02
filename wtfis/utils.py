@@ -1,7 +1,7 @@
-import re
 import sys
 
 from datetime import datetime, timedelta, timezone
+from ipaddress import ip_address
 from typing import Optional, Union
 
 from rich.text import Text
@@ -50,5 +50,7 @@ def refang(text: str) -> str:
 
 def is_ip(text: str) -> bool:
     """ Detect whether text is IPv4 or not """
-    pattern = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
-    return bool(pattern.match(text))
+    try:
+        return ip_address(refang(text)).is_global
+    except ValueError:
+        return False
