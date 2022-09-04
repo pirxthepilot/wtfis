@@ -9,9 +9,8 @@ from unittest.mock import MagicMock
 
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
-from wtfis.models.ipwhois import IpWhois, IpWhoisMap
+from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.passivetotal import Whois
-from wtfis.models.shodan import ShodanIp
 from wtfis.models.virustotal import (
     Domain,
     HistoricalWhois,
@@ -20,24 +19,14 @@ from wtfis.models.virustotal import (
 from wtfis.ui.view import DomainView
 
 
-def mock_get_ipwhois(ip, pool) -> IpWhois:
-    """ Mock replacement for IpWhoisClient().get_ipwhois() """
-    return IpWhois.parse_obj(pool[ip])
-
-
-def mock_shodan_get_ip(ip, pool) -> ShodanIp:
-    """ Mock replacement for ShodanClient().get_ip() """
-    return ShodanIp.parse_obj(pool[ip])
-
-
 @pytest.fixture()
-def view01(test_data):
+def view01(test_data, mock_ipwhois_get):
     """ gist.github.com with PT whois. Complete test of all panels. """
     resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
 
     ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
     ipwhois_client = IpWhoisClient()
-    ipwhois_client.get_ipwhois = MagicMock(side_effect=lambda ip: mock_get_ipwhois(ip, ipwhois_pool))
+    ipwhois_client.get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
     ip_enrich = ipwhois_client.bulk_get_ipwhois(resolutions, 3)
 
     return DomainView(
@@ -73,7 +62,7 @@ def view03(test_data):
         entity=MagicMock(),
         resolutions=MagicMock(),
         whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_bbc.json"))),
-        ip_enrich=[],
+        ip_enrich=MagicMock(),
     )
 
 
@@ -88,7 +77,7 @@ def view04(test_data):
         entity=Domain.parse_obj(json.loads(test_data("vt_domain_google.json"))),
         resolutions=None,
         whois=MagicMock(),
-        ip_enrich=[],
+        ip_enrich=MagicMock(),
     )
 
 
@@ -100,7 +89,7 @@ def view05(test_data):
         entity=Domain.parse_obj(json.loads(test_data("vt_domain_tucows.json"))),
         resolutions=MagicMock(),
         whois=MagicMock(),
-        ip_enrich=[],
+        ip_enrich=MagicMock(),
     )
 
 
@@ -112,12 +101,12 @@ def view06(test_data):
         entity=MagicMock(),
         resolutions=MagicMock(),
         whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_example_2.json"))),
-        ip_enrich=[],
+        ip_enrich=MagicMock(),
     )
 
 
 @pytest.fixture()
-def view07(test_data):
+def view07(test_data, mock_shodan_get_ip):
     """ gist.github.com with Shodan. Only test resolution and IP enrich. """
     resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
 
@@ -136,7 +125,7 @@ def view07(test_data):
 
 
 @pytest.fixture()
-def view08(test_data):
+def view08(test_data, mock_shodan_get_ip):
     """ www.wired.com with Shodan. Only test resolution and IP enrich. """
     resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_wired.json")))
 
@@ -156,7 +145,7 @@ def view08(test_data):
 
 
 @pytest.fixture()
-def view09(test_data):
+def view09(test_data, mock_shodan_get_ip):
     """ one.one.one.one with Shodan. Only test resolution and IP enrich. """
     resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_one.json")))
 

@@ -206,10 +206,12 @@ class IpAddressView(BaseView):
         # IP Enrichment
         enrich = self._get_ip_enrichment(self.entity.data.id_)
 
+        # Default link is VT
+        hyperlink_base = self.vt_gui_baseurl_ip
+
         if enrich:
             if isinstance(enrich, IpWhois):
                 # IPWhois
-                hyperlink_base = self.vt_gui_baseurl_ip
                 data += [
                     ("ASN:", f"{enrich.connection.asn} ({enrich.connection.org})"),
                     ("ISP:", enrich.connection.isp),

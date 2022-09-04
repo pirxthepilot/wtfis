@@ -9,6 +9,7 @@ from wtfis.utils import (
     smart_join,
     error_and_exit,
     refang,
+    is_ip,
 )
 
 
@@ -69,3 +70,7 @@ class TestUtils:
 
     def test_refang(self):
         assert refang("foo[.]bar[.]com") == "foo.bar.com"
+
+    def test_is_ip(self):
+        assert is_ip("1.1.1.1") is True
+        assert is_ip("foo.example.com") is False
