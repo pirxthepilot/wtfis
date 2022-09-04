@@ -216,7 +216,7 @@ class BaseView(abc.ABC):
             # Name servers
             name_servers = attribs.whois_map.name_servers if attribs.whois_map.name_servers else []
 
-            heading = self._gen_heading_text(attribs.whois_map.domain)
+            heading = self._gen_heading_text(attribs.whois_map.domain or attribs.whois_map.route)
             body = self._gen_table(
                 ("Registrar:", attribs.whois_map.registrar),
                 ("Organization:", attribs.whois_map.registrant_org),

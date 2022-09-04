@@ -122,6 +122,7 @@ class HistoricalWhoisMap(BaseModel):
     registrant_email: Optional[str]
     registrant_name: Optional[str]
     registrant_org: Optional[str]
+    route: str = ""
     updated_date: Optional[str]
 
     class Config:
