@@ -1,0 +1,380 @@
+import pytest
+import json
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Span, Text
+from unittest.mock import MagicMock
+
+from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.shodan import ShodanClient
+from wtfis.models.ipwhois import IpWhoisMap
+from wtfis.models.passivetotal import Whois
+from wtfis.models.virustotal import (
+    HistoricalWhois,
+    IpAddress,
+)
+from wtfis.ui.view import IpAddressView
+
+
+@pytest.fixture()
+def view01(test_data, mock_ipwhois_get):
+    """ 1.1.1.1 with PT whois. Complete test of all panels. """
+    ip = "1.1.1.1"
+    ipwhois_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
+    ipwhois_client = IpWhoisClient()
+    ipwhois_client.get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
+    ip_enrich = ipwhois_client.single_get_ipwhois(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        whois=Whois.parse_obj(json.loads(test_data("pt_whois_1.1.1.1.json"))),
+        ip_enrich=ip_enrich,
+    )
+
+
+@pytest.fixture()
+def view02(test_data, mock_shodan_get_ip):
+    """ 1.1.1.1 with Shodan. Test the whole IP panel. """
+    ip = "1.1.1.1"
+    shodan_pool = json.loads(test_data("shodan_1.1.1.1.json"))
+    shodan_client = ShodanClient(MagicMock())
+    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.single_get_ip(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        whois=MagicMock(),
+        ip_enrich=ip_enrich,
+    )
+
+
+@pytest.fixture()
+def view03(test_data):
+    """ 1.1.1.1 VT whois. Whois panel test only."""
+    return IpAddressView(
+        console=Console(),
+        entity=MagicMock(),
+        whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_1.1.1.1.json"))),
+        ip_enrich=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view04(test_data):
+    """
+    142.251.220.110. Test whole IP panel with 0 malicious, 0 reputation and no IP enrichment.
+    """
+    return IpAddressView(
+        console=Console(),
+        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_142.251.220.110.json"))),
+        whois=MagicMock(),
+        ip_enrich=IpWhoisMap(__root__={}),
+    )
+
+
+class TestView01:
+    def test_ip_panel(self, view01):
+        ip = view01.ip_panel()
+        assert type(ip) is Panel
+        assert ip.title == Text("ip")
+
+        # Heading
+        assert ip.renderable.renderables[0] == Text(
+            "1.1.1.1",
+            spans=[Span(0, 7, 'bold yellow link https://virustotal.com/gui/ip-address/1.1.1.1')]
+        )
+
+        # Table
+        table = ip.renderable.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Analysis:",
+            "Reputation:",
+            "Last Modified:",
+            "ASN:",
+            "ISP:",
+            "Location:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text(
+                "4/94 malicious\nCMC Threat Intelligence, Comodo Valkyrie Verdict, CRDF, Blueliv",
+                spans=[
+                    Span(15, 78, ''),
+                    Span(15, 38, 'cyan'),
+                    Span(38, 40, 'default'),
+                    Span(40, 63, 'cyan'),
+                    Span(63, 65, 'default'),
+                    Span(65, 69, 'cyan'),
+                    Span(69, 71, 'default'),
+                    Span(71, 78, 'cyan'),
+                ]
+            ),
+            Text("134"),
+            "2022-09-03T06:47:04Z",
+            "13335 (APNIC and Cloudflare DNS Resolver project)",
+            "Cloudflare, Inc.",
+            Text(
+                "Sydney, New South Wales, Australia",
+                spans=[
+                    Span(6, 8, 'default'),
+                    Span(23, 25, 'default'),
+                ]
+            )
+        ]
+
+    def test_whois_panel(self, view01):
+        whois = view01.whois_panel()
+        assert type(whois) is Panel
+        assert whois.title == Text("whois")
+
+        # Heading
+        assert whois.renderable.renderables[0] == Text(
+            "1.1.1.0",
+            spans=[Span(0, 7, "bold yellow link https://community.riskiq.com/search/1.1.1.0/whois")]
+        )
+
+        # Table
+        table = whois.renderable.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Registrar:",
+            "Organization:",
+            "Name:",
+            "Email:",
+            "Phone:",
+            "Street:",
+            "Registered:",
+            "Updated:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert [str(c) for c in table.columns[1]._cells] == [
+            "APNIC",
+            "APNIC Research and Development",
+            "APNIC Research and Development",
+            "helpdesk@apnic.net",
+            "+61-7-38583100",
+            "6 cordelia st",
+            "2011-08-10T23:12:35Z",
+            "2020-07-15T13:10:57Z",
+        ]
+
+
+class TestView02:
+    def test_ip_panel(self, view02):
+        ip = view02.ip_panel()
+        assert type(ip) is Panel
+        assert ip.title == Text("ip")
+
+        # Heading
+        assert ip.renderable.renderables[0] == Text(
+            "1.1.1.1",
+            spans=[Span(0, 7, "bold yellow link https://www.shodan.io/host/1.1.1.1")]
+        )
+
+        # Table
+        table = ip.renderable.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Analysis:",
+            "Reputation:",
+            "Last Modified:",
+            "ASN:",
+            "ISP:",
+            "Location:",
+            "Services:",
+            "Last Scan:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text(
+                "4/94 malicious\nCMC Threat Intelligence, Comodo Valkyrie Verdict, CRDF, Blueliv",
+                spans=[
+                    Span(15, 78, ''),
+                    Span(15, 38, 'cyan'),
+                    Span(38, 40, 'default'),
+                    Span(40, 63, 'cyan'),
+                    Span(63, 65, 'default'),
+                    Span(65, 69, 'cyan'),
+                    Span(69, 71, 'default'),
+                    Span(71, 78, 'cyan'),
+                ]
+            ),
+            Text("134"),
+            "2022-09-03T06:47:04Z",
+            "13335 (APNIC and Cloudflare DNS Resolver project)",
+            "Cloudflare, Inc.",
+            Text(
+                "Los Angeles, United States",
+                spans=[Span(11, 13, "default")]
+            ),
+            Text(
+                (
+                    "Cisco router tftpd (69/udp)\nCloudFlare (80/tcp, 8080/tcp, 8880/tcp)\n"
+                    "DrayTek Vigor Router (443/tcp)\nOther (53/tcp, 53/udp, 161/udp, "
+                    "2082/tcp, 2083/tcp, 2086/tcp, 2087/tcp, 8443/tcp)"
+                ),
+                spans=[
+                    Span(0, 18, "orange_red1"),
+                    Span(20, 26, ""),
+                    Span(20, 26, ""),
+                    Span(20, 22, "bright_cyan"),
+                    Span(22, 26, "cyan"),
+                    Span(28, 38, "orange_red1"),
+                    Span(40, 66, ""),
+                    Span(40, 46, ""),
+                    Span(40, 42, "bright_cyan"),
+                    Span(42, 46, "cyan"),
+                    Span(46, 48, "default"),
+                    Span(48, 56, ""),
+                    Span(48, 52, "bright_cyan"),
+                    Span(52, 56, "cyan"),
+                    Span(56, 58, "default"),
+                    Span(58, 66, ""),
+                    Span(58, 62, "bright_cyan"),
+                    Span(62, 66, "cyan"),
+                    Span(68, 88, "orange_red1"),
+                    Span(90, 97, ""),
+                    Span(90, 97, ""),
+                    Span(90, 93, "bright_cyan"),
+                    Span(93, 97, "cyan"),
+                    Span(99, 104, "orange_red1"),
+                    Span(106, 179, ""),
+                    Span(106, 112, ""),
+                    Span(106, 108, "bright_cyan"),
+                    Span(108, 112, "cyan"),
+                    Span(112, 114, "default"),
+                    Span(114, 120, ""),
+                    Span(114, 116, "bright_cyan"),
+                    Span(116, 120, "cyan"),
+                    Span(120, 122, "default"),
+                    Span(122, 129, ""),
+                    Span(122, 125, "bright_cyan"),
+                    Span(125, 129, "cyan"),
+                    Span(129, 131, "default"),
+                    Span(131, 139, ""),
+                    Span(131, 135, "bright_cyan"),
+                    Span(135, 139, "cyan"),
+                    Span(139, 141, "default"),
+                    Span(141, 149, ""),
+                    Span(141, 145, "bright_cyan"),
+                    Span(145, 149, "cyan"),
+                    Span(149, 151, "default"),
+                    Span(151, 159, ""),
+                    Span(151, 155, "bright_cyan"),
+                    Span(155, 159, "cyan"),
+                    Span(159, 161, "default"),
+                    Span(161, 169, ""),
+                    Span(161, 165, "bright_cyan"),
+                    Span(165, 169, "cyan"),
+                    Span(169, 171, "default"),
+                    Span(171, 179, ""),
+                    Span(171, 175, "bright_cyan"),
+                    Span(175, 179, "cyan"),
+                ]
+            ),
+            "2022-09-04T01:03:56Z",
+        ]
+
+
+class TestView03:
+    def test_whois_panel(self, view03):
+        whois = view03.whois_panel()
+        assert type(whois) is Panel
+        assert whois.title == Text("whois")
+
+        # Heading
+        assert whois.renderable.renderables[0] == Text(
+            "one.one",
+            spans=[Span(0, 7, "bold yellow")]
+        )
+
+        # Table
+        table = whois.renderable.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Registrar:",
+            "Organization:",
+            "Name:",
+            "Email:",
+            "Country:",
+            "Admin Location:",
+            "Nameservers:",
+            "Registered:",
+            "Updated:",
+            "Expires:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert [str(c) for c in table.columns[1]._cells] == [
+            "One.com A/S - ONE",
+            "One.com A/S",
+            "REDACTED FOR PRIVACY",
+            (
+                "Please query the RDDS service of the Registrar of Record identified in this "
+                "output for information on how to contact the Registrant, Admin, or Tech "
+                "contact of the queried domain name."
+            ),
+            "dk",
+            "REDACTED FOR PRIVACY, REDACTED FOR PRIVACY, REDACTED FOR PRIVACY",
+            (
+                "* a response from the Service that a domain name is 'available', does not "
+                "guarantee that is able to be registered,, * we may restrict, suspend or "
+                "terminate your access to the Service at any time, and, * the copying, "
+                "compilation, repackaging, dissemination or other use of the information "
+                "provided by the Service is not permitted, without our express written "
+                "consent., This information has been prepared and published in order to "
+                "represent administrative and technical management of the TLD., We may "
+                "discontinue or amend any part or the whole of these Terms of Service from "
+                "time to time at our absolute discretion."
+            ),
+            "2015-05-20T12:15:44Z",
+            "2021-07-04T12:15:49Z",
+            "2022-05-20T12:15:44Z",
+        ]
+
+
+class TestView04:
+    def test_ip_panel(self, view04):
+        ip = view04.ip_panel()
+        assert type(ip) is Panel
+        assert ip.title == Text("ip")
+
+        # Heading
+        assert ip.renderable.renderables[0] == Text(
+            "142.251.220.110",
+            spans=[Span(0, 15, "bold yellow link https://virustotal.com/gui/ip-address/142.251.220.110")]
+        )
+
+        # Table
+        table = ip.renderable.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Analysis:",
+            "Reputation:",
+            "Last Modified:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text("0/93 malicious"),
+            Text("0"),
+            "2022-09-03T16:58:45Z",
+        ]

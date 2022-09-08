@@ -12,9 +12,10 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
-from wtfis.utils import error_and_exit
+from wtfis.models.virustotal import Domain
+from wtfis.utils import error_and_exit, is_ip, refang
 from wtfis.ui.progress import get_progress
-from wtfis.ui.view import View
+from wtfis.ui.view import DomainView, IpAddressView
 from wtfis.version import get_version
 
 
@@ -39,7 +40,7 @@ def parse_args():
     DEFAULT_MAX_RESOLUTIONS = 3
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("hostname", help="Hostname or domain")
+    parser.add_argument("entity", help="Hostname, domain or IP")
     parser.add_argument(
         "-m", "--max-resolutions", metavar="N",
         help=f"Maximum number of resolutions to show (default: {DEFAULT_MAX_RESOLUTIONS})",
@@ -62,6 +63,8 @@ def parse_args():
         argparse.ArgumentParser().error("Maximum --max-resolutions value is 10")
     if parsed.use_shodan and not os.environ.get("SHODAN_API_KEY"):
         argparse.ArgumentParser().error("SHODAN_API_KEY is not set")
+    if is_ip(parsed.entity) and parsed.max_resolutions != DEFAULT_MAX_RESOLUTIONS:
+        argparse.ArgumentParser().error("--max-resolutions is not applicable to IPs")
 
     return parsed
 
@@ -86,32 +89,54 @@ def main():
             task1 = progress.add_task("Fetching data from Virustotal")
             vt = VTClient(os.environ.get("VT_API_KEY"))
             progress.update(task1, advance=33)
-            domain = vt.get_domain(args.hostname)
+            if is_ip(args.entity):
+                entity = vt.get_ip_address(refang(args.entity))
+            else:
+                entity = vt.get_domain(args.entity)
             progress.update(task1, advance=33)
 
-            # Resolutions and IP enrichments
-            if args.max_resolutions != 0:
-                resolutions = vt.get_domain_resolutions(args.hostname)
-                progress.update(task1, advance=33)
+            # Domain resolutions and IP enrichments
+            if isinstance(entity, Domain):
+                if args.max_resolutions != 0:
+                    resolutions = vt.get_domain_resolutions(args.entity)
+                    progress.update(task1, completed=100)
+
+                    if args.use_shodan:
+                        # Shodan
+                        task2 = progress.add_task("Fetching IP enrichments from Shodan")
+                        shodan = ShodanClient(os.environ.get("SHODAN_API_KEY"))
+                        progress.update(task2, advance=50)
+                        ip_enrich = shodan.bulk_get_ip(resolutions, args.max_resolutions)
+                        progress.update(task2, advance=50)
+                    else:
+                        # IPWhois
+                        task2 = progress.add_task("Fetching IP enrichments from IPWhois")
+                        ipwhois = IpWhoisClient()
+                        progress.update(task2, advance=50)
+                        ip_enrich = ipwhois.bulk_get_ipwhois(resolutions, args.max_resolutions)
+                        progress.update(task2, advance=50)
+                else:
+                    resolutions = None
+                    ip_enrich = []
+
+            # IP address enrichments
+            else:
+                progress.update(task1, completed=100)
 
                 if args.use_shodan:
                     # Shodan
                     task2 = progress.add_task("Fetching IP enrichments from Shodan")
                     shodan = ShodanClient(os.environ.get("SHODAN_API_KEY"))
                     progress.update(task2, advance=50)
-                    ip_enrich = shodan.bulk_get_ip(resolutions, args.max_resolutions)
+                    ip_enrich = shodan.single_get_ip(entity.data.id_)
                     progress.update(task2, advance=50)
                 else:
                     # IPWhois
                     task2 = progress.add_task("Fetching IP enrichments from IPWhois")
                     ipwhois = IpWhoisClient()
                     progress.update(task2, advance=50)
-                    ip_enrich = ipwhois.bulk_get_ipwhois(resolutions, args.max_resolutions)
+                    ip_enrich = ipwhois.single_get_ipwhois(entity.data.id_)
                     progress.update(task2, advance=50)
-            else:
-                resolutions = None
-                ip_enrich = []
-            progress.update(task1, completed=100)
 
             # Whois
             # Use Passivetotal if relevant environment variables exist, otherwise keep using VT
@@ -119,11 +144,11 @@ def main():
                 task3 = progress.add_task("Fetching domain whois from Passivetotal")
                 pt = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
                 progress.update(task3, advance=50)
-                whois = pt.get_whois(args.hostname)
+                whois = pt.get_whois(entity.data.id_)
                 progress.update(task3, advance=50)
             else:
                 task3 = progress.add_task("Fetching domain whois from Virustotal")
-                whois = vt.get_domain_whois(args.hostname)
+                whois = vt.get_whois(entity.data.id_)
                 progress.update(task3, advance=100)
         except (HTTPError, JSONDecodeError, APIError) as e:
             progress.stop()
@@ -133,12 +158,20 @@ def main():
             error_and_exit(f"Data model validation error: {e}")
 
     # Output
-    view = View(
-        console,
-        domain,
-        resolutions,
-        whois,
-        ip_enrich,
-        max_resolutions=args.max_resolutions,
-    )
+    if isinstance(entity, Domain):
+        view = DomainView(
+            console,
+            entity,
+            resolutions,
+            whois,
+            ip_enrich,
+            max_resolutions=args.max_resolutions,
+        )
+    else:
+        view = IpAddressView(
+            console,
+            entity,
+            whois,
+            ip_enrich,
+        )
     view.print(one_column=args.one_column)

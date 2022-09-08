@@ -28,3 +28,10 @@ class IpWhoisClient(BaseClient):
             if ipwhois:
                 ipwhois_map[ipwhois.ip] = ipwhois
         return IpWhoisMap(__root__=ipwhois_map)
+
+    def single_get_ipwhois(self, ip: str) -> IpWhoisMap:
+        ipwhois_map = {}
+        ipwhois = self.get_ipwhois(ip)
+        if ipwhois:
+            ipwhois_map[ip] = ipwhois
+        return IpWhoisMap(__root__=ipwhois_map)

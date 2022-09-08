@@ -3,14 +3,14 @@
 [![Tests](https://github.com/pirxthepilot/wtfis/actions/workflows/tests.yml/badge.svg)](https://github.com/pirxthepilot/wtfis/actions/workflows/tests.yml)
 [![PyPI](https://img.shields.io/pypi/v/wtfis?color=blue&logo=pypi&logoColor=gold)](https://pypi.org/project/wtfis/)
 
-Passive host and domain name lookup tool for non-robots
+Passive hostname, domain and IP lookup tool for non-robots
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/demo.gif?raw=true)
 
 
 ## WTF is it?
 
-**wtfis** is a commandline tool that gathers information about a domain or FQDN using various OSINT services. Unlike other tools of its kind, it's built specifically for human consumption, providing results that are pretty (YMMV) and easy to read and understand.
+**wtfis** is a commandline tool that gathers information about a domain, FQDN or IP address using various OSINT services. Unlike other tools of its kind, it's built specifically for human consumption, providing results that are pretty (YMMV) and easy to read and understand.
 
 This tool assumes that you are using free tier / community level accounts, and so makes as few API calls as possible to minimize hitting quotas and rate limits.
 
@@ -23,13 +23,13 @@ The project name is a play on "whois".
 
 The primary source of information. Retrieves:
 
-* [Hostname (FQDN) or domain](https://developers.virustotal.com/reference/domains-1)
+* [Hostname (FQDN), domain or IP](https://developers.virustotal.com/reference/domains-1)
     * Latest analysis stats with vendor detail
     * Reputation score (based on VT community votes)
-    * Popularity ranks (Alexa, Cisco Umbrella, etc.)
-    * Last DNS record update date
-    * Date DNS record was last retrieved by VT
-* [Resolutions](https://developers.virustotal.com/reference/domain-resolutions)
+    * Popularity ranks (Alexa, Cisco Umbrella, etc.) (FQDN and domain only)
+    * Last IP or DNS record update date
+    * Date DNS record was last retrieved by VT (FQDN and domain only)
+* [Resolutions](https://developers.virustotal.com/reference/domain-resolutions) (FQDN and domain only)
     * Last n IP addresses (default: 3, max: 10)
     * Latest analysis stats of each IP above
 * [Whois](https://developers.virustotal.com/reference/whois)
@@ -86,10 +86,10 @@ Alternatively, create a file in your home directory `~/.env.wtfis` with the abov
 ## Usage
 
 ```
-usage: wtfis [-h] [-m N] [-s] [-n] [-1] [-V] hostname
+usage: wtfis [-h] [-m N] [-s] [-n] [-1] [-V] entity
 
 positional arguments:
-  hostname              Hostname or domain
+  entity                Hostname, domain or IP
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -104,10 +104,12 @@ optional arguments:
 Basically:
 
 ```
-$ wtfis FQDN_OR_DOMAIN
+$ wtfis FQDN_OR_DOMAIN_OR_IP
 ```
 
 and you will get results organized by panel, similar to the image above.
+
+Defanged input is accepted (e.g. `api[.]google[.]com`).
 
 If your terminal supports it, FQDN, domain, and IP headings are clickable hyperlinks that point to the appropriate pages on the VT or PT (RiskIQ) website.
 
@@ -121,7 +123,7 @@ The IP address hyperlink also changes to point to the Shodan web interface.
 
 ### Display options
 
-You can increase or decrease the maximum number of displayed IP resolutions with `-m NUMBER` or `--max-resolutions=NUMBER`. The upper limit is 10. If you don't need resolutions at all, set the number to `0`.
+For FQDN and domain lookups, you can increase or decrease the maximum number of displayed IP resolutions with `-m NUMBER` or `--max-resolutions=NUMBER`. The upper limit is 10. If you don't need resolutions at all, set the number to `0`.
 
 To show all panels in one column, use the `-1` or `--one-column` flag.
 
@@ -134,6 +136,5 @@ Panels can be displayed with no color with `-n` or `--no-color`.
 
 ## TODOs
 
-* IP address lookup
+* Include JARM and certificate info?
 * Keyring support
-* JSON output

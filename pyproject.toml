@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wtfis"
-description = "Passive host and domain name lookup tool for non-robots"
+description = "Passive hostname, domain and IP lookup tool for non-robots"
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"

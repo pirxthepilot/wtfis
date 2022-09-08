@@ -24,5 +24,5 @@ class PTClient(BaseClient):
     def get_passive_dns(self, domain: str) -> Optional[dict]:
         return self._query("/dns/passive", refang(domain))
 
-    def get_whois(self, domain: str) -> Optional[Whois]:
-        return Whois.parse_obj(self._query("/whois", refang(domain)))
+    def get_whois(self, entity: str) -> Optional[Whois]:
+        return Whois.parse_obj(self._query("/whois", refang(entity)))

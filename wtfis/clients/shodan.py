@@ -1,5 +1,6 @@
 from shodan import Shodan
 from shodan.exception import APIError
+from typing import Optional
 
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
 from wtfis.models.virustotal import Resolutions
@@ -12,8 +13,14 @@ class ShodanClient:
     def __init__(self, api_key: str) -> None:
         self.s = Shodan(api_key)
 
-    def get_ip(self, ip: str) -> ShodanIp:
-        return ShodanIp.parse_obj(self.s.host(ip, minify=False))
+    def get_ip(self, ip: str) -> Optional[ShodanIp]:
+        try:
+            return ShodanIp.parse_obj(self.s.host(ip, minify=False))
+        except APIError as e:
+            if str(e) == "Invalid API key":
+                raise APIError("Invalid Shodan API key")
+            else:
+                return None
 
     def bulk_get_ip(
         self,
@@ -24,13 +31,14 @@ class ShodanClient:
         for idx, ip in enumerate(resolutions.data):
             if idx == max_ips_to_enrich:
                 break
-            try:
-                ip_data = self.get_ip(ip.attributes.ip_address)
-            except APIError as e:
-                if str(e) == "Invalid API key":
-                    raise APIError("Invalid Shodan API key")
-                else:
-                    ip_data = None
+            ip_data = self.get_ip(ip.attributes.ip_address)
             if ip_data:
                 shodan_map[ip_data.ip_str] = ip_data
+        return ShodanIpMap(__root__=shodan_map)
+
+    def single_get_ip(self, ip: str) -> ShodanIpMap:
+        shodan_map = {}
+        ip_data = self.get_ip(ip)
+        if ip_data:
+            shodan_map[ip] = ip_data
         return ShodanIpMap(__root__=shodan_map)

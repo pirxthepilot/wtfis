@@ -46,35 +46,45 @@ class PopularityRanks(BaseModel):
     __root__: Dict[str, Popularity]
 
 
-class Attributes(BaseModel):
-    creation_date: Optional[int]
+class BaseAttributes(BaseModel):
     jarm: Optional[str]
     last_analysis_results: LastAnalysisResults
     last_analysis_stats: LastAnalysisStats
-    last_dns_records_date: Optional[int]
     last_https_certificate_date: Optional[int]
     last_modification_date: Optional[int]
-    last_update_date: Optional[int]
-    popularity_ranks: PopularityRanks
-    registrar: Optional[str]
     reputation: int
     tags: List[str]
 
 
-class Data(BaseData):
-    attributes: Attributes
-    id_: str
-    type_: str
+class DomainAttributes(BaseAttributes):
+    creation_date: Optional[int]
+    last_dns_records_date: Optional[int]
+    last_update_date: Optional[int]
+    popularity_ranks: PopularityRanks
+    registrar: Optional[str]
 
-    class Config:
-        fields = {
-            "id_": "id",
-            "type_": "type",
-        }
+
+class DomainData(BaseData):
+    attributes: DomainAttributes
 
 
 class Domain(BaseModel):
-    data: Data
+    data: DomainData
+
+
+class IpAttributes(BaseAttributes):
+    asn: Optional[int]
+    continent: Optional[str]
+    country: Optional[str]
+    network: Optional[str]
+
+
+class IpData(BaseData):
+    attributes: IpAttributes
+
+
+class IpAddress(BaseModel):
+    data: IpData
 
 
 class ResolutionAttributes(BaseModel):
@@ -112,6 +122,7 @@ class HistoricalWhoisMap(BaseModel):
     registrant_email: Optional[str]
     registrant_name: Optional[str]
     registrant_org: Optional[str]
+    route: str = ""
     updated_date: Optional[str]
 
     class Config:
