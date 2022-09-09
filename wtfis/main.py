@@ -1,6 +1,7 @@
 import argparse
 import os
 
+from argparse import Namespace
 from dotenv import load_dotenv
 from pathlib import Path
 from pydantic import ValidationError
@@ -36,7 +37,7 @@ def parse_env():
             error_and_exit(error)
 
 
-def parse_args():
+def parse_args() -> Namespace:
     DEFAULT_MAX_RESOLUTIONS = 3
 
     parser = argparse.ArgumentParser()
