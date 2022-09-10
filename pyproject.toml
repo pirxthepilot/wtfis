@@ -82,12 +82,15 @@ python = ["38", "39", "310"]
 [tool.hatch.envs.lint]
 detached = true
 dependencies = [
+    "bandit",
     "flake8",
 ]
 [tool.hatch.envs.lint.scripts]
 flake = "flake8 {args:wtfis}"
+security = "bandit --quiet -r {args:wtfis}"
 all = [
     "flake",
+    "security",
 ]
 
 # mypy

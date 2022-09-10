@@ -1,6 +1,7 @@
 import argparse
 import os
 
+from argparse import Namespace
 from dotenv import load_dotenv
 from pathlib import Path
 from pydantic import ValidationError
@@ -19,7 +20,7 @@ from wtfis.ui.view import DomainView, IpAddressView
 from wtfis.version import get_version
 
 
-def parse_env():
+def parse_env() -> None:
     DEFAULT_ENV_FILE = Path().home() / ".env.wtfis"
 
     # Load the file
@@ -36,7 +37,7 @@ def parse_env():
             error_and_exit(error)
 
 
-def parse_args():
+def parse_args() -> Namespace:
     DEFAULT_MAX_RESOLUTIONS = 3
 
     parser = argparse.ArgumentParser()
