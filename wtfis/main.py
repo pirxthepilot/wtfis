@@ -20,7 +20,7 @@ from wtfis.ui.view import DomainView, IpAddressView
 from wtfis.version import get_version
 
 
-def parse_env():
+def parse_env() -> None:
     DEFAULT_ENV_FILE = Path().home() / ".env.wtfis"
 
     # Load the file

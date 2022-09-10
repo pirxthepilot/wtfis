@@ -1,8 +1,36 @@
 import os
 import pytest
-from unittest.mock import patch
+from dotenv import load_dotenv
+from pathlib import Path
+from unittest.mock import patch, MagicMock
 
-from wtfis.main import parse_args
+from wtfis.main import parse_args, parse_env
+
+
+FAKE_ENV_VARS = {
+    "VT_API_KEY": "foo",
+    "PT_API_KEY": "bar",
+    "PT_API_USER": "baz@example.com",
+    "SHODAN_API_KEY": "hunter2"
+}
+
+
+def unset_env_vars():
+    for var in FAKE_ENV_VARS.keys():
+        try:
+            del os.environ[var]
+        except KeyError:
+            pass
+
+
+@pytest.fixture()
+def fake_load_dotenv(tmp_path):
+    content = [f"{k} = {v}" for k, v in FAKE_ENV_VARS.items()]
+    path = tmp_path / ".env.wtfis"
+    path.write_text("\n".join(content))
+    def fake(*_):
+        load_dotenv(path)
+    return fake
 
 
 class TestArgs:
@@ -96,3 +124,38 @@ class TestArgs:
         assert capture.err == "usage: main [-h]\nmain: error: SHODAN_API_KEY is not set\n"
         assert e.type == SystemExit
         assert e.value.code == 2
+
+
+class TestEnvs:
+    def test_env_file(self, fake_load_dotenv):
+        with patch("wtfis.main.load_dotenv", fake_load_dotenv):
+            parse_env()
+            assert os.environ["VT_API_KEY"] == "foo"
+            assert os.environ["PT_API_KEY"] == "bar"
+            assert os.environ["PT_API_USER"] == "baz@example.com"
+            assert os.environ["SHODAN_API_KEY"] == "hunter2"
+        unset_env_vars()
+
+    @patch("wtfis.main.load_dotenv", MagicMock())
+    def test_required_env_vars(self):
+        os.environ["VT_API_KEY"] = "foo"
+        parse_env()
+        unset_env_vars()
+
+    @patch("wtfis.main.load_dotenv", MagicMock())
+    @patch("wtfis.main.Path.exists")
+    def test_error(self, mock_exists, capsys):
+        mock_exists.return_value = False
+
+        with pytest.raises(SystemExit) as e:
+            parse_env()
+        
+        capture = capsys.readouterr()
+
+        assert capture.err == (
+            "Error: Environment variable VT_API_KEY not set\n"
+            f"Env file {Path().home() / '.env.wtfis'} was not found either. Did you forget?\n"
+        )
+        assert e.type == SystemExit
+        assert e.value.code == 1
+    
