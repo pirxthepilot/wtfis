@@ -61,8 +61,8 @@ class BaseView(abc.ABC):
         """ Each param should be a tuple of (field, value) """
         # Set up table
         grid = Table.grid(expand=False, padding=(0, 1))
-        grid.add_column(style=self.theme.table_field)                # Field
-        grid.add_column(style=self.theme.table_value, max_width=38)  # Value
+        grid.add_column(style=self.theme.table_field)                                 # Field
+        grid.add_column(style=self.theme.table_value, max_width=38, overflow="fold")  # Value
 
         # Populate rows
         valid_rows = 0
