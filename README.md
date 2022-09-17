@@ -27,6 +27,7 @@ The primary source of information. Retrieves:
     * Latest analysis stats with vendor detail
     * Reputation score (based on VT community votes)
     * Popularity ranks (Alexa, Cisco Umbrella, etc.) (FQDN and domain only)
+    * Categories (assigned by different vendors)
     * Last IP or DNS record update date
     * Date DNS record was last retrieved by VT (FQDN and domain only)
 * [Resolutions](https://developers.virustotal.com/reference/domain-resolutions) (FQDN and domain only)
