@@ -57,11 +57,24 @@ class BaseAttributes(BaseModel):
 
 
 class DomainAttributes(BaseAttributes):
+    categories: List[str]
     creation_date: Optional[int]
     last_dns_records_date: Optional[int]
     last_update_date: Optional[int]
     popularity_ranks: PopularityRanks
     registrar: Optional[str]
+
+    @validator("categories", pre=True)
+    def transform_categories(cls, v):
+        cats = set()
+        for category in v.values():
+            for delimiter in [", ", ",", "/", " / "]:
+                if delimiter in category:
+                    cats = cats | set(category.lower().split(delimiter))
+                    break
+            else:
+                cats.add(category.lower())
+        return sorted(cats)
 
 
 class DomainData(BaseData):

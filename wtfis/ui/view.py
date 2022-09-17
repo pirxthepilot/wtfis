@@ -53,6 +53,12 @@ class DomainView(BaseView):
         # Popularity
         popularity = self._gen_vt_popularity(attributes.popularity_ranks)
 
+        # Categories
+        categories = (
+            smart_join(*attributes.categories, style=self.theme.tags)
+            if attributes.categories else None
+        )
+
         # Content
         heading = self._gen_heading_text(
             self.entity.data.id_,
@@ -62,6 +68,7 @@ class DomainView(BaseView):
             ("Analysis:", analysis),
             ("Reputation:", reputation),
             ("Popularity:", popularity),
+            ("Categories:", categories),
             ("Last Modified:", iso_date(attributes.last_modification_date)),
             ("Last Seen:", iso_date(attributes.last_dns_records_date)),
         )

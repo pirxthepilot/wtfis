@@ -185,6 +185,7 @@ class TestView01:
             "Analysis:",
             "Reputation:",
             "Popularity:",
+            "Categories:",
             "Last Modified:",
             "Last Seen:",
         ]
@@ -200,6 +201,20 @@ class TestView01:
                     Span(10, 13, "cyan"),
                     Span(15, 29, "bright_cyan"),
                     Span(31, 36, "cyan"),
+                ]
+            ),
+            Text(
+                "advice, file sharing/storage, information technology, media sharing, social networks",
+                spans=[
+                    Span(0, 6, "bright_white on black"),
+                    Span(6, 8, "default"),
+                    Span(8, 28, "bright_white on black"),
+                    Span(28, 30, "default"),
+                    Span(30, 52, "bright_white on black"),
+                    Span(52, 54, "default"),
+                    Span(54, 67, "bright_white on black"),
+                    Span(67, 69, "default"),
+                    Span(69, 84, "bright_white on black"),
                 ]
             ),
             "2022-08-16T06:14:59Z",
@@ -492,6 +507,7 @@ class TestView04:
             "Analysis:",
             "Reputation:",
             "Popularity:",
+            "Categories:",
             "Last Modified:",
             "Last Seen:",
         ]
@@ -519,6 +535,20 @@ class TestView04:
                     Span(51, 52, "cyan"),
                     Span(54, 63, "bright_cyan"),
                     Span(65, 66, "cyan"),
+                ]
+            ),
+            Text(
+                "mobile communications, portals, search engines, search engines and portals, searchengines",
+                spans=[
+                    Span(0, 21, "bright_white on black"),
+                    Span(21, 23, "default"),
+                    Span(23, 30, "bright_white on black"),
+                    Span(30, 32, "default"),
+                    Span(32, 46, "bright_white on black"),
+                    Span(46, 48, "default"),
+                    Span(48, 74, "bright_white on black"),
+                    Span(74, 76, "default"),
+                    Span(76, 89, "bright_white on black"),
                 ]
             ),
             "2022-08-17T06:03:03Z",
@@ -550,6 +580,7 @@ class TestView05:
         assert table.columns[0]._cells == [
             "Analysis:",
             "Reputation:",
+            "Categories:",
             "Last Modified:",
             "Last Seen:",
         ]
@@ -564,6 +595,27 @@ class TestView05:
                 ]
             ),
             Text("-1"),
+            Text(
+                (
+                    "ads/analytics, dynamic dns and isp sites, hosting, information technology, "
+                    "known infection source, mobile communications, not recommended site"
+                ),
+                spans=[
+                    Span(0, 13, "bright_white on black"),
+                    Span(13, 15, "default"),
+                    Span(15, 40, "bright_white on black"),
+                    Span(40, 42, "default"),
+                    Span(42, 49, "bright_white on black"),
+                    Span(49, 51, "default"),
+                    Span(51, 73, "bright_white on black"),
+                    Span(73, 75, "default"),
+                    Span(75, 97, "bright_white on black"),
+                    Span(97, 99, "default"),
+                    Span(99, 120, "bright_white on black"),
+                    Span(120, 122, "default"),
+                    Span(122, 142, "bright_white on black"),
+                ]
+            ),
             "2022-08-17T05:30:23Z",
             "2022-08-16T22:24:18Z",
         ]
