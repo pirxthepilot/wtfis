@@ -9,7 +9,7 @@ from rich.console import (
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from typing import Any, Generator, List, Optional, Union
+from typing import Any, Generator, List, Optional, Tuple, Union
 
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.passivetotal import Whois
@@ -57,7 +57,13 @@ class BaseView(abc.ABC):
         style = f"{self.theme.heading} link {hyperlink}" if hyperlink else self.theme.heading
         return text.append(heading, style=style)
 
-    def _gen_table(self, *params) -> Union[Table, str]:
+    def _gen_linked_field_name(self, name: str, hyperlink: str) -> Text:
+        text = Text(style=self.theme.table_field)
+        text.append(name, style=f"link {hyperlink}")
+        text.append(":")
+        return text
+
+    def _gen_table(self, *params: Tuple[Union[Text, str], Union[Text, str, None]]) -> Union[Table, str]:
         """ Each param should be a tuple of (field, value) """
         # Set up table
         grid = Table.grid(expand=False, padding=(0, 1))
@@ -73,7 +79,7 @@ class BaseView(abc.ABC):
             grid.add_row(field, value)
             valid_rows += 1
 
-        # Return None if no rows generated
+        # Return empty string if no rows generated
         return grid if valid_rows > 0 else ""
 
     @group()

@@ -642,7 +642,7 @@ class TestView07:
         # Heading
         assert group[0] == Text(
             "13.234.210.38",
-            spans=[Span(0, 13, "bold yellow link https://www.shodan.io/host/13.234.210.38")],
+            spans=[Span(0, 13, "bold yellow link https://virustotal.com/gui/ip-address/13.234.210.38")],
         )
 
         # Table
@@ -654,7 +654,10 @@ class TestView07:
             "ASN:",
             "ISP:",
             "Location:",
-            "Services:",
+            Text(
+                "Services:",
+                spans=[Span(0, 8, "link https://www.shodan.io/host/13.234.210.38")]
+            ),
             "Tags:",
             "Last Scan:",
         ]
@@ -705,7 +708,7 @@ class TestView07:
         # Heading
         assert group[0] == Text(
             "192.30.255.113",
-            spans=[Span(0, 14, "bold yellow link https://www.shodan.io/host/192.30.255.113")],
+            spans=[Span(0, 14, "bold yellow link https://virustotal.com/gui/ip-address/192.30.255.113")],
         )
 
         # Table
@@ -717,7 +720,10 @@ class TestView07:
             "ASN:",
             "ISP:",
             "Location:",
-            "Services:",
+            Text(
+                "Services:",
+                spans=[Span(0, 8, "link https://www.shodan.io/host/192.30.255.113")]
+            ),
             "Last Scan:",
         ]
         assert group[1].columns[1].style == "none"
@@ -761,7 +767,7 @@ class TestView07:
         # Heading
         assert group[0] == Text(
             "13.234.176.102",
-            spans=[Span(0, 14, "bold yellow link https://www.shodan.io/host/13.234.176.102")],
+            spans=[Span(0, 14, "bold yellow link https://virustotal.com/gui/ip-address/13.234.176.102")],
         )
 
         # Unlike the previous entries, the table is inside a group of (Table, Text) due to
@@ -776,7 +782,10 @@ class TestView07:
             "ASN:",
             "ISP:",
             "Location:",
-            "Services:",
+            Text(
+                "Services:",
+                spans=[Span(0, 8, "link https://www.shodan.io/host/13.234.176.102")]
+            ),
             "Tags:",
             "Last Scan:",
         ]
@@ -836,7 +845,7 @@ class TestView08:
         # Heading
         assert group[0] == Text(
             "199.232.34.194",
-            spans=[Span(0, 14, "bold yellow link https://www.shodan.io/host/199.232.34.194")],
+            spans=[Span(0, 14, "bold yellow link https://virustotal.com/gui/ip-address/199.232.34.194")],
         )
 
         # Table
@@ -848,7 +857,10 @@ class TestView08:
             "ASN:",
             "ISP:",
             "Location:",
-            "Services:",
+            Text(
+                "Services:",
+                spans=[Span(0, 8, "link https://www.shodan.io/host/199.232.34.194")]
+            ),
             "Tags:",
             "Last Scan:",
         ]
@@ -904,7 +916,7 @@ class TestView09:
         # Heading
         assert group[0] == Text(
             "1.0.0.1",
-            spans=[Span(0, 7, "bold yellow link https://www.shodan.io/host/1.0.0.1")],
+            spans=[Span(0, 7, "bold yellow link https://virustotal.com/gui/ip-address/1.0.0.1")],
         )
 
         # Table
@@ -918,7 +930,10 @@ class TestView09:
             "ASN:",
             "ISP:",
             "Location:",
-            "Services:",
+            Text(
+                "Services:",
+                spans=[Span(0, 8, "link https://www.shodan.io/host/1.0.0.1")]
+            ),
             "Last Scan:",
         ]
         assert table.columns[1].style == "none"

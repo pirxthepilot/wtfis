@@ -120,7 +120,7 @@ Shodan can be used to enrich the IP addresses (instead of IPWhois). Invoke with 
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-shodan.png?raw=true)
 
-The IP address hyperlink also changes to point to the Shodan web interface.
+The `Services` field name is a hyperlink (if supported by the terminal) that takes you to the IP in the Shodan web interface.
 
 ### Display options
 
