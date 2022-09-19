@@ -179,7 +179,7 @@ class TestView02:
         # Heading
         assert ip.renderable.renderables[0] == Text(
             "1.1.1.1",
-            spans=[Span(0, 7, "bold yellow link https://www.shodan.io/host/1.1.1.1")]
+            spans=[Span(0, 7, "bold yellow link https://virustotal.com/gui/ip-address/1.1.1.1")]
         )
 
         # Table
@@ -194,7 +194,10 @@ class TestView02:
             "ASN:",
             "ISP:",
             "Location:",
-            "Services:",
+            Text(
+                "Services:",
+                spans=[Span(0, 8, "link https://www.shodan.io/host/1.1.1.1")]
+            ),
             "Last Scan:",
         ]
         assert table.columns[1].style == "none"

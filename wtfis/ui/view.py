@@ -6,7 +6,7 @@ from rich.console import (
 from rich.padding import Padding
 from rich.panel import Panel
 from rich.text import Text
-from typing import Optional, Union
+from typing import List, Optional, Tuple, Union
 
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.passivetotal import Whois
@@ -89,18 +89,14 @@ class DomainView(BaseView):
             analysis = self._gen_vt_analysis_stats(attributes.ip_address_last_analysis_stats)
 
             # Content
-            hyperlink_base = (
-                self.vt_gui_baseurl_ip if isinstance(self.ip_enrich, IpWhoisMap)
-                else self.shodan_gui_baseurl
-            )
             heading = self._gen_heading_text(
                 attributes.ip_address,
-                hyperlink=f"{hyperlink_base}/{attributes.ip_address}"
+                hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}"
             )
             data = [
                 ("Analysis:", analysis),
                 ("Resolved:", iso_date(attributes.date)),
-            ]
+            ]  # type: List[Tuple[Union[str, Text], Union[str, Text, None]]]
 
             # IP Enrichment
             enrich = self._get_ip_enrichment(attributes.ip_address)
@@ -117,12 +113,16 @@ class DomainView(BaseView):
                     # Shodan
                     asn = f"{enrich.asn.replace('AS', '')} ({enrich.org})" if enrich.asn else None
                     tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+                    services_linked = self._gen_linked_field_name(
+                        "Services",
+                        hyperlink=f"{self.shodan_gui_baseurl}/{attributes.ip_address}"
+                    )
                     data += [
                         ("ASN:", asn),
                         ("ISP:", enrich.isp),
                         ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
                         ("OS:", enrich.os),
-                        ("Services:", self._gen_shodan_services(enrich)),
+                        (services_linked, self._gen_shodan_services(enrich)),
                         ("Tags:", tags),
                         ("Last Scan:", iso_date(f"{enrich.last_update}+00:00")),  # Timestamps are UTC (source: Google)
                     ]
@@ -208,13 +208,10 @@ class IpAddressView(BaseView):
             ("Analysis:", analysis),
             ("Reputation:", reputation),
             ("Last Modified:", iso_date(attributes.last_modification_date)),
-        ]
+        ]  # type: List[Tuple[Union[str, Text], Union[str, Text, None]]]
 
         # IP Enrichment
         enrich = self._get_ip_enrichment(self.entity.data.id_)
-
-        # Default link is VT
-        hyperlink_base = self.vt_gui_baseurl_ip
 
         if enrich:
             if isinstance(enrich, IpWhois):
@@ -226,22 +223,25 @@ class IpAddressView(BaseView):
                 ]
             else:
                 # Shodan
-                hyperlink_base = self.shodan_gui_baseurl
                 asn = f"{enrich.asn.replace('AS', '')} ({enrich.org})" if enrich.asn else None
                 tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+                services_linked = self._gen_linked_field_name(
+                    "Services",
+                    hyperlink=f"{self.shodan_gui_baseurl}/{self.entity.data.id_}"
+                )
                 data += [
                     ("ASN:", asn),
                     ("ISP:", enrich.isp),
                     ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
                     ("OS:", enrich.os),
-                    ("Services:", self._gen_shodan_services(enrich)),
+                    (services_linked, self._gen_shodan_services(enrich)),
                     ("Tags:", tags),
                     ("Last Scan:", iso_date(f"{enrich.last_update}+00:00")),  # Timestamps are UTC (source: Google)
                 ]
 
         heading = self._gen_heading_text(
             self.entity.data.id_,
-            hyperlink=f"{hyperlink_base}/{self.entity.data.id_}"
+            hyperlink=f"{self.vt_gui_baseurl_ip}/{self.entity.data.id_}"
         )
         body = self._gen_table(*data)
 
