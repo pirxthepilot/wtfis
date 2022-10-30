@@ -78,6 +78,7 @@ wtfis uses these environment variables:
 * `PT_API_KEY` (optional) - Passivetotal API key
 * `PT_API_USER` (optional) - Passivetotal API user
 * `SHODAN_API_KEY` (optional) - Shodan API key
+* `WTFIS_DEFAULTS` (optional) - Default arguments
 
 Set these using your own method.
 
