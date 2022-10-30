@@ -134,8 +134,27 @@ Panels can be displayed with no color with `-n` or `--no-color`.
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-no-color.png?raw=true)
 
+### Defaults
+
+Default arguments can be defined by setting the `WTFIS_DEFAULTS` environment variable. For example, to use shodan and display results in one column by default:
+
+```
+WTFIS_DEFAULTS="-s -1"
+```
+
+If an argument is in `WTFIS_DEFAULTS`, then specifying the same argument during command invocation **negates** that argument. So in the example above, if you then run:
+
+```
+wtfis example.com -s
+```
+
+then Shodan will NOT be used.
+
+Note that maximum resolutions (`-m N, --max-resolutions N`) cannot be defined in defaults at the moment.
+
 
 ## TODOs
 
-* Include JARM and certificate info?
+* Consider adding Greynoise enrichment (RIOT, etc.)
+* URL lookup
 * Keyring support

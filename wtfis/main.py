@@ -57,9 +57,19 @@ def parse_args() -> Namespace:
         action="version",
         version=get_version()
     )
+    parsed = parser.parse_args()
+
+    # Default overrides
+    # If a default is set, then setting the flag as an argument _negates_ the effect
+    for option in os.environ.get("WTFIS_DEFAULTS", "").split(" "):
+        if option in ("-s", "--use-shodan"):
+            parsed.use_shodan = not parsed.use_shodan
+        elif option in ("-n", "--no-color"):
+            parsed.no_color = not parsed.no_color
+        elif option in ("-1", "--one-column"):
+            parsed.one_column = not parsed.one_column
 
     # Validation
-    parsed = parser.parse_args()
     if parsed.max_resolutions > 10:
         argparse.ArgumentParser().error("Maximum --max-resolutions value is 10")
     if parsed.use_shodan and not os.environ.get("SHODAN_API_KEY"):
