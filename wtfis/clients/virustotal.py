@@ -4,8 +4,8 @@ from wtfis.clients.base import BaseClient
 from wtfis.models.virustotal import (
     Domain,
     IpAddress,
-    HistoricalWhois,
     Resolutions,
+    Whois,
 )
 from wtfis.utils import is_ip
 
@@ -29,16 +29,16 @@ class VTClient(BaseClient):
     def get_domain_resolutions(self, domain: str) -> Optional[Resolutions]:
         return Resolutions.parse_obj(self._get(f"/domains/{domain}/resolutions"))
 
-    def get_domain_whois(self, domain: str) -> HistoricalWhois:
-        return HistoricalWhois.parse_obj(self._get(f"/domains/{domain}/historical_whois"))
+    def get_domain_whois(self, domain: str) -> Whois:
+        return Whois.parse_obj(self._get(f"/domains/{domain}/historical_whois"))
 
     def get_ip_address(self, ip: str) -> IpAddress:
         return IpAddress.parse_obj(self._get(f"/ip_addresses/{ip}"))
 
-    def get_ip_whois(self, ip: str) -> HistoricalWhois:
-        return HistoricalWhois.parse_obj(self._get(f"/ip_addresses/{ip}/historical_whois"))
+    def get_ip_whois(self, ip: str) -> Whois:
+        return Whois.parse_obj(self._get(f"/ip_addresses/{ip}/historical_whois"))
 
-    def get_whois(self, entity: str) -> HistoricalWhois:
+    def get_whois(self, entity: str) -> Whois:
         """ Generalized for domain and IP """
         if is_ip(entity):
             return self.get_ip_whois(entity)

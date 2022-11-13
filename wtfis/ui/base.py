@@ -11,11 +11,10 @@ from rich.table import Table
 from rich.text import Text
 from typing import Any, Generator, List, Optional, Tuple, Union
 
+from wtfis.models.common import WhoisType
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
-from wtfis.models.passivetotal import Whois
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
 from wtfis.models.virustotal import (
-    HistoricalWhois,
     LastAnalysisStats,
     PopularityRanks,
 )
@@ -36,7 +35,7 @@ class BaseView(abc.ABC):
         self,
         console: Console,
         entity: Any,
-        whois: Union[Whois, HistoricalWhois],
+        whois: WhoisType,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
     ) -> None:
         self.console = console
@@ -179,65 +178,39 @@ class BaseView(abc.ABC):
         return self.ip_enrich.__root__[ip] if ip in self.ip_enrich.__root__.keys() else None
 
     def whois_panel(self) -> Optional[Panel]:
-        # Using PT Whois
-        if isinstance(self.whois, Whois):
-            heading = self._gen_heading_text(
-                self.whois.domain,
-                hyperlink=f"{self.pt_gui_baseurl}/{self.whois.domain}/whois"
-            )
-            body = self._gen_table(
-                ("Registrar:", self.whois.registrar),
-                ("Organization:", self.whois.organization),
-                ("Name:", self.whois.name),
-                ("Email:", self.whois.contactEmail),
-                ("Phone:", self.whois.registrant.telephone),
-                ("Street:", self.whois.registrant.street),
-                ("City:", self.whois.registrant.city),
-                ("State:", self.whois.registrant.state),
-                ("Country:", self.whois.registrant.country),
-                ("Nameservers:", smart_join(*self.whois.nameServers, style=self.theme.nameserver_list)),
-                ("Registered:", iso_date(self.whois.registered)),
-                ("Updated:", iso_date(self.whois.registryUpdatedAt)),
-                ("Expires:", iso_date(self.whois.expiresAt)),
-            )
-        # Using VT HistoricalWhois
+        if self.whois.source == "passivetotal":  # PT
+            hyperlink = f"{self.pt_gui_baseurl}/{self.whois.domain}/whois"
+        else:  # VT
+            hyperlink = None
+
+        heading = self._gen_heading_text(
+            self.whois.domain,
+            hyperlink=hyperlink,
+        ) if self.whois.domain else None
+
+        body = self._gen_table(
+            ("Registrar:", self.whois.registrar),
+            ("Organization:", self.whois.organization),
+            ("Name:", self.whois.name),
+            ("Email:", self.whois.email),
+            ("Phone:", self.whois.phone),
+            ("Street:", self.whois.street),
+            ("City:", self.whois.city),
+            ("State:", self.whois.state),
+            ("Country:", self.whois.country),
+            ("Postcode:", self.whois.postal_code),
+            ("Nameservers:", smart_join(*self.whois.name_servers, style=self.theme.nameserver_list)),
+            ("DNSSEC:", self.whois.dnssec),
+            ("Registered:", iso_date(self.whois.date_created)),
+            ("Updated:", iso_date(self.whois.date_changed)),
+            ("Expires:", iso_date(self.whois.date_expires)),
+        )
+
+        # Return message if no whois data
+        if body:
+            return self._gen_panel("whois", self._gen_info(body, heading))
         else:
-            if not self.whois.data:
-                return None
-
-            # Use the first, i.e. latest whois entry
-            attribs = self.whois.data[0].attributes
-
-            # Check for empty whois map
-            if not attribs.whois_map:
-                return self._gen_panel("whois", Text("Unable to gather whois data", style=self.theme.disclaimer))
-
-            # Admin location
-            admin_location = smart_join(
-                attribs.whois_map.admin_city,
-                attribs.whois_map.admin_state,
-                attribs.whois_map.admin_country,
-            )
-
-            # Name servers
-            name_servers = attribs.whois_map.name_servers if attribs.whois_map.name_servers else []
-
-            heading = self._gen_heading_text(attribs.whois_map.domain or attribs.whois_map.route)
-            body = self._gen_table(
-                ("Registrar:", attribs.whois_map.registrar),
-                ("Organization:", attribs.whois_map.registrant_org),
-                ("Name:", attribs.whois_map.registrant_name),
-                ("Email:", attribs.whois_map.registrant_email),
-                ("Country:", attribs.registrant_country),
-                ("Admin Location:", admin_location),
-                ("Nameservers:", smart_join(*name_servers, style=self.theme.nameserver_list)),
-                ("Registered:", attribs.whois_map.creation_date or attribs.whois_map.registered_on),
-                ("Updated:", attribs.whois_map.updated_date or attribs.whois_map.last_updated),
-                ("Expires:", attribs.whois_map.expiry_date or attribs.whois_map.expiry_date_alt),
-            )
-
-        # Return None if body is empty
-        return self._gen_panel("whois", self._gen_info(body, heading)) if body else None
+            return self._gen_panel("whois", Text("No whois data found", style=self.theme.disclaimer))
 
     @abc.abstractmethod
     def print(self, one_column: bool = False) -> None:

@@ -1,6 +1,8 @@
 from pydantic import BaseModel, root_validator, validator
 from typing import Any, Dict, List, Optional
 
+from wtfis.models.common import WhoisBase
+
 
 class BaseData(BaseModel):
     attributes: Any
@@ -118,76 +120,91 @@ class Resolutions(BaseModel):
     data: List[ResolutionData]
 
 
-class HistoricalWhoisMap(BaseModel):
+class Whois(WhoisBase):
+    source: str = "virustotal"
     domain: str = ""
     registrar: Optional[str]
+    organization: Optional[str]
+    name: Optional[str]
+    email: Optional[str]
+    phone: Optional[str]
+    street: Optional[str]
+    city: Optional[str]
+    state: Optional[str]
+    country: Optional[str]
+    postal_code: Optional[str]
     name_servers: List[str] = []
-    creation_date: Optional[str]
-    expiry_date: Optional[str]
-    expiry_date_alt: Optional[str]
-    admin_city: Optional[str]
-    admin_state: Optional[str]
-    admin_country: Optional[str]
-    admin_postal_code: Optional[str]
-    admin_email: Optional[str]
-    last_updated: Optional[str]
-    registered_on: Optional[str]
-    registrant_email: Optional[str]
-    registrant_name: Optional[str]
-    registrant_org: Optional[str]
-    route: str = ""
-    updated_date: Optional[str]
+    date_created: Optional[str]
+    date_changed: Optional[str]
+    date_expires: Optional[str]
+    dnssec: Optional[str]
 
     class Config:
         fields = {
             "domain": "Domain Name",
-            "registrar": "Registrar",
+            "organization": "Registrant Organization",
+            "email": "Registrant Email",
+            "phone": "Registrant Phone",
+            "street": "Registrant Street",
+            "city": "Registrant City",
+            "state": "Registrant State/Province",
+            "postal_code": "Registrant Postal Code",
             "name_servers": "Name Server",
-            "creation_date": "Creation Date",
-            "expiry_date": "Registry Expiry Date",
-            "expiry_date_alt": "Expiry date",
-            "admin_city": "Admin City",
-            "admin_state": "Admin State/Province",
-            "admin_country": "Admin Country",
-            "admin_postal_code": "Admin Postal Code",
-            "admin_email": "Admin Email",
-            "last_updated": "Last updated",
-            "registered_on": "Registered on",
-            "registrant_email": "Registrant Email",
-            "registrant_name": "Registrant Name",
-            "registrant_org": "Registrant Organization",
-            "updated_date": "Updated Date",
+            "dnssec": "DNSSEC",
         }
+
+    @root_validator(pre=True)
+    def get_latest_whois_record_and_transform(cls, v):
+        data = v.pop("data")
+        if not data:
+            return {}
+        transformed = data[0].get("attributes", {})
+
+        # Flatten
+        transformed = {**transformed.pop("whois_map"), **transformed}
+
+        # Normalized fields with multiple possible sources
+        fields_w_multiple_possible_sources = {
+            "date_changed": (
+                transformed.pop("last_updated", None) or
+                transformed.pop("Updated Date", None) or
+                transformed.pop("Last updated", None)
+            ),
+            "date_created": (
+                transformed.pop("Creation Date", None) or
+                transformed.pop("Registered on", None)
+            ),
+            "date_expires": (
+                transformed.pop("Expiry Date", None) or
+                transformed.pop("Registry Expiry Date", None) or
+                transformed.pop("Expiry date", None)
+            ),
+            "name": (
+                transformed.pop("registrant_name", None) or
+                transformed.pop("Registrant Name", None)
+            ),
+            "country": (
+                transformed.pop("registrant_country", None) or
+                transformed.pop("Registrant Country", None)
+            ),
+            "registrar": (
+                transformed.pop("registrar_name", None) or
+                transformed.pop("Registrar", None)
+            ),
+        }
+
+        return {**transformed, **fields_w_multiple_possible_sources}
 
     @validator("name_servers", pre=True)
     def transform_nameservers(cls, v):
-        return v.split(" | ")
+        return v.lower().split(" | ")
+
+    @validator("domain", pre=True)
+    def lowercase_domain(cls, v):
+        return v.lower()
 
     @validator("*")
     def dedupe_values(cls, v):
-        if "|" in v:
+        if v is not None and "|" in v:
             return v.split(" | ")[0]
         return v
-
-
-class HistoricalWhoisAttributes(BaseModel):
-    first_seen_date: Optional[int]
-    whois_map: Optional[HistoricalWhoisMap]
-    registrant_country: Optional[str]
-    registrar_name: Optional[str]
-    last_updated: Optional[int]
-
-    @root_validator(pre=True)
-    def remove_empty_whois_map(cls, v):
-        if v.get("whois_map") == {}:
-            v.pop("whois_map")
-        return v
-
-
-class HistoricalWhoisData(BaseData):
-    attributes: HistoricalWhoisAttributes
-
-
-class HistoricalWhois(BaseModel):
-    meta: Meta
-    data: List[HistoricalWhoisData]

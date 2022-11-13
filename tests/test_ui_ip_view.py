@@ -10,10 +10,10 @@ from unittest.mock import MagicMock
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.models.ipwhois import IpWhoisMap
-from wtfis.models.passivetotal import Whois
+from wtfis.models.passivetotal import Whois as PTWhois
 from wtfis.models.virustotal import (
-    HistoricalWhois,
     IpAddress,
+    Whois as VTWhois,
 )
 from wtfis.ui.view import IpAddressView
 
@@ -30,7 +30,7 @@ def view01(test_data, mock_ipwhois_get):
     return IpAddressView(
         console=Console(),
         entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
-        whois=Whois.parse_obj(json.loads(test_data("pt_whois_1.1.1.1.json"))),
+        whois=PTWhois.parse_obj(json.loads(test_data("pt_whois_1.1.1.1.json"))),
         ip_enrich=ip_enrich,
     )
 
@@ -58,7 +58,7 @@ def view03(test_data):
     return IpAddressView(
         console=Console(),
         entity=MagicMock(),
-        whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_1.1.1.1.json"))),
+        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_1.1.1.1.json"))),
         ip_enrich=MagicMock(),
     )
 
@@ -315,9 +315,13 @@ class TestView03:
             "Organization:",
             "Name:",
             "Email:",
+            "Phone:",
+            "Street:",
+            "City:",
             "Country:",
-            "Admin Location:",
+            "Postcode:",
             "Nameservers:",
+            "DNSSEC:",
             "Registered:",
             "Updated:",
             "Expires:",
@@ -333,19 +337,23 @@ class TestView03:
                 "output for information on how to contact the Registrant, Admin, or Tech "
                 "contact of the queried domain name."
             ),
+            "REDACTED FOR PRIVACY",
+            "REDACTED FOR PRIVACY",
+            "REDACTED FOR PRIVACY",
             "dk",
-            "REDACTED FOR PRIVACY, REDACTED FOR PRIVACY, REDACTED FOR PRIVACY",
+            "REDACTED FOR PRIVACY",
             (
-                "* a response from the Service that a domain name is 'available', does not "
+                "* a response from the service that a domain name is 'available', does not "
                 "guarantee that is able to be registered,, * we may restrict, suspend or "
-                "terminate your access to the Service at any time, and, * the copying, "
+                "terminate your access to the service at any time, and, * the copying, "
                 "compilation, repackaging, dissemination or other use of the information "
-                "provided by the Service is not permitted, without our express written "
-                "consent., This information has been prepared and published in order to "
-                "represent administrative and technical management of the TLD., We may "
-                "discontinue or amend any part or the whole of these Terms of Service from "
+                "provided by the service is not permitted, without our express written "
+                "consent., this information has been prepared and published in order to "
+                "represent administrative and technical management of the tld., we may "
+                "discontinue or amend any part or the whole of these terms of service from "
                 "time to time at our absolute discretion."
             ),
+            "signedDelegation",
             "2015-05-20T12:15:44Z",
             "2021-07-04T12:15:49Z",
             "2022-05-20T12:15:44Z",

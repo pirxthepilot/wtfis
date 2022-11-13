@@ -10,11 +10,11 @@ from unittest.mock import MagicMock
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.models.ipwhois import IpWhoisMap
-from wtfis.models.passivetotal import Whois
+from wtfis.models.passivetotal import Whois as PTWhois
 from wtfis.models.virustotal import (
     Domain,
-    HistoricalWhois,
     Resolutions,
+    Whois as VTWhois,
 )
 from wtfis.ui.view import DomainView
 
@@ -33,7 +33,7 @@ def view01(test_data, mock_ipwhois_get):
         console=Console(),
         entity=Domain.parse_obj(json.loads(test_data("vt_domain_gist.json"))),
         resolutions=resolutions,
-        whois=Whois.parse_obj(json.loads(test_data("pt_whois_gist.json"))),
+        whois=PTWhois.parse_obj(json.loads(test_data("pt_whois_gist.json"))),
         ip_enrich=ip_enrich,
     )
 
@@ -48,7 +48,7 @@ def view02(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json"))),
-        whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_gist.json"))),
+        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_gist.json"))),
         ip_enrich=IpWhoisMap(__root__={}),
         max_resolutions=1,
     )
@@ -61,7 +61,7 @@ def view03(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
-        whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_bbc.json"))),
+        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_bbc.json"))),
         ip_enrich=MagicMock(),
     )
 
@@ -100,7 +100,7 @@ def view06(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
-        whois=HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_example_2.json"))),
+        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_example_2.json"))),
         ip_enrich=MagicMock(),
     )
 
@@ -366,8 +366,12 @@ class TestView01:
             "Organization:",
             "Name:",
             "Email:",
+            "Phone:",
+            "Street:",
+            "City:",
             "State:",
             "Country:",
+            "Postcode:",
             "Nameservers:",
             "Registered:",
             "Updated:",
@@ -380,13 +384,17 @@ class TestView01:
             "GitHub, Inc.",
             "N/A",
             "abusecomplaints@markmonitor.com",
+            "+1.5555555",
+            "742 Evergreen Terrace",
+            "Gotham",
             "CA",
             "US",
+            "00000",
             ("dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, dns4.p08.nsone.net, ns-1283.awsdns-32.org, "
              "ns-1707.awsdns-21.co.uk, ns-421.awsdns-52.com, ns-520.awsdns-01.net"),
             "2007-10-09T18:20:50Z",
             "2020-09-08T09:18:27Z",
-            "2022-10-09T07:00:00Z"
+            "2022-10-09T07:00:00Z",
         ]
 
 
@@ -428,7 +436,7 @@ class TestView02:
 
         # Heading
         assert whois.renderable.renderables[0] == Text(
-            "GITHUB.COM",
+            "github.com",
             spans=[Span(0, 10, 'bold yellow')]
         )
 
@@ -440,6 +448,7 @@ class TestView02:
         assert table.columns[0]._cells == [
             "Registrar:",
             "Nameservers:",
+            "DNSSEC:",
             "Registered:",
             "Updated:",
             "Expires:",
@@ -448,9 +457,10 @@ class TestView02:
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [
             "MarkMonitor Inc.",
-            "DNS1.P08.NSONE.NET, DNS2.P08.NSONE.NET, DNS3.P08.NSONE.NET, "
-            "DNS4.P08.NSONE.NET, NS-1283.AWSDNS-32.ORG, NS-1707.AWSDNS-21.CO.UK, "
-            "NS-421.AWSDNS-52.COM, NS-520.AWSDNS-01.NET",
+            "dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, "
+            "dns4.p08.nsone.net, ns-1283.awsdns-32.org, ns-1707.awsdns-21.co.uk, "
+            "ns-421.awsdns-52.com, ns-520.awsdns-01.net",
+            "unsigned",
             "2007-10-09T18:20:50Z",
             "2020-09-08T09:18:27Z",
             "2022-10-09T18:20:50Z",
@@ -628,7 +638,7 @@ class TestView06:
         assert whois.title == Text("whois")
 
         # Warning message
-        assert whois.renderable == Text("Unable to gather whois data")
+        assert whois.renderable == Text("No whois data found")
 
 
 class TestView07:
