@@ -1,28 +1,41 @@
-from pydantic import BaseModel
+from pydantic import root_validator
 from typing import List, Optional
 
+from wtfis.models.common import WhoisBase
 
-class Registrant(BaseModel):
+
+class Whois(WhoisBase):
+    source: str = "passivetotal"
+    registrar: Optional[str]
     organization: Optional[str]
-    email: Optional[str]
     name: Optional[str]
-    telephone: Optional[str]
+    email: Optional[str]
+    phone: Optional[str]
     street: Optional[str]
     city: Optional[str]
     state: Optional[str]
     country: Optional[str]
-    postalCode: Optional[str]
+    postal_code: Optional[str]
+    name_servers: List[str] = []
+    date_created: Optional[str]
+    date_changed: Optional[str]
+    date_expires: Optional[str]
+    dnssec: Optional[str]
 
+    class Config:
+        fields = {
+            "email": "contactEmail",
+            "phone": "telephone",
+            "name_servers": "nameServers",
+            "postal_code": "postalCode",
+            "date_created": "registered",
+            "date_changed": "registryUpdatedAt",
+            "date_expires": "expiresAt",
+        }
 
-class Whois(BaseModel):
-    contactEmail: Optional[str]
-    domain: str
-    expiresAt: Optional[str]
-    lastLoadedAt: str
-    name: str
-    nameServers: List[str]
-    organization: Optional[str]
-    registered: Optional[str]
-    registrant: Registrant
-    registrar: Optional[str]
-    registryUpdatedAt: Optional[str]
+    @root_validator(pre=True)
+    def extract_registrant(cls, v):
+        registrant = v.pop("registrant")
+        for field in ["telephone", "street", "city", "state", "country", "postalCode"]:
+            v[field] = registrant.get(field)
+        return v

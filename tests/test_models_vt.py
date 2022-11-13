@@ -1,7 +1,6 @@
 import json
 from wtfis.models.virustotal import (
     Domain,
-    HistoricalWhois,
     Resolutions,
 )
 
@@ -32,25 +31,3 @@ class TestVirustotalModels:
         assert res.data[1].attributes.ip_address_last_analysis_stats.harmless == 82
         assert res.data[1].attributes.ip_address_last_analysis_stats.undetected == 11
         assert res.data[1].attributes.date == 1655835054
-
-    def test_historical_whois_1(self, test_data):
-        whois = HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_bbc.json")))
-
-        assert whois.meta.count == 5
-        assert whois.data[0].attributes.whois_map.domain == ""
-        assert whois.data[0].attributes.whois_map.name_servers == ["dns1.bbc.com"]
-        assert whois.data[0].attributes.whois_map.registrant_org is None
-
-    def test_historical_whois_2(self, test_data):
-        whois = HistoricalWhois.parse_obj(json.loads(test_data("vt_whois_example.json")))
-
-        assert whois.meta.count == 9
-        assert whois.data[0].attributes.whois_map.domain == "example.com"
-        assert whois.data[0].attributes.whois_map.registrant_name == "1f8f4166599d23ee"
-        assert whois.data[0].attributes.whois_map.registrant_org == "b46a98a26fe2fd9f"
-        assert whois.data[0].attributes.whois_map.name_servers == [
-            "lochlan.ns.cloudflare.com",
-            "nelci.ns.cloudflare.com",
-        ]
-        assert whois.data[6].attributes.whois_map is None
-        assert whois.data[6].attributes.first_seen_date == 1574839630

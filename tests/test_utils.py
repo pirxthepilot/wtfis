@@ -22,6 +22,12 @@ class TestUtils:
 
     def test_iso_date_3(self):
         assert iso_date(None) is None
+        assert iso_date("2017-04-26T22:43:49Z") == "2017-04-26T22:43:49Z"
+        assert iso_date("1660428690") == "2022-08-13T22:11:30Z"
+
+    def test_iso_date_4(self):
+        assert iso_date("2017-04-26T22:43:49.00Z") == "2017-04-26T22:43:49Z"
+        assert iso_date("a long time ago") == "a long time ago"
 
     @freeze_time("2022-08-12")
     def test_older_than(self):

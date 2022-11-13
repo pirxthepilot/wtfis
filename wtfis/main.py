@@ -156,11 +156,10 @@ def main():
                 pt = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
                 progress.update(task3, advance=50)
                 whois = pt.get_whois(entity.data.id_)
-                progress.update(task3, advance=50)
             else:
                 task3 = progress.add_task("Fetching domain whois from Virustotal")
                 whois = vt.get_whois(entity.data.id_)
-                progress.update(task3, advance=100)
+            progress.update(task3, completed=100)
         except (HTTPError, JSONDecodeError, APIError) as e:
             progress.stop()
             error_and_exit(f"Error fetching data: {e}")

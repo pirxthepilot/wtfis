@@ -8,12 +8,11 @@ from rich.panel import Panel
 from rich.text import Text
 from typing import List, Optional, Tuple, Union
 
+from wtfis.models.common import WhoisType
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
-from wtfis.models.passivetotal import Whois
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.virustotal import (
     Domain,
-    HistoricalWhois,
     IpAddress,
     Resolutions,
 )
@@ -30,7 +29,7 @@ class DomainView(BaseView):
         console: Console,
         entity: Domain,
         resolutions: Optional[Resolutions],
-        whois: Union[Whois, HistoricalWhois],
+        whois: WhoisType,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         max_resolutions: int = 3,
     ) -> None:
@@ -186,7 +185,7 @@ class IpAddressView(BaseView):
         self,
         console: Console,
         entity: IpAddress,
-        whois: Union[Whois, HistoricalWhois],
+        whois: WhoisType,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
     ) -> None:
         super().__init__(console, entity, whois, ip_enrich)
