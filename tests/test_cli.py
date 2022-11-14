@@ -41,7 +41,7 @@ def fake_load_dotenv_1(tmp_path):
         "VT_API_KEY": "foo",
         "PT_API_KEY": "bar",
         "PT_API_USER": "baz@example.com",
-        "SHODAN_API_KEY": "hunter2"
+        "SHODAN_API_KEY": "hunter2",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
