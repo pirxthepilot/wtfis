@@ -13,6 +13,7 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
+from wtfis.clients.whoisjson import WhoisJsonClient
 from wtfis.models.virustotal import Domain
 from wtfis.utils import error_and_exit, is_ip, refang
 from wtfis.ui.progress import get_progress
@@ -150,15 +151,21 @@ def main():
                     progress.update(task2, advance=50)
 
             # Whois
-            # Use Passivetotal if relevant environment variables exist, otherwise keep using VT
+            # Order of use based on set envvars:
+            #    1. Passivetotal
+            #    2. WhoisJSON
+            #    3. Virustotal (fallback)
             if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
                 task3 = progress.add_task("Fetching domain whois from Passivetotal")
-                pt = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
-                progress.update(task3, advance=50)
-                whois = pt.get_whois(entity.data.id_)
+                whois_client = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
+            elif os.environ.get("WHOISJSON_API_KEY"):
+                task3 = progress.add_task("Fetching domain whois from WhoisJSON")
+                whois_client = WhoisJsonClient(os.environ.get("WHOISJSON_API_KEY"))
             else:
                 task3 = progress.add_task("Fetching domain whois from Virustotal")
-                whois = vt.get_whois(entity.data.id_)
+                whois_client = vt
+            progress.update(task3, advance=50)
+            whois = whois_client.get_whois(entity.data.id_)
             progress.update(task3, completed=100)
         except (HTTPError, JSONDecodeError, APIError) as e:
             progress.stop()
