@@ -16,6 +16,7 @@ from wtfis.models.virustotal import (
     Resolutions,
     Whois as VTWhois,
 )
+from wtfis.models.whoisjson import Whois as WJWhois
 from wtfis.ui.view import DomainView
 
 
@@ -161,6 +162,18 @@ def view09(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         max_resolutions=1,
+    )
+
+
+@pytest.fixture()
+def view10(test_data):
+    """ gist.github.com WhoisJSON whois. Whois panel test only. """
+    return DomainView(
+        console=Console(),
+        entity=MagicMock(),
+        resolutions=MagicMock(),
+        whois=WJWhois.parse_obj(json.loads(test_data("whoisjson_whois_gist.json"))),
+        ip_enrich=MagicMock(),
     )
 
 
@@ -1013,3 +1026,51 @@ class TestView09:
 
         # Spacing
         assert res.renderable.renderables[1] == Text("\n+1 more")
+
+
+class TestView10:
+    def test_whois_panel(self, view10):
+        whois = view10.whois_panel()
+        assert type(whois) is Panel
+        assert whois.title == Text("whois")
+
+        # Heading
+        assert whois.renderable.renderables[0] == Text(
+            "github.com",
+            spans=[Span(0, 10, 'bold yellow')]
+        )
+
+        # Table
+        table = whois.renderable.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Registrar:",
+            "Organization:",
+            "Email:",
+            "State:",
+            "Country:",
+            "Nameservers:",
+            "DNSSEC:",
+            "Registered:",
+            "Updated:",
+            "Expires:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert [str(c) for c in table.columns[1]._cells] == [
+            "MarkMonitor, Inc.",
+            "GitHub, Inc.",
+            "Select Request Email Form at "
+            "https://domains.markmonitor.com/whois/github.com",
+            "CA",
+            "US",
+            "ns-1707.awsdns-21.co.uk, dns2.p08.nsone.net, dns3.p08.nsone.net, "
+            "ns-421.awsdns-52.com, ns-1283.awsdns-32.org, ns-520.awsdns-01.net, "
+            "dns4.p08.nsone.net, dns1.p08.nsone.net",
+            "unsigned",
+            "2007-10-10T01:20:50Z",
+            "2022-09-07T16:10:44Z",
+            "2024-10-10T01:20:50Z",
+        ]

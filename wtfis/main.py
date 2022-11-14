@@ -153,16 +153,18 @@ def main():
             # Whois
             # Order of use based on set envvars:
             #    1. Passivetotal
-            #    2. WhoisJSON
+            #    2. WhoisJSON (domain only)
             #    3. Virustotal (fallback)
+            entity_type = "domain" if isinstance(entity, Domain) else "IP"
+
             if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
-                task3 = progress.add_task("Fetching domain whois from Passivetotal")
+                task3 = progress.add_task(f"Fetching {entity_type} whois from Passivetotal")
                 whois_client = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
-            elif os.environ.get("WHOISJSON_API_KEY"):
-                task3 = progress.add_task("Fetching domain whois from WhoisJSON")
+            elif os.environ.get("WHOISJSON_API_KEY") and isinstance(entity, Domain):
+                task3 = progress.add_task(f"Fetching {entity_type} whois from WhoisJSON")
                 whois_client = WhoisJsonClient(os.environ.get("WHOISJSON_API_KEY"))
             else:
-                task3 = progress.add_task("Fetching domain whois from Virustotal")
+                task3 = progress.add_task(f"Fetching {entity_type} whois from Virustotal")
                 whois_client = vt
             progress.update(task3, advance=50)
             whois = whois_client.get_whois(entity.data.id_)

@@ -12,6 +12,7 @@ POSSIBLE_ENV_VARS = [
     "PT_API_KEY",
     "PT_API_USER",
     "SHODAN_API_KEY",
+    "WHOISJSON_API_KEY",
     "WTFIS_DEFAULTS",
 ]
 
@@ -41,7 +42,8 @@ def fake_load_dotenv_1(tmp_path):
         "VT_API_KEY": "foo",
         "PT_API_KEY": "bar",
         "PT_API_USER": "baz@example.com",
-        "SHODAN_API_KEY": "hunter2"
+        "SHODAN_API_KEY": "hunter2",
+        "WHOISJSON_API_KEY": "alice",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -166,6 +168,7 @@ class TestEnvs:
             assert os.environ["PT_API_KEY"] == "bar"
             assert os.environ["PT_API_USER"] == "baz@example.com"
             assert os.environ["SHODAN_API_KEY"] == "hunter2"
+            assert os.environ["WHOISJSON_API_KEY"] == "alice"
         unset_env_vars()
 
     @patch("wtfis.main.load_dotenv", MagicMock())
