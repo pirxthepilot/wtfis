@@ -177,6 +177,49 @@ def view10(test_data):
     )
 
 
+@pytest.fixture()
+def view11(test_data):
+    """ gist.github.com WhoisJSON whois. Whois panel test only. Test no contact. """
+    return DomainView(
+        console=Console(),
+        entity=MagicMock(),
+        resolutions=MagicMock(),
+        whois=WJWhois.parse_obj(json.loads(test_data("whoisjson_whois_gist_2.json"))),
+        ip_enrich=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view12(test_data):
+    """ Dummy VT whois. Whois panel test only. Test whois with no data. """
+    return DomainView(
+        console=Console(),
+        entity=MagicMock(),
+        resolutions=MagicMock(),
+        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_foo.json"))),
+        ip_enrich=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view13(test_data, mock_shodan_get_ip):
+    """ gist.github.com with Shodan. Only test IP enrich. Test empty open ports. """
+    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+
+    shodan_pool = json.loads(test_data("shodan_gist_2.json"))
+    shodan_client = ShodanClient(MagicMock())
+    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.bulk_get_ip(resolutions, 3)
+
+    return DomainView(
+        console=Console(),
+        entity=MagicMock(),
+        resolutions=resolutions,
+        whois=MagicMock(),
+        ip_enrich=ip_enrich,
+    )
+
+
 class TestView01:
     def test_domain_panel(self, view01):
         domain = view01.domain_panel()
@@ -1070,7 +1113,103 @@ class TestView10:
             "ns-421.awsdns-52.com, ns-1283.awsdns-32.org, ns-520.awsdns-01.net, "
             "dns4.p08.nsone.net, dns1.p08.nsone.net",
             "unsigned",
-            "2007-10-10T01:20:50Z",
-            "2022-09-07T16:10:44Z",
-            "2024-10-10T01:20:50Z",
+            "2007-10-09T18:20:50Z",
+            "2022-09-07T09:10:44Z",
+            "2024-10-09T18:20:50Z",
+        ]
+
+
+class TestView11:
+    def test_whois_panel(self, view11):
+        whois = view11.whois_panel()
+        assert type(whois) is Panel
+        assert whois.title == Text("whois")
+
+        # Heading
+        assert whois.renderable.renderables[0] == Text(
+            "github.com",
+            spans=[Span(0, 10, 'bold yellow')]
+        )
+
+        # Table
+        table = whois.renderable.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Nameservers:",
+            "DNSSEC:",
+            "Registered:",
+            "Updated:",
+            "Expires:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert [str(c) for c in table.columns[1]._cells] == [
+            "ns-1707.awsdns-21.co.uk, dns2.p08.nsone.net, dns3.p08.nsone.net, "
+            "ns-421.awsdns-52.com, ns-1283.awsdns-32.org, ns-520.awsdns-01.net, "
+            "dns4.p08.nsone.net, dns1.p08.nsone.net",
+            "unsigned",
+            "2007-10-09T18:20:50Z",
+            "2022-09-07T09:10:44Z",
+            "2024-10-09T18:20:50Z",
+        ]
+
+
+class TestView12:
+    def test_whois_panel(self, view12):
+        whois = view12.whois_panel()
+        assert type(whois) is Panel
+        assert whois.title == Text("whois")
+
+        # Warning message
+        assert whois.renderable == Text("No whois data found")
+
+
+class TestView13:
+    def test_resolutions_panel(self, view13):
+        res = view13.resolutions_panel()
+        assert type(res) is Panel
+
+        # Entry 1
+        group = res.renderable.renderables[0].renderables
+
+        # Heading
+        assert group[0] == Text(
+            "13.234.210.38",
+            spans=[Span(0, 13, "bold yellow link https://virustotal.com/gui/ip-address/13.234.210.38")],
+        )
+
+        # Table
+        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].justify == "left"
+        assert group[1].columns[0]._cells == [
+            "Analysis:",
+            "Resolved:",
+            "ASN:",
+            "ISP:",
+            "Location:",
+            "Tags:",
+            "Last Scan:",
+        ]
+        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].justify == "left"
+        assert group[1].columns[1]._cells == [
+            Text("0/94 malicious"),
+            "2022-08-06T14:56:20Z",
+            "16509 (Amazon Data Services India)",
+            "Amazon.com, Inc.",
+            Text(
+                "Mumbai, India",
+                spans=[
+                    Span(6, 8, "default"),
+                ]
+            ),
+            Text(
+                "cloud",
+                spans=[
+                    Span(0, 5, 'bright_white on black')
+                ]
+            ),
+            "2022-08-21T07:21:05Z"
         ]

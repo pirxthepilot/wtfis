@@ -35,8 +35,6 @@ class Whois(WhoisBase):
     @root_validator(pre=True)
     def rename_name_to_domain(cls, v):
         """ Rename name to avoid name collisions """
-        # import json
-        # print(json.dumps(v, indent=4))
         name = v.pop("name")
         v["domain"] = name
         return v

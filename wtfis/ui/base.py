@@ -213,5 +213,5 @@ class BaseView(abc.ABC):
             return self._gen_panel("whois", Text("No whois data found", style=self.theme.disclaimer))
 
     @abc.abstractmethod
-    def print(self, one_column: bool = False) -> None:
+    def print(self, one_column: bool = False) -> None:  # pragma: no cover
         pass
