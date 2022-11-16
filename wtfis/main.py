@@ -150,15 +150,19 @@ def main():
                     progress.update(task2, advance=50)
 
             # Whois
-            # Use Passivetotal if relevant environment variables exist, otherwise keep using VT
+            # Order of use based on set envvars:
+            #    1. Passivetotal
+            #    2. Virustotal (fallback)
+            entity_type = "domain" if isinstance(entity, Domain) else "IP"
+
             if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
-                task3 = progress.add_task("Fetching domain whois from Passivetotal")
-                pt = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
-                progress.update(task3, advance=50)
-                whois = pt.get_whois(entity.data.id_)
+                task3 = progress.add_task(f"Fetching {entity_type} whois from Passivetotal")
+                whois_client = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
             else:
-                task3 = progress.add_task("Fetching domain whois from Virustotal")
-                whois = vt.get_whois(entity.data.id_)
+                task3 = progress.add_task(f"Fetching {entity_type} whois from Virustotal")
+                whois_client = vt
+            progress.update(task3, advance=50)
+            whois = whois_client.get_whois(entity.data.id_)
             progress.update(task3, completed=100)
         except (HTTPError, JSONDecodeError, APIError) as e:
             progress.stop()

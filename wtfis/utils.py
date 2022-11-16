@@ -31,12 +31,23 @@ def iso_date(ts: Optional[Union[str, int]]) -> Optional[str]:
     if isinstance(ts, int):
         return datetime.fromtimestamp(ts, tz=timezone.utc).strftime(std_utc)
     elif isinstance(ts, str):
-        # First try to convert other possible date formats
+        # Try to convert other possible date formats
         for fmt in [
             "%Y-%m-%dT%H:%M:%S.00Z",
+            "%Y-%m-%dT%H:%M:%S%z",
         ]:
             try:
                 return datetime.strptime(ts, fmt).strftime(std_utc)
+            except ValueError:
+                pass
+
+        # No explicit timezone - return date as is (le sigh)
+        for fmt in [
+            "%Y-%m-%d %H:%M:%S",
+        ]:
+            try:
+                datetime.strptime(ts, fmt)
+                return ts
             except ValueError:
                 pass
 
