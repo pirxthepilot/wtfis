@@ -25,7 +25,6 @@ class Ip2WhoisClient(BaseClient):
         try:
             return Whois.parse_obj(self._get("/", params))
         except HTTPError as e:
-            print(e.response.json())
             if (
                 e.response.status_code == 404 or
                 (e.response.status_code == 400 and

@@ -50,9 +50,18 @@ Passivetotal is recommended over Virustotal for whois data for a couple of reaso
 * PT whois data tends to be of better quality than VT. Also, VT's registrant data is apparently [anonymized](https://developers.virustotal.com/reference/whois).
 * You can save one VT API call by offloading to PT
 
+### IP2WHOIS
+
+Optionally used if creds are provided and Passivetotal creds are not supplied. (i.e. second in line for Whois information)
+
+* [Whois](https://www.ip2location.io/ip2whois-documentation)
+    * Various whois data about the domain itself
+
+As above, IP2WHOIS is recommended over Virustotal, if a Passivetotal account cannot be obtained.
+
 ### IPWhois
 
-IP address enrichments for VT resolutions. For each IP, retrieves the ASN, Org, ISP and Geolcoation.
+IP address enrichments for VT resolutions. For each IP, retrieves the ASN, Org, ISP and Geolocation. (Not to be confused with IP2WHOIS, which provides domain Whois data.)
 
 ### Shodan
 
@@ -78,6 +87,7 @@ wtfis uses these environment variables:
 * `PT_API_KEY` (optional) - Passivetotal API key
 * `PT_API_USER` (optional) - Passivetotal API user
 * `SHODAN_API_KEY` (optional) - Shodan API key
+* `IP2WHOIS_API_KEY` (optional) - IP2WHOIS API key
 * `WTFIS_DEFAULTS` (optional) - Default arguments
 
 Set these using your own method.
