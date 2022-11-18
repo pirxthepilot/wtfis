@@ -38,8 +38,6 @@ class Whois(WhoisBase):
     @root_validator(pre=True)
     def extract_registrant(cls, v):
         """ Surface registrant fields to root level """
-        import json
-        print(json.dumps(v, indent=4))
         registrant = v.pop("registrant", {})
         if not registrant:
             return v
@@ -54,8 +52,3 @@ class Whois(WhoisBase):
     def transform_registrar(cls, v):
         """ Convert registrar from dict to simply registrar.name """
         return v.get("name") if v else v
-
-    # @validator("name_servers")
-    # def transform_to_list(cls, v):
-    #     """ Convert comma-separated string to list """
-    #     return v.split(", ")

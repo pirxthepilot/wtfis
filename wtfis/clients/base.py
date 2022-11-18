@@ -5,7 +5,7 @@ from typing import Optional, Union
 
 
 class AbstractAttribute:
-    def __get__(self, obj, type):
+    def __get__(self, obj, type):  # pragma: no coverage
         raise NotImplementedError("This attribute must be set")
 
 
