@@ -9,6 +9,7 @@ from requests.exceptions import HTTPError, JSONDecodeError
 from rich.console import Console
 from shodan.exception import APIError
 
+from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
@@ -152,12 +153,16 @@ def main():
             # Whois
             # Order of use based on set envvars:
             #    1. Passivetotal
+            #    2. IP2WHOIS (Domain only)
             #    2. Virustotal (fallback)
             entity_type = "domain" if isinstance(entity, Domain) else "IP"
 
             if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
                 task3 = progress.add_task(f"Fetching {entity_type} whois from Passivetotal")
                 whois_client = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
+            elif os.environ.get("IP2WHOIS_API_KEY") and entity_type == "domain":
+                task3 = progress.add_task(f"Fetching {entity_type} whois from IP2WHOIS")
+                whois_client = Ip2WhoisClient(os.environ.get("IP2WHOIS_API_KEY"))
             else:
                 task3 = progress.add_task(f"Fetching {entity_type} whois from Virustotal")
                 whois_client = vt

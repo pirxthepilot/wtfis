@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.models.ip2whois import Whois as Ip2Whois
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.passivetotal import Whois as PTWhois
 from wtfis.models.virustotal import (
@@ -192,6 +193,30 @@ def view11(test_data, mock_shodan_get_ip):
         resolutions=resolutions,
         whois=MagicMock(),
         ip_enrich=ip_enrich,
+    )
+
+
+@pytest.fixture()
+def view12(test_data):
+    """ Dummy IP2WHOIS whois. Whois panel test only. """
+    return DomainView(
+        console=Console(),
+        entity=MagicMock(),
+        resolutions=MagicMock(),
+        whois=Ip2Whois.parse_obj(json.loads(test_data("ip2whois_whois_hotmail.json"))),
+        ip_enrich=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view13(test_data):
+    """ Dummy IP2WHOIS whois. Whois panel test only. Test null registrant. """
+    return DomainView(
+        console=Console(),
+        entity=MagicMock(),
+        resolutions=MagicMock(),
+        whois=Ip2Whois.parse_obj(json.loads(test_data("ip2whois_whois_bbc.json"))),
+        ip_enrich=MagicMock(),
     )
 
 
@@ -1102,4 +1127,85 @@ class TestView11:
                 ]
             ),
             "2022-08-21T07:21:05Z"
+        ]
+
+
+class TestView12:
+    def test_resolutions_panel(self, view12):
+        whois = view12.whois_panel()
+        assert type(whois) is Panel
+        assert whois.title == Text("whois")
+
+        # Heading
+        assert whois.renderable.renderables[0] == Text(
+            "hotmail.com",
+            spans=[Span(0, 11, "bold yellow")]
+        )
+
+        # Table
+        table = whois.renderable.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Registrar:",
+            "Organization:",
+            "Name:",
+            "Email:",
+            "Phone:",
+            "Street:",
+            "City:",
+            "State:",
+            "Country:",
+            "Postcode:",
+            "Nameservers:",
+            "Registered:",
+            "Updated:",
+            "Expires:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert [str(c) for c in table.columns[1]._cells] == [
+            "MarkMonitor, Inc.",
+            "Microsoft Corporation",
+            "Domain Administrator",
+            "domains@microsoft.com",
+            "+1.4258828080",
+            "One Microsoft Way,",
+            "Redmond",
+            "WA",
+            "US",
+            "98052",
+            ("ns4-205.azure-dns.info, ns3-205.azure-dns.org, ns1-205.azure-dns.com, "
+             "ns2-205.azure-dns.net"),
+            "1996-03-27T05:00:00Z",
+            "2021-02-02T17:08:19Z",
+            "2024-03-27T07:00:00Z",
+        ]
+
+
+class TestView13:
+    def test_resolutions_panel(self, view13):
+        whois = view13.whois_panel()
+        assert type(whois) is Panel
+        assert whois.title == Text("whois")
+
+        # No Heading!
+
+        # Table
+        table = whois.renderable
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "Registered:",
+            "Updated:",
+            "Expires:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert [str(c) for c in table.columns[1]._cells] == [
+            "1996-08-01T00:00:00Z",
+            "2020-12-10T00:00:00Z",
+            "2025-12-13T00:00:00Z",
         ]

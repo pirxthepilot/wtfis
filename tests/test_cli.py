@@ -11,6 +11,7 @@ POSSIBLE_ENV_VARS = [
     "VT_API_KEY",
     "PT_API_KEY",
     "PT_API_USER",
+    "IP2WHOIS_API_KEY",
     "SHODAN_API_KEY",
     "WTFIS_DEFAULTS",
 ]
@@ -41,6 +42,7 @@ def fake_load_dotenv_1(tmp_path):
         "VT_API_KEY": "foo",
         "PT_API_KEY": "bar",
         "PT_API_USER": "baz@example.com",
+        "IP2WHOIS_API_KEY": "alice",
         "SHODAN_API_KEY": "hunter2",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
@@ -165,6 +167,7 @@ class TestEnvs:
             assert os.environ["VT_API_KEY"] == "foo"
             assert os.environ["PT_API_KEY"] == "bar"
             assert os.environ["PT_API_USER"] == "baz@example.com"
+            assert os.environ["IP2WHOIS_API_KEY"] == "alice"
             assert os.environ["SHODAN_API_KEY"] == "hunter2"
         unset_env_vars()
 
