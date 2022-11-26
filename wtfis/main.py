@@ -4,10 +4,7 @@ import os
 from argparse import Namespace
 from dotenv import load_dotenv
 from pathlib import Path
-from pydantic import ValidationError
-from requests.exceptions import HTTPError, JSONDecodeError
 from rich.console import Console
-from shodan.exception import APIError
 
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
@@ -96,41 +93,40 @@ def main():
 
     # Fetch data
     with progress:
-        try:
-            # Virustotal client
-            vt_client = VTClient(os.environ.get("VT_API_KEY"))
+        # Virustotal client
+        vt_client = VTClient(os.environ.get("VT_API_KEY"))
 
-            # IP enrichment client selector
-            enricher_client = (
-                ShodanClient(os.environ.get("SHODAN_API_KEY"))
-                if args.use_shodan
-                else IpWhoisClient()
+        # IP enrichment client selector
+        enricher_client = (
+            ShodanClient(os.environ.get("SHODAN_API_KEY"))
+            if args.use_shodan
+            else IpWhoisClient()
+        )
+
+        # Whois client selector
+        # Order of use based on set envvars:
+        #    1. Passivetotal
+        #    2. IP2Whois (Domain only)
+        #    2. Virustotal (fallback)
+        if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
+            whois_client = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
+        elif os.environ.get("IP2WHOIS_API_KEY") and not is_ip(args.entity):
+            whois_client = Ip2WhoisClient(os.environ.get("IP2WHOIS_API_KEY"))
+        else:
+            whois_client = vt_client
+
+        # Domain / FQDN handler
+        if not is_ip(args.entity):
+            entity = DomainHandler(
+                entity=refang(args.entity),
+                console=console,
+                progress=progress,
+                vt_client=vt_client,
+                ip_enricher_client=enricher_client,
+                whois_client=whois_client,
+                max_resolutions=args.max_resolutions,
             )
-
-            # Whois client selector
-            # Order of use based on set envvars:
-            #    1. Passivetotal
-            #    2. IP2Whois (Domain only)
-            #    2. Virustotal (fallback)
-            if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
-                whois_client = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
-            elif os.environ.get("IP2WHOIS_API_KEY") and not is_ip(args.entity):
-                whois_client = Ip2WhoisClient(os.environ.get("IP2WHOIS_API_KEY"))
-            else:
-                whois_client = vt_client
-
-            # Domain / FQDN handler
-            if not is_ip(args.entity):
-                entity = DomainHandler(
-                    domain=refang(args.entity),
-                    vt_client=vt_client,
-                    ip_enricher_client=enricher_client,
-                    whois_client=whois_client,
-                    console=console,
-                    progress=progress,
-                    max_resolutions=args.max_resolutions,
-                )
-                entity.fetch_data()
+            entity.fetch_data()
 
             # task1 = progress.add_task("Fetching data from Virustotal")
             # vt = VTClient(os.environ.get("VT_API_KEY"))
@@ -206,12 +202,6 @@ def main():
             # # whois = whois_client.get_whois(entity.data.id_)
             # whois = whois_client.get_whois(entity.entity)
             # progress.update(task3, completed=100)
-        except (HTTPError, JSONDecodeError, APIError) as e:
-            progress.stop()
-            error_and_exit(f"Error fetching data: {e}")
-        except ValidationError as e:
-            progress.stop()
-            error_and_exit(f"Data model validation error: {e}")
 
     # Output
     if isinstance(entity, DomainHandler):

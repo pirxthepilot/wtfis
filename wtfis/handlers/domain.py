@@ -10,47 +10,49 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
+from wtfis.handlers.base import BaseHandler, common_exception_handler
 from wtfis.models.common import WhoisType
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.virustotal import Domain, Resolutions
 
 
-class DomainHandler:
+class DomainHandler(BaseHandler):
     def __init__(
         self,
-        domain: str,
+        entity: str,
+        console: Console,
+        progress: Progress,
         vt_client: VTClient,
         ip_enricher_client: Union[IpWhoisClient, ShodanClient],
         whois_client: Union[Ip2WhoisClient, PTClient, VTClient],
-        console: Console,
-        progress: Progress,
         max_resolutions: int = 0,
     ):
-        self.entity = domain
-        self.console = console
-        self.progress = progress
-        self.max_resolutions = max_resolutions
-        self.warnings = []
+        super().__init__(entity, console, progress)
 
         self._vt = vt_client
         self._enricher = ip_enricher_client
         self._whois = whois_client
+        self.max_resolutions = max_resolutions
 
         self.vt_info: Optional[Domain] = None
         self.resolutions: Optional[Resolutions] = None
         self.ip_enrich: Union[IpWhoisMap, ShodanIpMap, None] = None
         self.whois: Optional[WhoisType] = None
 
+    @common_exception_handler
     def _fetch_vt_domain(self) -> None:
         self.vt_info = self._vt.get_domain(self.entity)
 
+    @common_exception_handler
     def _fetch_vt_resolutions(self) -> None:
         self.resolutions = self._vt.get_domain_resolutions(self.entity)
 
+    @common_exception_handler
     def _fetch_ip_enrichments(self) -> None:
         self.ip_enrich = self._enricher.bulk_get_ip(self.resolutions, self.max_resolutions)
 
+    @common_exception_handler
     def _fetch_whois(self) -> None:
         self.whois = self._whois.get_whois(self.entity)
 
