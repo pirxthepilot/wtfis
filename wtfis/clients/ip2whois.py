@@ -15,6 +15,10 @@ class Ip2WhoisClient(BaseClient):
         super().__init__()
         self.api_key = api_key
 
+    @property
+    def name(self) -> str:
+        return "IP2Whois"
+
     def get_whois(self, domain: str) -> Whois:
         params = {
             "key": self.api_key,

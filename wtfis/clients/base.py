@@ -1,3 +1,4 @@
+import abc
 import json
 import requests
 
@@ -9,7 +10,7 @@ class AbstractAttribute:
         raise NotImplementedError("This attribute must be set")
 
 
-class BaseClient:
+class BaseClient(abc.ABC):
     """
     Base client
     """
@@ -17,6 +18,11 @@ class BaseClient:
 
     def __init__(self) -> None:
         self.s = requests.Session()
+
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        return NotImplemented
 
     def _get(self, request: str, params: Optional[dict] = None) -> dict:
         resp = self.s.get(self.baseurl + request, params=params)

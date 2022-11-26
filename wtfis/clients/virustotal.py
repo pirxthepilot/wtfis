@@ -23,6 +23,10 @@ class VTClient(BaseClient):
             "Accept": "application/json",
         })
 
+    @property
+    def name(self) -> str:
+        return "Virustotal"
+
     def get_domain(self, domain: str) -> Domain:
         return Domain.parse_obj(self._get(f"/domains/{domain}"))
 

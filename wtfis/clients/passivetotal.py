@@ -15,6 +15,10 @@ class PTClient(BaseClient):
         super().__init__()
         self.s.auth = (api_user, api_key)
 
+    @property
+    def name(self) -> str:
+        return "Passivetotal"
+
     def _query(self, path: str, query: str) -> Optional[dict]:
         return self._get(
             path,
