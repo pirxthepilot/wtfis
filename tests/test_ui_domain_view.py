@@ -28,7 +28,7 @@ def view01(test_data, mock_ipwhois_get):
     ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
     ipwhois_client = IpWhoisClient()
     ipwhois_client.get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
-    ip_enrich = ipwhois_client.bulk_get_ipwhois(resolutions, 3)
+    ip_enrich = ipwhois_client.bulk_get_ip(resolutions, 3)
 
     return DomainView(
         console=Console(),
