@@ -55,12 +55,12 @@ class BaseHandler(abc.ABC):
         self._whois = whois_client
 
         # Dataset containers
-        self.vt_info = None    # type: Union[Domain, IpAddress]        # type: ignore
-        self.ip_enrich = None  # type: Union[IpWhoisMap, ShodanIpMap]  # type: ignore
-        self.whois = None      # type: WhoisType                       # type: ignore
+        self.vt_info:   Union[Domain, IpAddress] = None        # type: ignore
+        self.ip_enrich: Union[IpWhoisMap, ShodanIpMap] = None  # type: ignore
+        self.whois:     WhoisType = None                       # type: ignore
 
         # Warning messages container
-        self.warnings = []  # type: List[str]
+        self.warnings: List[str] = []
 
     @abc.abstractmethod
     def fetch_data(self) -> None:

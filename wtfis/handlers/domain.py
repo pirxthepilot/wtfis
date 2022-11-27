@@ -29,7 +29,7 @@ class DomainHandler(BaseHandler):
 
         # Extended attributes
         self.max_resolutions = max_resolutions
-        self.resolutions = None  # type: Resolutions  # type: ignore
+        self.resolutions: Resolutions = None  # type: ignore
 
     @common_exception_handler
     def _fetch_vt_domain(self) -> None:
