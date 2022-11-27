@@ -10,10 +10,6 @@ class IpAddressHandler(BaseHandler):
         self.vt_info = self._vt.get_ip_address(self.entity)
 
     @common_exception_handler
-    def _fetch_vt_resolutions(self) -> None:
-        self.resolutions = self._vt.get_domain_resolutions(self.entity)
-
-    @common_exception_handler
     def _fetch_ip_enrichments(self) -> None:
         self.ip_enrich = self._enricher.single_get_ip(self.entity)
 

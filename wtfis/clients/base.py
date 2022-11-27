@@ -21,7 +21,7 @@ class BaseClient(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def name(self) -> str:
+    def name(self) -> str:  # pragma: no coverage
         return NotImplemented
 
     def _get(self, request: str, params: Optional[dict] = None) -> dict:

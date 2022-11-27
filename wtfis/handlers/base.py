@@ -65,4 +65,4 @@ class BaseHandler(abc.ABC):
     @abc.abstractmethod
     def fetch_data(self) -> None:
         """ Main method that controls what get fetched """
-        return NotImplemented  # type: ignore
+        return NotImplemented  # type: ignore  # pragma: no coverage
