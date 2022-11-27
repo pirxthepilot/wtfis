@@ -13,6 +13,10 @@ class ShodanClient:
     def __init__(self, api_key: str) -> None:
         self.s = Shodan(api_key)
 
+    @property
+    def name(self) -> str:
+        return "Shodan"
+
     def get_ip(self, ip: str) -> Optional[ShodanIp]:
         try:
             return ShodanIp.parse_obj(self.s.host(ip, minify=False))

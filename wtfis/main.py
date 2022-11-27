@@ -4,18 +4,16 @@ import os
 from argparse import Namespace
 from dotenv import load_dotenv
 from pathlib import Path
-from pydantic import ValidationError
-from requests.exceptions import HTTPError, JSONDecodeError
 from rich.console import Console
-from shodan.exception import APIError
 
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
-from wtfis.models.virustotal import Domain
-from wtfis.utils import error_and_exit, is_ip, refang
+from wtfis.handlers.domain import DomainHandler
+from wtfis.handlers.ip import IpAddressHandler
+from wtfis.utils import error_and_exit, is_ip
 from wtfis.ui.progress import get_progress
 from wtfis.ui.view import DomainView, IpAddressView
 from wtfis.version import get_version
@@ -96,101 +94,68 @@ def main():
 
     # Fetch data
     with progress:
-        try:
-            # Virustotal domain
-            task1 = progress.add_task("Fetching data from Virustotal")
-            vt = VTClient(os.environ.get("VT_API_KEY"))
-            progress.update(task1, advance=33)
-            if is_ip(args.entity):
-                entity = vt.get_ip_address(refang(args.entity))
-            else:
-                entity = vt.get_domain(args.entity)
-            progress.update(task1, advance=33)
+        # Virustotal client
+        vt_client = VTClient(os.environ.get("VT_API_KEY"))
 
-            # Domain resolutions and IP enrichments
-            if isinstance(entity, Domain):
-                if args.max_resolutions != 0:
-                    resolutions = vt.get_domain_resolutions(args.entity)
-                    progress.update(task1, completed=100)
+        # IP enrichment client selector
+        enricher_client = (
+            ShodanClient(os.environ.get("SHODAN_API_KEY"))
+            if args.use_shodan
+            else IpWhoisClient()
+        )
 
-                    if args.use_shodan:
-                        # Shodan
-                        task2 = progress.add_task("Fetching IP enrichments from Shodan")
-                        shodan = ShodanClient(os.environ.get("SHODAN_API_KEY"))
-                        progress.update(task2, advance=50)
-                        ip_enrich = shodan.bulk_get_ip(resolutions, args.max_resolutions)
-                        progress.update(task2, advance=50)
-                    else:
-                        # IPWhois
-                        task2 = progress.add_task("Fetching IP enrichments from IPWhois")
-                        ipwhois = IpWhoisClient()
-                        progress.update(task2, advance=50)
-                        ip_enrich = ipwhois.bulk_get_ipwhois(resolutions, args.max_resolutions)
-                        progress.update(task2, advance=50)
-                else:
-                    resolutions = None
-                    ip_enrich = []
+        # Whois client selector
+        # Order of use based on set envvars:
+        #    1. Passivetotal
+        #    2. IP2Whois (Domain only)
+        #    2. Virustotal (fallback)
+        if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
+            whois_client = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
+        elif os.environ.get("IP2WHOIS_API_KEY") and not is_ip(args.entity):
+            whois_client = Ip2WhoisClient(os.environ.get("IP2WHOIS_API_KEY"))
+        else:
+            whois_client = vt_client
 
-            # IP address enrichments
-            else:
-                progress.update(task1, completed=100)
+        # Domain / FQDN handler
+        if not is_ip(args.entity):
+            entity = DomainHandler(
+                entity=args.entity,
+                console=console,
+                progress=progress,
+                vt_client=vt_client,
+                ip_enricher_client=enricher_client,
+                whois_client=whois_client,
+                max_resolutions=args.max_resolutions,
+            )
+        # IP address handler
+        else:
+            entity = IpAddressHandler(
+                entity=args.entity,
+                console=console,
+                progress=progress,
+                vt_client=vt_client,
+                ip_enricher_client=enricher_client,
+                whois_client=whois_client,
+            )
 
-                if args.use_shodan:
-                    # Shodan
-                    task2 = progress.add_task("Fetching IP enrichments from Shodan")
-                    shodan = ShodanClient(os.environ.get("SHODAN_API_KEY"))
-                    progress.update(task2, advance=50)
-                    ip_enrich = shodan.single_get_ip(entity.data.id_)
-                    progress.update(task2, advance=50)
-                else:
-                    # IPWhois
-                    task2 = progress.add_task("Fetching IP enrichments from IPWhois")
-                    ipwhois = IpWhoisClient()
-                    progress.update(task2, advance=50)
-                    ip_enrich = ipwhois.single_get_ipwhois(entity.data.id_)
-                    progress.update(task2, advance=50)
+        # Data fetching proper
+        entity.fetch_data()
 
-            # Whois
-            # Order of use based on set envvars:
-            #    1. Passivetotal
-            #    2. IP2WHOIS (Domain only)
-            #    2. Virustotal (fallback)
-            entity_type = "domain" if isinstance(entity, Domain) else "IP"
-
-            if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
-                task3 = progress.add_task(f"Fetching {entity_type} whois from Passivetotal")
-                whois_client = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
-            elif os.environ.get("IP2WHOIS_API_KEY") and entity_type == "domain":
-                task3 = progress.add_task(f"Fetching {entity_type} whois from IP2WHOIS")
-                whois_client = Ip2WhoisClient(os.environ.get("IP2WHOIS_API_KEY"))
-            else:
-                task3 = progress.add_task(f"Fetching {entity_type} whois from Virustotal")
-                whois_client = vt
-            progress.update(task3, advance=50)
-            whois = whois_client.get_whois(entity.data.id_)
-            progress.update(task3, completed=100)
-        except (HTTPError, JSONDecodeError, APIError) as e:
-            progress.stop()
-            error_and_exit(f"Error fetching data: {e}")
-        except ValidationError as e:
-            progress.stop()
-            error_and_exit(f"Data model validation error: {e}")
-
-    # Output
-    if isinstance(entity, Domain):
+    # Output display
+    if isinstance(entity, DomainHandler):
         view = DomainView(
             console,
-            entity,
-            resolutions,
-            whois,
-            ip_enrich,
+            entity.vt_info,
+            entity.resolutions,
+            entity.whois,
+            entity.ip_enrich,
             max_resolutions=args.max_resolutions,
         )
     else:
         view = IpAddressView(
             console,
-            entity,
-            whois,
-            ip_enrich,
+            entity.vt_info,
+            entity.whois,
+            entity.ip_enrich,
         )
     view.print(one_column=args.one_column)

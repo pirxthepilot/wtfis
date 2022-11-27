@@ -92,10 +92,10 @@ class DomainView(BaseView):
                 attributes.ip_address,
                 hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}"
             )
-            data = [
+            data: List[Tuple[Union[str, Text], Union[str, Text, None]]] = [
                 ("Analysis:", analysis),
                 ("Resolved:", iso_date(attributes.date)),
-            ]  # type: List[Tuple[Union[str, Text], Union[str, Text, None]]]
+            ]
 
             # IP Enrichment
             enrich = self._get_ip_enrichment(attributes.ip_address)

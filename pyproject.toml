@@ -83,7 +83,7 @@ python = ["38", "39", "310"]
 detached = true
 dependencies = [
     "bandit",
-    "flake8",
+    "flake8>=6.0.0",
 ]
 [tool.hatch.envs.lint.scripts]
 flake = "flake8 {args:wtfis}"

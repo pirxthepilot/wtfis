@@ -15,7 +15,11 @@ class IpWhoisClient(BaseClient):
         result = self._get(f"/{ip}")
         return IpWhois.parse_obj(result) if result.get("success") is True else None
 
-    def bulk_get_ipwhois(
+    @property
+    def name(self) -> str:
+        return "IPWhois"
+
+    def bulk_get_ip(
         self,
         resolutions: Resolutions,
         max_ips_to_enrich: int
@@ -29,7 +33,7 @@ class IpWhoisClient(BaseClient):
                 ipwhois_map[ipwhois.ip] = ipwhois
         return IpWhoisMap(__root__=ipwhois_map)
 
-    def single_get_ipwhois(self, ip: str) -> IpWhoisMap:
+    def single_get_ip(self, ip: str) -> IpWhoisMap:
         ipwhois_map = {}
         ipwhois = self.get_ipwhois(ip)
         if ipwhois:

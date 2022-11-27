@@ -4,6 +4,10 @@ from unittest.mock import MagicMock, patch
 
 from wtfis.clients.base import requests
 from wtfis.clients.ip2whois import Ip2WhoisClient
+from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.passivetotal import PTClient
+from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.virustotal import VTClient
 
 
 @pytest.fixture()
@@ -11,9 +15,30 @@ def ip2whois_client():
     return Ip2WhoisClient("dummykey")
 
 
+@pytest.fixture()
+def ipwhois_client():
+    return IpWhoisClient()
+
+
+@pytest.fixture()
+def passivetotal_client():
+    return PTClient("dummyuser", "dummykey")
+
+
+@pytest.fixture()
+def shodan_client():
+    return ShodanClient("dummykey")
+
+
+@pytest.fixture()
+def virustotal_client():
+    return VTClient("dummykey")
+
+
 class TestIp2WhoisClient:
     def test_init(self, ip2whois_client):
         assert ip2whois_client.api_key == "dummykey"
+        assert ip2whois_client.name == "IP2Whois"
 
     @patch.object(requests.Session, "get")
     def test_get_whois(self, mock_requests_get, test_data, ip2whois_client):
@@ -50,3 +75,27 @@ class TestIp2WhoisClient:
             with pytest.raises(requests.exceptions.HTTPError) as err:
                 ip2whois_client.get_whois("thisdoesntmatter")
             assert err.value.response.json()["error"]["error_code"] == 10008
+
+
+class TestIpWhoisClient:
+    def test_init(self, ipwhois_client):
+        assert ipwhois_client.name == "IPWhois"
+
+
+class TestPassivetotalClient:
+    def test_init(self, passivetotal_client):
+        assert passivetotal_client.s.auth == ("dummyuser", "dummykey")
+        assert passivetotal_client.name == "Passivetotal"
+
+
+class TestShodanClient:
+    def test_init(self, shodan_client):
+        assert shodan_client.s.api_key == "dummykey"
+        assert shodan_client.name == "Shodan"
+
+
+class TestVirustotalClient:
+    def test_init(self, virustotal_client):
+        assert virustotal_client.s.headers["x-apikey"] == "dummykey"
+        assert virustotal_client.s.headers["Accept"] == "application/json"
+        assert virustotal_client.name == "Virustotal"
