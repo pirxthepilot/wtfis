@@ -3,7 +3,7 @@ Logic handler for domain and hostname inputs
 """
 from rich.console import Console
 from rich.progress import Progress
-from typing import Optional, Union
+from typing import Union
 
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
@@ -11,10 +11,7 @@ from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.base import BaseHandler, common_exception_handler
-from wtfis.models.common import WhoisType
-from wtfis.models.ipwhois import IpWhoisMap
-from wtfis.models.shodan import ShodanIpMap
-from wtfis.models.virustotal import Domain, Resolutions
+from wtfis.models.virustotal import Resolutions
 
 
 class DomainHandler(BaseHandler):
@@ -28,17 +25,11 @@ class DomainHandler(BaseHandler):
         whois_client: Union[Ip2WhoisClient, PTClient, VTClient],
         max_resolutions: int = 0,
     ):
-        super().__init__(entity, console, progress)
+        super().__init__(entity, console, progress, vt_client, ip_enricher_client, whois_client)
 
-        self._vt = vt_client
-        self._enricher = ip_enricher_client
-        self._whois = whois_client
+        # Extended attributes
         self.max_resolutions = max_resolutions
-
-        self.vt_info: Optional[Domain] = None
-        self.resolutions: Optional[Resolutions] = None
-        self.ip_enrich: Union[IpWhoisMap, ShodanIpMap, None] = None
-        self.whois: Optional[WhoisType] = None
+        self.resolutions = None  # type: Resolutions  # type: ignore
 
     @common_exception_handler
     def _fetch_vt_domain(self) -> None:
@@ -69,7 +60,7 @@ class DomainHandler(BaseHandler):
             task2 = self.progress.add_task(f"Fetching IP enrichments from {self._enricher.name}")
             self.progress.update(task2, advance=50)
             self._fetch_ip_enrichments()
-            self.progress.update(task2, advance=50)
+            self.progress.update(task2, completed=100)
 
         task3 = self.progress.add_task(f"Fetching domain whois from {self._whois.name}")
         self.progress.update(task3, advance=50)
