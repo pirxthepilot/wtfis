@@ -35,7 +35,7 @@ class BaseView(abc.ABC):
         self,
         console: Console,
         entity: Any,
-        whois: WhoisType,
+        whois: Optional[WhoisType],
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
     ) -> None:
         self.console = console
@@ -178,6 +178,10 @@ class BaseView(abc.ABC):
         return self.ip_enrich.__root__[ip] if ip in self.ip_enrich.__root__.keys() else None
 
     def whois_panel(self) -> Optional[Panel]:
+        # Do nothing if no whois
+        if self.whois is None:
+            return None
+
         if self.whois.source == "passivetotal":  # PT
             hyperlink = f"{self.pt_gui_baseurl}/{self.whois.domain}/whois"
         else:  # VT

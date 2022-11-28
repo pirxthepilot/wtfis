@@ -141,6 +141,9 @@ def main():
         # Data fetching proper
         entity.fetch_data()
 
+    # Print warnings, if any
+    entity.print_warnings()
+
     # Output display
     if isinstance(entity, DomainHandler):
         view = DomainView(

@@ -49,9 +49,11 @@ class TestDomainHandler:
         handler = domain_handler()
         assert handler.entity == "www.example.com"
 
-    def test_fetch_data_1(self, domain_handler):
+    def test_fetch_data_1(self, domain_handler, test_data):
         """ Test with max_resolutions = 3 (default) """
         handler = domain_handler()
+        handler.resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+
         handler._fetch_vt_domain = MagicMock()
         handler._fetch_vt_resolutions = MagicMock()
         handler._fetch_ip_enrichments = MagicMock()

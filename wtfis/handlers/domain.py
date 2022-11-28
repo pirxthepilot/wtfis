@@ -1,6 +1,7 @@
 """
 Logic handler for domain and hostname inputs
 """
+from requests.exceptions import HTTPError
 from rich.console import Console
 from rich.progress import Progress
 from typing import Union
@@ -37,7 +38,14 @@ class DomainHandler(BaseHandler):
 
     @common_exception_handler
     def _fetch_vt_resolutions(self) -> None:
-        self.resolutions = self._vt.get_domain_resolutions(self.entity)
+        # Let continue if rate limited
+        try:
+            self.resolutions = self._vt.get_domain_resolutions(self.entity)
+        except HTTPError as e:
+            if e.response.status_code == 429:
+                self.warnings.append(f"Could not fetch Virustotal resolutions: {e}")
+            else:
+                raise
 
     @common_exception_handler
     def _fetch_ip_enrichments(self) -> None:
@@ -45,7 +53,14 @@ class DomainHandler(BaseHandler):
 
     @common_exception_handler
     def _fetch_whois(self) -> None:
-        self.whois = self._whois.get_whois(self.entity)
+        # Let continue if rate limited
+        try:
+            self.whois = self._whois.get_whois(self.entity)
+        except HTTPError as e:
+            if e.response.status_code == 429:
+                self.warnings.append(f"Could not fetch Whois: {e}")
+            else:
+                raise
 
     def fetch_data(self):
         task1 = self.progress.add_task("Fetching data from Virustotal")
@@ -56,7 +71,7 @@ class DomainHandler(BaseHandler):
             self._fetch_vt_resolutions()
         self.progress.update(task1, completed=100)
 
-        if self.max_resolutions != 0:
+        if self.resolutions and self.resolutions.data:
             task2 = self.progress.add_task(f"Fetching IP enrichments from {self._enricher.name}")
             self.progress.update(task2, advance=50)
             self._fetch_ip_enrichments()
