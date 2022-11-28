@@ -96,7 +96,7 @@ class TestView01:
         assert table.columns[0]._cells == [
             "Analysis:",
             "Reputation:",
-            "Last Modified:",
+            "Updated:",
             "ASN:",
             "ISP:",
             "Location:",
@@ -190,7 +190,7 @@ class TestView02:
         assert table.columns[0]._cells == [
             "Analysis:",
             "Reputation:",
-            "Last Modified:",
+            "Updated:",
             "ASN:",
             "ISP:",
             "Location:",
@@ -380,7 +380,7 @@ class TestView04:
         assert table.columns[0]._cells == [
             "Analysis:",
             "Reputation:",
-            "Last Modified:",
+            "Updated:",
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"

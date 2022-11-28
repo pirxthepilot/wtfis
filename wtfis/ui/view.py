@@ -68,7 +68,7 @@ class DomainView(BaseView):
             ("Reputation:", reputation),
             ("Popularity:", popularity),
             ("Categories:", categories),
-            ("Last Modified:", iso_date(attributes.last_modification_date)),
+            ("Updated:", iso_date(attributes.last_modification_date)),
             ("Last Seen:", iso_date(attributes.last_dns_records_date)),
         )
         return self._gen_panel("virustotal", self._gen_info(body, heading))
@@ -203,11 +203,11 @@ class IpAddressView(BaseView):
         reputation = self._gen_vt_reputation(attributes.reputation)
 
         # Content
-        data = [
+        data: List[Tuple[Union[str, Text], Union[str, Text, None]]] = [
             ("Analysis:", analysis),
             ("Reputation:", reputation),
-            ("Last Modified:", iso_date(attributes.last_modification_date)),
-        ]  # type: List[Tuple[Union[str, Text], Union[str, Text, None]]]
+            ("Updated:", iso_date(attributes.last_modification_date)),
+        ]
 
         # IP Enrichment
         enrich = self._get_ip_enrichment(self.entity.data.id_)
