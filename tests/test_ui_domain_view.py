@@ -242,7 +242,7 @@ class TestView01:
             "Reputation:",
             "Popularity:",
             "Categories:",
-            "Last Modified:",
+            "Updated:",
             "Last Seen:",
         ]
         assert table.columns[1].style == "none"
@@ -574,7 +574,7 @@ class TestView04:
             "Reputation:",
             "Popularity:",
             "Categories:",
-            "Last Modified:",
+            "Updated:",
             "Last Seen:",
         ]
         assert table.columns[1].style == "none"
@@ -647,7 +647,7 @@ class TestView05:
             "Analysis:",
             "Reputation:",
             "Categories:",
-            "Last Modified:",
+            "Updated:",
             "Last Seen:",
         ]
         assert table.columns[1].style == "none"
