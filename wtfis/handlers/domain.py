@@ -51,17 +51,6 @@ class DomainHandler(BaseHandler):
     def _fetch_ip_enrichments(self) -> None:
         self.ip_enrich = self._enricher.bulk_get_ip(self.resolutions, self.max_resolutions)
 
-    @common_exception_handler
-    def _fetch_whois(self) -> None:
-        # Let continue if rate limited
-        try:
-            self.whois = self._whois.get_whois(self.entity)
-        except HTTPError as e:
-            if e.response.status_code == 429:
-                self.warnings.append(f"Could not fetch Whois: {e}")
-            else:
-                raise
-
     def fetch_data(self):
         task1 = self.progress.add_task("Fetching data from Virustotal")
         self.progress.update(task1, advance=33)

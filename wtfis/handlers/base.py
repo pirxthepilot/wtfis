@@ -68,6 +68,17 @@ class BaseHandler(abc.ABC):
         """ Main method that controls what get fetched """
         return NotImplemented  # type: ignore  # pragma: no coverage
 
+    @common_exception_handler
+    def _fetch_whois(self) -> None:
+        # Let continue if rate limited
+        try:
+            self.whois = self._whois.get_whois(self.entity)
+        except HTTPError as e:
+            if e.response.status_code == 429:
+                self.warnings.append(f"Could not fetch Whois: {e}")
+            else:
+                raise
+
     def print_warnings(self):
         for message in self.warnings:
             self.console.print(f"WARN: {message}", style=Theme().warn)
