@@ -16,6 +16,7 @@ from wtfis.models.common import WhoisType
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.virustotal import Domain, IpAddress
+from wtfis.ui.theme import Theme
 from wtfis.utils import error_and_exit, refang
 
 
@@ -66,3 +67,18 @@ class BaseHandler(abc.ABC):
     def fetch_data(self) -> None:
         """ Main method that controls what get fetched """
         return NotImplemented  # type: ignore  # pragma: no coverage
+
+    @common_exception_handler
+    def _fetch_whois(self) -> None:
+        # Let continue if rate limited
+        try:
+            self.whois = self._whois.get_whois(self.entity)
+        except HTTPError as e:
+            if e.response.status_code == 429:
+                self.warnings.append(f"Could not fetch Whois: {e}")
+            else:
+                raise
+
+    def print_warnings(self):
+        for message in self.warnings:
+            self.console.print(f"WARN: {message}", style=Theme().warn)

@@ -13,10 +13,6 @@ class IpAddressHandler(BaseHandler):
     def _fetch_ip_enrichments(self) -> None:
         self.ip_enrich = self._enricher.single_get_ip(self.entity)
 
-    @common_exception_handler
-    def _fetch_whois(self) -> None:
-        self.whois = self._whois.get_whois(self.entity)
-
     def fetch_data(self):
         task1 = self.progress.add_task("Fetching data from Virustotal")
         self.progress.update(task1, advance=50)

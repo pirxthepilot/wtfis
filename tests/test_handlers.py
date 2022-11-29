@@ -1,5 +1,6 @@
 import json
 import pytest
+from rich.console import Console
 from unittest.mock import MagicMock, patch
 
 from wtfis.clients.base import requests
@@ -14,7 +15,7 @@ from wtfis.models.virustotal import Resolutions
 def generate_domain_handler(max_resolutions=3):
     return DomainHandler(
         entity="www.example[.]com",
-        console=MagicMock(),
+        console=Console(),
         progress=MagicMock(),
         vt_client=VTClient("dummykey"),
         ip_enricher_client=IpWhoisClient(),
@@ -49,9 +50,11 @@ class TestDomainHandler:
         handler = domain_handler()
         assert handler.entity == "www.example.com"
 
-    def test_fetch_data_1(self, domain_handler):
+    def test_fetch_data_1(self, domain_handler, test_data):
         """ Test with max_resolutions = 3 (default) """
         handler = domain_handler()
+        handler.resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+
         handler._fetch_vt_domain = MagicMock()
         handler._fetch_vt_resolutions = MagicMock()
         handler._fetch_ip_enrichments = MagicMock()
@@ -171,6 +174,43 @@ class TestDomainHandler:
         assert capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
         assert e.type == SystemExit
         assert e.value.code == 1
+
+    @patch.object(requests.Session, "get")
+    def test_vt_resolutions_429_error(self, mock_requests_get, domain_handler, capsys):
+        """
+        Test fail open behavior of VT resolution fetching when rate limited
+        """
+        handler = domain_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 429
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_vt_resolutions()
+        assert handler.warnings[0].startswith("Could not fetch Virustotal resolutions: 429 Client Error:")
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch Virustotal resolutions: 429 Client Error:")
+
+    @patch.object(requests.Session, "get")
+    def test_whois_429_error(self, mock_requests_get, domain_handler, capsys):
+        """
+        Test fail open behavior of whois fetching when rate limited
+        Since _fetch_whois() is in the base class, this should also cover the IpAddressHandler use case.
+        """
+        handler = domain_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 429
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_whois()
+        assert handler.warnings[0].startswith("Could not fetch Whois: 429 Client Error:")
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch Whois: 429 Client Error:")
 
 
 class TestIpAddressHandler:
