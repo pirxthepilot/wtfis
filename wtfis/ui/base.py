@@ -19,7 +19,7 @@ from wtfis.models.virustotal import (
     PopularityRanks,
 )
 from wtfis.ui.theme import Theme
-from wtfis.utils import iso_date, smart_join
+from wtfis.utils import Timestamp, smart_join
 
 
 class BaseView(abc.ABC):
@@ -62,7 +62,7 @@ class BaseView(abc.ABC):
         text.append(":")
         return text
 
-    def _gen_table(self, *params: Tuple[Union[Text, str], Union[Text, str, None]]) -> Union[Table, str]:
+    def _gen_table(self, *params: Tuple[Union[Text, str], Union[RenderableType, None]]) -> Union[Table, str]:
         """ Each param should be a tuple of (field, value) """
         # Set up table
         grid = Table.grid(expand=False, padding=(0, 1))
@@ -205,9 +205,9 @@ class BaseView(abc.ABC):
             ("Postcode:", self.whois.postal_code),
             ("Nameservers:", smart_join(*self.whois.name_servers, style=self.theme.nameserver_list)),
             ("DNSSEC:", self.whois.dnssec),
-            ("Registered:", iso_date(self.whois.date_created)),
-            ("Updated:", iso_date(self.whois.date_changed)),
-            ("Expires:", iso_date(self.whois.date_expires)),
+            ("Registered:", Timestamp(self.whois.date_created).render),
+            ("Updated:", Timestamp(self.whois.date_changed).render),
+            ("Expires:", Timestamp(self.whois.date_expires).render),
         )
 
         # Return message if no whois data

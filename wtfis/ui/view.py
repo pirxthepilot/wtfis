@@ -2,6 +2,7 @@ from rich.columns import Columns
 from rich.console import (
     Console,
     Group,
+    RenderableType,
 )
 from rich.padding import Padding
 from rich.panel import Panel
@@ -17,7 +18,7 @@ from wtfis.models.virustotal import (
     Resolutions,
 )
 from wtfis.ui.base import BaseView
-from wtfis.utils import iso_date, smart_join
+from wtfis.utils import Timestamp, smart_join
 
 
 class DomainView(BaseView):
@@ -68,8 +69,8 @@ class DomainView(BaseView):
             ("Reputation:", reputation),
             ("Popularity:", popularity),
             ("Categories:", categories),
-            ("Updated:", iso_date(attributes.last_modification_date)),
-            ("Last Seen:", iso_date(attributes.last_dns_records_date)),
+            ("Updated:", Timestamp(attributes.last_modification_date).render),
+            ("Last Seen:", Timestamp(attributes.last_dns_records_date).render),
         )
         return self._gen_panel("virustotal", self._gen_info(body, heading))
 
@@ -92,9 +93,9 @@ class DomainView(BaseView):
                 attributes.ip_address,
                 hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}"
             )
-            data: List[Tuple[Union[str, Text], Union[str, Text, None]]] = [
+            data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
                 ("Analysis:", analysis),
-                ("Resolved:", iso_date(attributes.date)),
+                ("Resolved:", Timestamp(attributes.date).render),
             ]
 
             # IP Enrichment
@@ -123,7 +124,8 @@ class DomainView(BaseView):
                         ("OS:", enrich.os),
                         (services_linked, self._gen_shodan_services(enrich)),
                         ("Tags:", tags),
-                        ("Last Scan:", iso_date(f"{enrich.last_update}+00:00")),  # Timestamps are UTC (source: Google)
+                        ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
+                                                                                          # (source: Google)
                     ]
 
             # Include a disclaimer if last seen is older than 1 year
@@ -203,10 +205,10 @@ class IpAddressView(BaseView):
         reputation = self._gen_vt_reputation(attributes.reputation)
 
         # Content
-        data: List[Tuple[Union[str, Text], Union[str, Text, None]]] = [
+        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
             ("Analysis:", analysis),
             ("Reputation:", reputation),
-            ("Updated:", iso_date(attributes.last_modification_date)),
+            ("Updated:", Timestamp(attributes.last_modification_date).render),
         ]
 
         # IP Enrichment
@@ -235,7 +237,8 @@ class IpAddressView(BaseView):
                     ("OS:", enrich.os),
                     (services_linked, self._gen_shodan_services(enrich)),
                     ("Tags:", tags),
-                    ("Last Scan:", iso_date(f"{enrich.last_update}+00:00")),  # Timestamps are UTC (source: Google)
+                    ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
+                                                                                      # (source: Google)
                 ]
 
         heading = self._gen_heading_text(

@@ -4,7 +4,7 @@ from freezegun import freeze_time
 from rich.text import Text
 
 from wtfis.utils import (
-    iso_date,
+    Timestamp,
     older_than,
     smart_join,
     error_and_exit,
@@ -14,22 +14,22 @@ from wtfis.utils import (
 
 
 class TestUtils:
-    def test_iso_date_1(self):
-        assert iso_date(1660428690) == "2022-08-13T22:11:30Z"
+    def test_Timestamp_1(self):
+        assert Timestamp(1660428690).timestamp == "2022-08-13T22:11:30Z"
 
-    def test_iso_date_2(self):
-        assert iso_date("2017-04-26T15:43:49.000-07:00") == "2017-04-26T22:43:49Z"
+    def test_Timestamp_2(self):
+        assert Timestamp("2017-04-26T15:43:49.000-07:00").timestamp == "2017-04-26T22:43:49Z"
 
-    def test_iso_date_3(self):
-        assert iso_date(None) is None
-        assert iso_date("2017-04-26T22:43:49Z") == "2017-04-26T22:43:49Z"
-        assert iso_date("1660428690") == "2022-08-13T22:11:30Z"
+    def test_Timestamp_3(self):
+        assert Timestamp(None).timestamp is None
+        assert Timestamp("2017-04-26T22:43:49Z").timestamp == "2017-04-26T22:43:49Z"
+        assert Timestamp("1660428690").timestamp == "2022-08-13T22:11:30Z"
 
-    def test_iso_date_4(self):
-        assert iso_date("2017-04-26T22:43:49.00Z") == "2017-04-26T22:43:49Z"
-        assert iso_date("2017-04-26T22:43:49+0000") == "2017-04-26T22:43:49Z"
-        assert iso_date("2017-04-26 22:43:49") == "2017-04-26 22:43:49"
-        assert iso_date("a long time ago") == "a long time ago"
+    def test_Timestamp_4(self):
+        assert Timestamp("2017-04-26T22:43:49.00Z").timestamp == "2017-04-26T22:43:49Z"
+        assert Timestamp("2017-04-26T22:43:49+0000").timestamp == "2017-04-26T22:43:49Z"
+        assert Timestamp("2017-04-26 22:43:49").timestamp == "2017-04-26 22:43:49"
+        assert Timestamp("a long time ago").timestamp == "a long time ago"
 
     @freeze_time("2022-08-12")
     def test_older_than(self):

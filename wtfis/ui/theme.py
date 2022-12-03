@@ -16,3 +16,7 @@ class Theme:
     info = "bold green"
     warn = "bold yellow"
     error = "bold red"
+    timestamp_date = "not bold default"
+    timestamp_t = "dim bright_white"
+    timestamp_time = "dim default"
+    timestamp_z = "dim bright_white"
