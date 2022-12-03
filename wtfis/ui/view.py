@@ -123,7 +123,8 @@ class DomainView(BaseView):
                         ("OS:", enrich.os),
                         (services_linked, self._gen_shodan_services(enrich)),
                         ("Tags:", tags),
-                        ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC (source: Google)
+                        ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
+                                                                                          # (source: Google)
                     ]
 
             # Include a disclaimer if last seen is older than 1 year
@@ -235,7 +236,8 @@ class IpAddressView(BaseView):
                     ("OS:", enrich.os),
                     (services_linked, self._gen_shodan_services(enrich)),
                     ("Tags:", tags),
-                    ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC (source: Google)
+                    ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
+                                                                                      # (source: Google)
                 ]
 
         heading = self._gen_heading_text(

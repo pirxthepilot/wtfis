@@ -20,7 +20,7 @@ from wtfis.ui.view import IpAddressView
 
 @pytest.fixture()
 def view01(test_data, mock_ipwhois_get):
-    """ 1.1.1.1 with PT whois. Complete test of all panels. """
+    """ 1.1.1.1 with PT whois. Complete test of all panels. Also test print(). """
     ip = "1.1.1.1"
     ipwhois_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
     ipwhois_client = IpWhoisClient()
@@ -77,7 +77,7 @@ def view04(test_data):
 
 
 class TestView01:
-    def test_ip_panel(self, view01):
+    def test_ip_panel(self, view01, display_timestamp):
         ip = view01.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("ip")
@@ -118,7 +118,7 @@ class TestView01:
                 ]
             ),
             Text("134"),
-            "2022-09-03T06:47:04Z",
+            display_timestamp("2022-09-03T06:47:04Z"),
             "13335 (APNIC and Cloudflare DNS Resolver project)",
             "Cloudflare, Inc.",
             Text(
@@ -169,9 +169,19 @@ class TestView01:
             "2020-07-15T13:10:57Z",
         ]
 
+    def test_print(self, view01):
+        view01.ip_panel = MagicMock()
+        view01.whois_panel = MagicMock()
+        view01.console.print = MagicMock()
+
+        view01.print()
+        view01.ip_panel.assert_called_once()
+        view01.whois_panel.assert_called_once()
+        view01.console.print.assert_called_once()
+
 
 class TestView02:
-    def test_ip_panel(self, view02):
+    def test_ip_panel(self, view02, display_timestamp):
         ip = view02.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("ip")
@@ -217,7 +227,7 @@ class TestView02:
                 ]
             ),
             Text("134"),
-            "2022-09-03T06:47:04Z",
+            display_timestamp("2022-09-03T06:47:04Z"),
             "13335 (APNIC and Cloudflare DNS Resolver project)",
             "Cloudflare, Inc.",
             Text(
@@ -289,7 +299,7 @@ class TestView02:
                     Span(175, 179, "cyan"),
                 ]
             ),
-            "2022-09-04T01:03:56Z",
+            display_timestamp("2022-09-04T01:03:56Z"),
         ]
 
 
@@ -361,7 +371,7 @@ class TestView03:
 
 
 class TestView04:
-    def test_ip_panel(self, view04):
+    def test_ip_panel(self, view04, display_timestamp):
         ip = view04.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("ip")
@@ -387,5 +397,5 @@ class TestView04:
         assert table.columns[1]._cells == [
             Text("0/93 malicious"),
             Text("0"),
-            "2022-09-03T16:58:45Z",
+            display_timestamp("2022-09-03T16:58:45Z"),
         ]

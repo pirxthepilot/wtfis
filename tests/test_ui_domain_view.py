@@ -22,7 +22,7 @@ from wtfis.ui.view import DomainView
 
 @pytest.fixture()
 def view01(test_data, mock_ipwhois_get):
-    """ gist.github.com with PT whois. Complete test of all panels. """
+    """ gist.github.com with PT whois. Complete test of all panels. Also test print(). """
     resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
 
     ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
@@ -221,7 +221,7 @@ def view13(test_data):
 
 
 class TestView01:
-    def test_domain_panel(self, view01):
+    def test_domain_panel(self, view01, display_timestamp):
         domain = view01.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("virustotal")
@@ -273,11 +273,11 @@ class TestView01:
                     Span(69, 84, "bright_white on black"),
                 ]
             ),
-            "2022-08-16T06:14:59Z",
-            "2022-08-15T22:25:30Z",
+            display_timestamp("2022-08-16T06:14:59Z"),
+            display_timestamp("2022-08-15T22:25:30Z"),
         ]
 
-    def test_resolutions_panel(self, view01):
+    def test_resolutions_panel(self, view01, display_timestamp):
         res = view01.resolutions_panel()
         assert type(res) is Panel
 
@@ -304,7 +304,7 @@ class TestView01:
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
-            "2022-08-06T14:56:20Z",
+            display_timestamp("2022-08-06T14:56:20Z"),
             "16509 (Amazon Data Services India)",
             "Amazon.com, Inc.",
             Text(
@@ -342,7 +342,7 @@ class TestView01:
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious"),
-            "2022-06-21T18:10:54Z",
+            display_timestamp("2022-06-21T18:10:54Z"),
             "36459 (GitHub, Inc.)",
             "GitHub, Inc.",
             Text(
@@ -383,7 +383,7 @@ class TestView01:
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
-            "2015-08-17T07:11:53Z",
+            display_timestamp("2015-08-17T07:11:53Z"),
             "16509 (Amazon Data Services India)",
             "Amazon.com, Inc.",
             Text(
@@ -401,7 +401,7 @@ class TestView01:
         # Spacing and remaining count
         assert res.renderable.renderables[5] == Text("\n+34 more")
 
-    def test_whois_panel(self, view01):
+    def test_whois_panel(self, view01, display_timestamp):
         whois = view01.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -435,7 +435,7 @@ class TestView01:
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"
-        assert [str(c) for c in table.columns[1]._cells] == [
+        assert table.columns[1]._cells == [
             "MarkMonitor Inc.",
             "GitHub, Inc.",
             "N/A",
@@ -446,16 +446,47 @@ class TestView01:
             "CA",
             "US",
             "00000",
-            ("dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, dns4.p08.nsone.net, ns-1283.awsdns-32.org, "
-             "ns-1707.awsdns-21.co.uk, ns-421.awsdns-52.com, ns-520.awsdns-01.net"),
-            "2007-10-09T18:20:50Z",
-            "2020-09-08T09:18:27Z",
-            "2022-10-09T07:00:00Z",
+            Text(
+                ("dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, dns4.p08.nsone.net, "
+                 "ns-1283.awsdns-32.org, ns-1707.awsdns-21.co.uk, ns-421.awsdns-52.com, ns-520.awsdns-01.net"),
+                spans=[
+                    Span(0, 18, "cyan"),
+                    Span(18, 20, "default"),
+                    Span(20, 38, "cyan"),
+                    Span(38, 40, "default"),
+                    Span(40, 58, "cyan"),
+                    Span(58, 60, "default"),
+                    Span(60, 78, "cyan"),
+                    Span(78, 80, "default"),
+                    Span(80, 101, "cyan"),
+                    Span(101, 103, "default"),
+                    Span(103, 126, "cyan"),
+                    Span(126, 128, "default"),
+                    Span(128, 148, "cyan"),
+                    Span(148, 150, "default"),
+                    Span(150, 170, "cyan")
+                ]
+            ),
+            display_timestamp("2007-10-09T18:20:50Z"),
+            display_timestamp("2020-09-08T09:18:27Z"),
+            display_timestamp("2022-10-09T07:00:00Z"),
         ]
+
+    def test_print(self, view01):
+        view01.domain_panel = MagicMock()
+        view01.resolutions_panel = MagicMock()
+        view01.whois_panel = MagicMock()
+        view01.console.print = MagicMock()
+
+        view01.print()
+        view01.domain_panel.assert_called_once()
+        view01.resolutions_panel.assert_called_once()
+        view01.whois_panel.assert_called_once()
+        view01.console.print.assert_called_once()
 
 
 class TestView02:
-    def test_resolutions_panel(self, view02):
+    def test_resolutions_panel(self, view02, display_timestamp):
         res = view02.resolutions_panel()
         assert type(res) is Panel
 
@@ -479,13 +510,13 @@ class TestView02:
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
-            "2022-08-06T14:56:20Z",
+            display_timestamp("2022-08-06T14:56:20Z"),
         ]
 
         # Spacing and remaining count
         assert res.renderable.renderables[1] == Text("\n+36 more")
 
-    def test_whois_panel(self, view02):
+    def test_whois_panel(self, view02, display_timestamp):
         whois = view02.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -511,7 +542,7 @@ class TestView02:
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"
-        assert [str(c) for c in table.columns[1]._cells] == [
+        assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
             "MarkMonitor Inc.",
             "dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, "
             "dns4.p08.nsone.net, ns-1283.awsdns-32.org, ns-1707.awsdns-21.co.uk, "
@@ -553,7 +584,7 @@ class TestView03:
 
 
 class TestView04:
-    def test_domain_panel(self, view04):
+    def test_domain_panel(self, view04, display_timestamp):
         domain = view04.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("virustotal")
@@ -617,8 +648,8 @@ class TestView04:
                     Span(76, 89, "bright_white on black"),
                 ]
             ),
-            "2022-08-17T06:03:03Z",
-            "2022-08-17T00:35:19Z",
+            display_timestamp("2022-08-17T06:03:03Z"),
+            display_timestamp("2022-08-17T00:35:19Z"),
         ]
 
     def test_resolutions_panel(self, view04):
@@ -627,7 +658,7 @@ class TestView04:
 
 
 class TestView05:
-    def test_domain_panel(self, view05):
+    def test_domain_panel(self, view05, display_timestamp):
         domain = view05.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("virustotal")
@@ -682,8 +713,8 @@ class TestView05:
                     Span(122, 142, "bright_white on black"),
                 ]
             ),
-            "2022-08-17T05:30:23Z",
-            "2022-08-16T22:24:18Z",
+            display_timestamp("2022-08-17T05:30:23Z"),
+            display_timestamp("2022-08-16T22:24:18Z"),
         ]
 
 
@@ -698,7 +729,7 @@ class TestView06:
 
 
 class TestView07:
-    def test_resolutions_panel(self, view07):
+    def test_resolutions_panel(self, view07, display_timestamp):
         res = view07.resolutions_panel()
         assert type(res) is Panel
 
@@ -731,7 +762,7 @@ class TestView07:
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
-            "2022-08-06T14:56:20Z",
+            display_timestamp("2022-08-06T14:56:20Z"),
             "16509 (Amazon Data Services India)",
             "Amazon.com, Inc.",
             Text(
@@ -762,7 +793,7 @@ class TestView07:
                     Span(0, 5, 'bright_white on black')
                 ]
             ),
-            "2022-08-21T07:21:05Z"
+            display_timestamp("2022-08-21T07:21:05Z")
         ]
 
         # Spacing
@@ -796,7 +827,7 @@ class TestView07:
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious"),
-            "2022-06-21T18:10:54Z",
+            display_timestamp("2022-06-21T18:10:54Z"),
             "36459 (GitHub, Inc.)",
             "GitHub, Inc.",
             Text(
@@ -821,7 +852,7 @@ class TestView07:
                     Span(19, 23, "cyan")
                 ]
             ),
-            "2022-08-21T22:33:53Z"
+            display_timestamp("2022-08-21T22:33:53Z")
         ]
 
         # Spacing
@@ -859,7 +890,7 @@ class TestView07:
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
-            "2015-08-17T07:11:53Z",
+            display_timestamp("2015-08-17T07:11:53Z"),
             "16509 (Amazon Data Services India)",
             "Amazon.com, Inc.",
             Text(
@@ -890,7 +921,7 @@ class TestView07:
                     Span(0, 5, 'bright_white on black')
                 ]
             ),
-            "2022-08-21T02:13:35Z"
+            display_timestamp("2022-08-21T02:13:35Z")
         ]
 
         # Old timestamp warning
@@ -901,7 +932,7 @@ class TestView07:
 
 
 class TestView08:
-    def test_resolutions_panel(self, view08):
+    def test_resolutions_panel(self, view08, display_timestamp):
         res = view08.resolutions_panel()
         assert type(res) is Panel
 
@@ -934,7 +965,7 @@ class TestView08:
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/93 malicious"),
-            "2022-06-03T22:32:19Z",
+            display_timestamp("2022-06-03T22:32:19Z"),
             "54113 (Fastly, Inc.)",
             "Fastly, Inc.",
             Text(
@@ -964,7 +995,7 @@ class TestView08:
                     Span(0, 3, 'bright_white on black'),
                 ]
             ),
-            "2022-08-21T01:33:13Z"
+            display_timestamp("2022-08-21T01:33:13Z")
         ]
 
         # Spacing
@@ -972,7 +1003,7 @@ class TestView08:
 
 
 class TestView09:
-    def test_resolutions_panel(self, view09):
+    def test_resolutions_panel(self, view09, display_timestamp):
         res = view09.resolutions_panel()
         assert type(res) is Panel
 
@@ -1006,7 +1037,7 @@ class TestView09:
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("2/94 malicious"),
-            "2020-08-01T22:07:20Z",
+            display_timestamp("2020-08-01T22:07:20Z"),
             "13335 (APNIC and Cloudflare DNS Resolver project)",
             "Cloudflare, Inc.",
             Text(
@@ -1061,7 +1092,7 @@ class TestView09:
                     Span(96, 100, "cyan"),
                 ]
             ),
-            "2022-08-22T02:35:34Z"
+            display_timestamp("2022-08-22T02:35:34Z")
         ]
 
         # Old timestamp warning
@@ -1082,7 +1113,7 @@ class TestView10:
 
 
 class TestView11:
-    def test_resolutions_panel(self, view11):
+    def test_resolutions_panel(self, view11, display_timestamp):
         res = view11.resolutions_panel()
         assert type(res) is Panel
 
@@ -1111,7 +1142,7 @@ class TestView11:
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
-            "2022-08-06T14:56:20Z",
+            display_timestamp("2022-08-06T14:56:20Z"),
             "16509 (Amazon Data Services India)",
             "Amazon.com, Inc.",
             Text(
@@ -1126,12 +1157,12 @@ class TestView11:
                     Span(0, 5, 'bright_white on black')
                 ]
             ),
-            "2022-08-21T07:21:05Z"
+            display_timestamp("2022-08-21T07:21:05Z")
         ]
 
 
 class TestView12:
-    def test_resolutions_panel(self, view12):
+    def test_whois_panel(self, view12):
         whois = view12.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -1165,7 +1196,7 @@ class TestView12:
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"
-        assert [str(c) for c in table.columns[1]._cells] == [
+        assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
             "MarkMonitor, Inc.",
             "Microsoft Corporation",
             "Domain Administrator",
@@ -1185,7 +1216,7 @@ class TestView12:
 
 
 class TestView13:
-    def test_resolutions_panel(self, view13):
+    def test_whois_panel(self, view13):
         whois = view13.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -1204,7 +1235,7 @@ class TestView13:
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"
-        assert [str(c) for c in table.columns[1]._cells] == [
+        assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
             "1996-08-01T00:00:00Z",
             "2020-12-10T00:00:00Z",
             "2025-12-13T00:00:00Z",

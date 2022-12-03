@@ -1,5 +1,9 @@
 import pytest
 from pathlib import Path
+from typing import Optional
+
+from rich.console import RenderableType
+from rich.text import Span, Text
 
 from wtfis.models.ipwhois import IpWhois
 from wtfis.models.shodan import ShodanIp
@@ -21,6 +25,18 @@ def shodan_get_ip(ip, pool) -> ShodanIp:
     return ShodanIp.parse_obj(pool[ip])
 
 
+def timestamp_text(ts) -> Optional[RenderableType]:
+    """ Standard timestamp formatting """
+    return Text(
+        ts,
+        spans=[
+            Span(10, 11, "dim bright_white"),
+            Span(11, 19, "dim default"),
+            Span(19, 20, "dim bright_white"),
+        ]
+    )
+
+
 @pytest.fixture(scope="module")
 def test_data():
     return open_test_data
@@ -34,3 +50,8 @@ def mock_ipwhois_get():
 @pytest.fixture(scope="module")
 def mock_shodan_get_ip():
     return shodan_get_ip
+
+
+@pytest.fixture(scope="module")
+def display_timestamp():
+    return timestamp_text
