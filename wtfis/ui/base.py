@@ -62,7 +62,7 @@ class BaseView(abc.ABC):
         text.append(":")
         return text
 
-    def _gen_table(self, *params: Tuple[Union[Text, str], Union[Text, str, None]]) -> Union[Table, str]:
+    def _gen_table(self, *params: Tuple[Union[Text, str], Union[RenderableType, None]]) -> Union[Table, str]:
         """ Each param should be a tuple of (field, value) """
         # Set up table
         grid = Table.grid(expand=False, padding=(0, 1))

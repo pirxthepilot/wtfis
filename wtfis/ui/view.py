@@ -2,6 +2,7 @@ from rich.columns import Columns
 from rich.console import (
     Console,
     Group,
+    RenderableType,
 )
 from rich.padding import Padding
 from rich.panel import Panel
@@ -92,7 +93,7 @@ class DomainView(BaseView):
                 attributes.ip_address,
                 hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}"
             )
-            data: List[Tuple[Union[str, Text], Union[str, Text, None]]] = [
+            data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
                 ("Analysis:", analysis),
                 ("Resolved:", Timestamp(attributes.date).render),
             ]
@@ -204,7 +205,7 @@ class IpAddressView(BaseView):
         reputation = self._gen_vt_reputation(attributes.reputation)
 
         # Content
-        data: List[Tuple[Union[str, Text], Union[str, Text, None]]] = [
+        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
             ("Analysis:", analysis),
             ("Reputation:", reputation),
             ("Updated:", Timestamp(attributes.last_modification_date).render),

@@ -17,7 +17,7 @@ class Timestamp:
     theme = Theme()
 
     def __init__(self, ts: Union[str, int, None]):
-        self.timestamp =  self._standardize(ts)
+        self.timestamp = self._standardize(ts)
 
     def _standardize(self, ts: Union[str, int, None]) -> Optional[str]:
         """ Convert any time to a standard format """
@@ -66,7 +66,7 @@ class Timestamp:
                 return datetime.fromisoformat(ts).astimezone(timezone.utc).strftime(self.std_utc)
             except ValueError:  # Cannot convert; fail open
                 return ts
-    
+
     @property
     def render(self) -> Optional[RenderableType]:
         if self.timestamp is None:  # Return None if no ts to begin with
