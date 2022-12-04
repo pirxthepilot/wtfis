@@ -77,7 +77,7 @@ def view04(test_data):
 
 
 class TestView01:
-    def test_ip_panel(self, view01, display_timestamp):
+    def test_ip_panel(self, view01, theme, display_timestamp):
         ip = view01.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("ip")
@@ -119,7 +119,10 @@ class TestView01:
             ),
             Text("134"),
             display_timestamp("2022-09-03T06:47:04Z"),
-            "13335 (APNIC and Cloudflare DNS Resolver project)",
+            Text(
+                "13335 (APNIC and Cloudflare DNS Resolver project)",
+                spans=[Span(7, 48, theme.asn_org)],
+            ),
             "Cloudflare, Inc.",
             Text(
                 "Sydney, New South Wales, Australia",
@@ -181,7 +184,7 @@ class TestView01:
 
 
 class TestView02:
-    def test_ip_panel(self, view02, display_timestamp):
+    def test_ip_panel(self, view02, theme, display_timestamp):
         ip = view02.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("ip")
@@ -228,7 +231,10 @@ class TestView02:
             ),
             Text("134"),
             display_timestamp("2022-09-03T06:47:04Z"),
-            "13335 (APNIC and Cloudflare DNS Resolver project)",
+            Text(
+                "13335 (APNIC and Cloudflare DNS Resolver project)",
+                spans=[Span(7, 48, theme.asn_org)],
+            ),
             "Cloudflare, Inc.",
             Text(
                 "Los Angeles, United States",

@@ -177,13 +177,13 @@ class BaseView(abc.ABC):
     def _gen_asn_text(
         self,
         asn: Optional[str],
-        org: Optional[str],
+        org: Optional[RenderableType],
     ) -> Optional[RenderableType]:
         if not asn:
             return None
 
-        text = Text(f"{asn} (")
-        text.append(org, style=self.theme.asn_org)
+        text = Text(f"{asn.replace('AS', '')} (")
+        text.append(str(org), style=self.theme.asn_org)
         text.append(")")
         return text
 

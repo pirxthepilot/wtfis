@@ -20,5 +20,5 @@ class Theme:
     timestamp_t = "dim bright_white"
     timestamp_time = "dim default"
     timestamp_z = "dim bright_white"
-    asn_org = "bright_cyan"
+    asn_org = "bright_white"
     whois_org = "bright_cyan"

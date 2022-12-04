@@ -9,6 +9,17 @@ from wtfis.models.ipwhois import IpWhois
 from wtfis.models.shodan import ShodanIp
 
 
+class TestTheme:
+    """ Expected theme values for the tests """
+    nameserver_list = "bright_blue"
+    timestamp_date = "not bold default"
+    timestamp_t = "dim bright_white"
+    timestamp_time = "dim default"
+    timestamp_z = "dim bright_white"
+    asn_org = "bright_white"
+    whois_org = "bright_cyan"
+
+
 def open_test_data(fname: str) -> str:
     path = Path(__file__).parent.resolve() / "test_data" / fname
     with open(path) as f:
@@ -27,12 +38,13 @@ def shodan_get_ip(ip, pool) -> ShodanIp:
 
 def timestamp_text(ts) -> Optional[RenderableType]:
     """ Standard timestamp formatting """
+    theme = TestTheme()
     return Text(
         ts,
         spans=[
-            Span(10, 11, "dim bright_white"),
-            Span(11, 19, "dim default"),
-            Span(19, 20, "dim bright_white"),
+            Span(10, 11, theme.timestamp_t),
+            Span(11, 19, theme.timestamp_time),
+            Span(19, 20, theme.timestamp_z),
         ]
     )
 
@@ -40,6 +52,11 @@ def timestamp_text(ts) -> Optional[RenderableType]:
 @pytest.fixture(scope="module")
 def test_data():
     return open_test_data
+
+
+@pytest.fixture(scope="module")
+def theme():
+    return TestTheme()
 
 
 @pytest.fixture(scope="module")

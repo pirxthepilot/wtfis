@@ -112,7 +112,7 @@ class DomainView(BaseView):
                     ]
                 else:
                     # Shodan
-                    asn = self._gen_asn_text(f"{enrich.asn.replace('AS', '')}", enrich.org)
+                    asn = self._gen_asn_text(enrich.asn, enrich.org)
                     tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
                     services_linked = self._gen_linked_field_name(
                         "Services",
@@ -226,7 +226,7 @@ class IpAddressView(BaseView):
                 ]
             else:
                 # Shodan
-                asn = self._gen_asn_text(f"{enrich.asn.replace('AS', '')}", enrich.org)
+                asn = self._gen_asn_text(enrich.asn, enrich.org)
                 tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
                 services_linked = self._gen_linked_field_name(
                     "Services",

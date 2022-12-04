@@ -277,7 +277,7 @@ class TestView01:
             display_timestamp("2022-08-15T22:25:30Z"),
         ]
 
-    def test_resolutions_panel(self, view01, display_timestamp):
+    def test_resolutions_panel(self, view01, theme, display_timestamp):
         res = view01.resolutions_panel()
         assert type(res) is Panel
 
@@ -305,7 +305,10 @@ class TestView01:
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
             display_timestamp("2022-08-06T14:56:20Z"),
-            "16509 (Amazon Data Services India)",
+            Text(
+                "16509 (Amazon Data Services India)",
+                spans=[Span(7, 33, theme.asn_org)]
+            ),
             "Amazon.com, Inc.",
             Text(
                 "Mumbai, Maharashtra, India",
@@ -343,7 +346,10 @@ class TestView01:
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious"),
             display_timestamp("2022-06-21T18:10:54Z"),
-            "36459 (GitHub, Inc.)",
+            Text(
+                "36459 (GitHub, Inc.)",
+                spans=[Span(7, 19, theme.asn_org)]
+            ),
             "GitHub, Inc.",
             Text(
                 "Seattle, Washington, United States",
@@ -384,7 +390,10 @@ class TestView01:
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
             display_timestamp("2015-08-17T07:11:53Z"),
-            "16509 (Amazon Data Services India)",
+            Text(
+                "16509 (Amazon Data Services India)",
+                spans=[Span(7, 33, theme.asn_org)]
+            ),
             "Amazon.com, Inc.",
             Text(
                 "Mumbai, Maharashtra, India",
@@ -401,7 +410,7 @@ class TestView01:
         # Spacing and remaining count
         assert res.renderable.renderables[5] == Text("\n+34 more")
 
-    def test_whois_panel(self, view01, display_timestamp):
+    def test_whois_panel(self, view01, theme, display_timestamp):
         whois = view01.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -437,7 +446,10 @@ class TestView01:
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             "MarkMonitor Inc.",
-            "GitHub, Inc.",
+            Text(
+                "GitHub, Inc.",
+                spans=[]
+            ),
             "N/A",
             "abusecomplaints@markmonitor.com",
             "+1.5555555",
@@ -450,21 +462,21 @@ class TestView01:
                 ("dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, dns4.p08.nsone.net, "
                  "ns-1283.awsdns-32.org, ns-1707.awsdns-21.co.uk, ns-421.awsdns-52.com, ns-520.awsdns-01.net"),
                 spans=[
-                    Span(0, 18, "cyan"),
+                    Span(0, 18, theme.nameserver_list),
                     Span(18, 20, "default"),
-                    Span(20, 38, "cyan"),
+                    Span(20, 38, theme.nameserver_list),
                     Span(38, 40, "default"),
-                    Span(40, 58, "cyan"),
+                    Span(40, 58, theme.nameserver_list),
                     Span(58, 60, "default"),
-                    Span(60, 78, "cyan"),
+                    Span(60, 78, theme.nameserver_list),
                     Span(78, 80, "default"),
-                    Span(80, 101, "cyan"),
+                    Span(80, 101, theme.nameserver_list),
                     Span(101, 103, "default"),
-                    Span(103, 126, "cyan"),
+                    Span(103, 126, theme.nameserver_list),
                     Span(126, 128, "default"),
-                    Span(128, 148, "cyan"),
+                    Span(128, 148, theme.nameserver_list),
                     Span(148, 150, "default"),
-                    Span(150, 170, "cyan")
+                    Span(150, 170, theme.nameserver_list)
                 ]
             ),
             display_timestamp("2007-10-09T18:20:50Z"),
@@ -729,7 +741,7 @@ class TestView06:
 
 
 class TestView07:
-    def test_resolutions_panel(self, view07, display_timestamp):
+    def test_resolutions_panel(self, view07, theme, display_timestamp):
         res = view07.resolutions_panel()
         assert type(res) is Panel
 
@@ -763,7 +775,10 @@ class TestView07:
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
             display_timestamp("2022-08-06T14:56:20Z"),
-            "16509 (Amazon Data Services India)",
+            Text(
+                "16509 (Amazon Data Services India)",
+                spans=[Span(7, 33, theme.asn_org)]
+            ),
             "Amazon.com, Inc.",
             Text(
                 "Mumbai, India",
@@ -828,7 +843,10 @@ class TestView07:
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious"),
             display_timestamp("2022-06-21T18:10:54Z"),
-            "36459 (GitHub, Inc.)",
+            Text(
+                "36459 (GitHub, Inc.)",
+                spans=[Span(7, 19, theme.asn_org)]
+            ),
             "GitHub, Inc.",
             Text(
                 "Seattle, United States",
@@ -891,7 +909,10 @@ class TestView07:
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
             display_timestamp("2015-08-17T07:11:53Z"),
-            "16509 (Amazon Data Services India)",
+            Text(
+                "16509 (Amazon Data Services India)",
+                spans=[Span(7, 33, theme.asn_org)]
+            ),
             "Amazon.com, Inc.",
             Text(
                 "Mumbai, India",
@@ -932,7 +953,7 @@ class TestView07:
 
 
 class TestView08:
-    def test_resolutions_panel(self, view08, display_timestamp):
+    def test_resolutions_panel(self, view08, theme, display_timestamp):
         res = view08.resolutions_panel()
         assert type(res) is Panel
 
@@ -966,7 +987,10 @@ class TestView08:
         assert group[1].columns[1]._cells == [
             Text("0/93 malicious"),
             display_timestamp("2022-06-03T22:32:19Z"),
-            "54113 (Fastly, Inc.)",
+            Text(
+                "54113 (Fastly, Inc.)",
+                spans=[Span(7, 19, theme.asn_org)]
+            ),
             "Fastly, Inc.",
             Text(
                 "Atlanta, United States",
@@ -1003,7 +1027,7 @@ class TestView08:
 
 
 class TestView09:
-    def test_resolutions_panel(self, view09, display_timestamp):
+    def test_resolutions_panel(self, view09, theme, display_timestamp):
         res = view09.resolutions_panel()
         assert type(res) is Panel
 
@@ -1038,7 +1062,10 @@ class TestView09:
         assert table.columns[1]._cells == [
             Text("2/94 malicious"),
             display_timestamp("2020-08-01T22:07:20Z"),
-            "13335 (APNIC and Cloudflare DNS Resolver project)",
+            Text(
+                "13335 (APNIC and Cloudflare DNS Resolver project)",
+                spans=[Span(7, 48, theme.asn_org)],
+            ),
             "Cloudflare, Inc.",
             Text(
                 "Los Angeles, United States",
@@ -1113,7 +1140,7 @@ class TestView10:
 
 
 class TestView11:
-    def test_resolutions_panel(self, view11, display_timestamp):
+    def test_resolutions_panel(self, view11, theme, display_timestamp):
         res = view11.resolutions_panel()
         assert type(res) is Panel
 
@@ -1143,7 +1170,10 @@ class TestView11:
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
             display_timestamp("2022-08-06T14:56:20Z"),
-            "16509 (Amazon Data Services India)",
+            Text(
+                "16509 (Amazon Data Services India)",
+                spans=[Span(7, 33, theme.asn_org)]
+            ),
             "Amazon.com, Inc.",
             Text(
                 "Mumbai, India",
