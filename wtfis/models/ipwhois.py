@@ -9,7 +9,7 @@ class Flag(BaseModel):
 
 
 class Connection(BaseModel):
-    asn: int
+    asn: str
     org: str
     isp: str
     domain: str
