@@ -174,6 +174,19 @@ class BaseView(abc.ABC):
                 text.append("\n")
         return text
 
+    def _gen_asn_text(
+        self,
+        asn: Optional[str],
+        org: Optional[str],
+    ) -> Optional[RenderableType]:
+        if not asn:
+            return None
+
+        text = Text(f"{asn} (")
+        text.append(org, style=self.theme.asn_org)
+        text.append(")")
+        return text
+
     def _get_ip_enrichment(self, ip: str) -> Optional[Union[IpWhois, ShodanIp]]:
         return self.ip_enrich.__root__[ip] if ip in self.ip_enrich.__root__.keys() else None
 
@@ -192,9 +205,11 @@ class BaseView(abc.ABC):
             hyperlink=hyperlink,
         ) if self.whois.domain else None
 
+        organization = (Text(self.whois.organization, style=self.theme.whois_org)
+                        if self.whois.organization else None)
         body = self._gen_table(
             ("Registrar:", self.whois.registrar),
-            ("Organization:", self.whois.organization),
+            ("Organization:", organization),
             ("Name:", self.whois.name),
             ("Email:", self.whois.email),
             ("Phone:", self.whois.phone),

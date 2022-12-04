@@ -104,14 +104,15 @@ class DomainView(BaseView):
             if enrich:
                 if isinstance(enrich, IpWhois):
                     # IPWhois
+                    asn = self._gen_asn_text(enrich.connection.asn, enrich.connection.org)
                     data += [
-                        ("ASN:", f"{enrich.connection.asn} ({enrich.connection.org})"),
+                        ("ASN:", asn),
                         ("ISP:", enrich.connection.isp),
                         ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
                     ]
                 else:
                     # Shodan
-                    asn = f"{enrich.asn.replace('AS', '')} ({enrich.org})" if enrich.asn else None
+                    asn = self._gen_asn_text(f"{enrich.asn.replace('AS', '')}", enrich.org)
                     tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
                     services_linked = self._gen_linked_field_name(
                         "Services",
@@ -217,14 +218,15 @@ class IpAddressView(BaseView):
         if enrich:
             if isinstance(enrich, IpWhois):
                 # IPWhois
+                asn = self._gen_asn_text(enrich.connection.asn, enrich.connection.org)
                 data += [
-                    ("ASN:", f"{enrich.connection.asn} ({enrich.connection.org})"),
+                    ("ASN:", asn),
                     ("ISP:", enrich.connection.isp),
                     ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
                 ]
             else:
                 # Shodan
-                asn = f"{enrich.asn.replace('AS', '')} ({enrich.org})" if enrich.asn else None
+                asn = self._gen_asn_text(f"{enrich.asn.replace('AS', '')}", enrich.org)
                 tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
                 services_linked = self._gen_linked_field_name(
                     "Services",
