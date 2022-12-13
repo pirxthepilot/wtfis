@@ -41,7 +41,7 @@ The primary source of information. Retrieves:
 
 Optionally used if creds are provided. Retrieves:
 
-* [Whois](https://api.riskiq.net/api/whois_pt/)
+* [Whois](https://api.riskiq.net/api/whois_pt/) [(registration)](https://community.riskiq.com/registration/wtfis)
     * Various whois data about the domain itself
 
 Passivetotal is recommended over Virustotal for whois data for a couple of reasons:
