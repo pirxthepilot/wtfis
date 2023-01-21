@@ -150,19 +150,51 @@ Panels can be displayed with no color with `-n` or `--no-color`.
 Default arguments can be defined by setting the `WTFIS_DEFAULTS` environment variable. For example, to use shodan and display results in one column by default:
 
 ```
-WTFIS_DEFAULTS="-s -1"
+WTFIS_DEFAULTS=-s -1
 ```
 
 If an argument is in `WTFIS_DEFAULTS`, then specifying the same argument during command invocation **negates** that argument. So in the example above, if you then run:
 
 ```
-wtfis example.com -s
+$ wtfis example.com -s
 ```
 
 then Shodan will NOT be used.
 
 Note that maximum resolutions (`-m N, --max-resolutions N`) cannot be defined in defaults at the moment.
 
+
+## Docker
+
+wtfis can be run from a Docker image. First, build the image (using the included [Dockerfile](./Dockerfile)) by running:
+
+```
+$ make docker-image
+```
+
+The image will have the latest _tagged_ version (not necessarily from the latest commit) wtfis. This ensures that you are getting a stable release.
+
+Two ways you can run the image:
+
+Ensure `.env.wtfis` is in your home directory and set with the necessary envvars. Then simply run:
+
+```
+$ make docker-run
+```
+
+This is an alias to
+
+```
+$ docker run --env-file=${HOME}/.env.wtfis -it wtfis
+```
+
+Note that each definition must NOT have any spaces before and after the equal sign (`FOO=bar`, not `FOO = bar`).
+
+Altenatively, you can set the environment variables yourself, then run, e.g.:
+
+```
+$ docker run -e VT_API_KEY -e SHODAN_API_KEY -it wtfis
+```
 
 ## TODOs
 
