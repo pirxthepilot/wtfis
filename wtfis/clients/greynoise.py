@@ -1,9 +1,6 @@
-from requests.exceptions import HTTPError
-
 from wtfis.clients.base import BaseClient
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
 from wtfis.models.virustotal import Resolutions
-from wtfis.utils import refang
 
 
 class GreynoiseClient(BaseClient):

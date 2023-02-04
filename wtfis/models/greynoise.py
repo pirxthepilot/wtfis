@@ -1,4 +1,3 @@
-from collections import defaultdict, namedtuple
 from pydantic import BaseModel
 from typing import Dict, Optional
 

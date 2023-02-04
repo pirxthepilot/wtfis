@@ -14,7 +14,7 @@ from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.models.common import WhoisType
-from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
+from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.virustotal import Domain, IpAddress

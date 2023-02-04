@@ -176,7 +176,7 @@ class BaseView(abc.ABC):
             if product != list(grouped.keys())[-1]:
                 text.append("\n")
         return text
-    
+
     def _gen_greynoise_tuple(self, ip: GreynoiseIp) -> Tuple[Text, Text]:
         #
         # Title
@@ -194,14 +194,14 @@ class BaseView(abc.ABC):
 
         # RIOT
         riot_icon = (Text("✓", style=true_style)
-                if ip.riot is True
-                else Text("✗", style=false_style))
+                     if ip.riot is True
+                     else Text("✗", style=false_style))
         text.append(riot_icon).append(Text(" riot  ", style=text_style))
-        
+
         # Noise
         noise_icon = (Text("✓", style=true_style)
-                if ip.noise is True
-                else Text("✗", style=false_style))
+                      if ip.noise is True
+                      else Text("✗", style=false_style))
         text.append(noise_icon).append(Text(" noise", style=text_style))
 
         # Classification

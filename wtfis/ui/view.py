@@ -10,7 +10,7 @@ from rich.text import Text
 from typing import List, Optional, Tuple, Union
 
 from wtfis.models.common import WhoisType
-from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
+from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.virustotal import (
