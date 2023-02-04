@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 from rich.console import Console
 
+from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
@@ -116,6 +117,11 @@ def main():
         else:
             whois_client = vt_client
 
+        # Greynoise client (optional)
+        greynoise_client = (GreynoiseClient(os.environ.get("GREYNOISE_API_KEY"))
+                            if os.environ.get("GREYNOISE_API_KEY")
+                            else None)
+
         # Domain / FQDN handler
         if not is_ip(args.entity):
             entity = DomainHandler(
@@ -125,6 +131,7 @@ def main():
                 vt_client=vt_client,
                 ip_enricher_client=enricher_client,
                 whois_client=whois_client,
+                greynoise_client=greynoise_client,
                 max_resolutions=args.max_resolutions,
             )
         # IP address handler
@@ -136,6 +143,7 @@ def main():
                 vt_client=vt_client,
                 ip_enricher_client=enricher_client,
                 whois_client=whois_client,
+                greynoise_client=greynoise_client,
             )
 
         # Data fetching proper
@@ -152,6 +160,7 @@ def main():
             entity.resolutions,
             entity.whois,
             entity.ip_enrich,
+            entity.greynoise,
             max_resolutions=args.max_resolutions,
         )
     else:
@@ -160,5 +169,6 @@ def main():
             entity.vt_info,
             entity.whois,
             entity.ip_enrich,
+            entity.greynoise,
         )
     view.print(one_column=args.one_column)

@@ -24,8 +24,13 @@ class BaseClient(abc.ABC):
     def name(self) -> str:  # pragma: no coverage
         return NotImplemented
 
-    def _get(self, request: str, params: Optional[dict] = None) -> dict:
-        resp = self.s.get(self.baseurl + request, params=params)
+    def _get(
+        self,
+        request: str,
+        params: Optional[dict] = None,
+        headers: Optional[dict] = None,
+    ) -> dict:
+        resp = self.s.get(self.baseurl + request, params=params, headers=headers)
         resp.raise_for_status()
 
         return json.loads(json.dumps((resp.json())))

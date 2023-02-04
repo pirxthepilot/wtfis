@@ -12,6 +12,7 @@ from rich.text import Text
 from typing import Any, Generator, List, Optional, Tuple, Union
 
 from wtfis.models.common import WhoisType
+from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
 from wtfis.models.virustotal import (
@@ -37,11 +38,13 @@ class BaseView(abc.ABC):
         entity: Any,
         whois: Optional[WhoisType],
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
+        greynoise: GreynoiseIpMap,
     ) -> None:
         self.console = console
         self.entity = entity
         self.whois = whois
         self.ip_enrich = ip_enrich
+        self.greynoise = greynoise
         self.theme = Theme()
 
     def _vendors_who_flagged_malicious(self) -> List[str]:
@@ -173,6 +176,44 @@ class BaseView(abc.ABC):
             if product != list(grouped.keys())[-1]:
                 text.append("\n")
         return text
+    
+    def _gen_greynoise_tuple(self, ip: GreynoiseIp) -> Tuple[Text, Text]:
+        #
+        # Title
+        #
+        title = self._gen_linked_field_name("Greynoise", hyperlink=ip.link)
+
+        #
+        # Content
+        #
+        text_style = self.theme.tags
+        true_style = self.theme.info
+        false_style = self.theme.error
+
+        text = Text()
+
+        # RIOT
+        riot_icon = (Text("✓", style=true_style)
+                if ip.riot is True
+                else Text("✗", style=false_style))
+        text.append(riot_icon).append(Text(" riot  ", style=text_style))
+        
+        # Noise
+        noise_icon = (Text("✓", style=true_style)
+                if ip.noise is True
+                else Text("✗", style=false_style))
+        text.append(noise_icon).append(Text(" noise", style=text_style))
+
+        # Classification
+        if ip.classification:
+            if ip.classification == "benign":
+                text.append(Text("  ✓ benign", style=self.theme.info))
+            elif ip.classification == "malicious":
+                text.append(Text("  ! malicious", style=self.theme.error))
+            else:
+                text.append(Text(ip.classification, style=text_style))
+
+        return title, text
 
     def _gen_asn_text(
         self,
@@ -189,6 +230,9 @@ class BaseView(abc.ABC):
 
     def _get_ip_enrichment(self, ip: str) -> Optional[Union[IpWhois, ShodanIp]]:
         return self.ip_enrich.__root__[ip] if ip in self.ip_enrich.__root__.keys() else None
+
+    def _get_greynoise_enrichment(self, ip: str) -> Optional[GreynoiseIp]:
+        return self.greynoise.__root__[ip] if ip in self.greynoise.__root__.keys() else None
 
     def whois_panel(self) -> Optional[Panel]:
         # Do nothing if no whois
