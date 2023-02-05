@@ -7,9 +7,9 @@ class GreynoiseIp(BaseModel):
     noise: bool
     riot: bool
     message: str
+    link: str
     classification: Optional[str]
     name: Optional[str]
-    link: Optional[str]
     last_seen: Optional[str]
 
 

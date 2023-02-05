@@ -59,7 +59,8 @@ class DomainHandler(BaseHandler):
     def _fetch_greynoise(self) -> None:
         # Let continue on certain HTTP errors
         try:
-            self.greynoise = self._greynoise.bulk_get_ip(self.resolutions, self.max_resolutions)
+            if self._greynoise:
+                self.greynoise = self._greynoise.bulk_get_ip(self.resolutions, self.max_resolutions)
         except HTTPError as e:
             # With warning message
             if e.response.status_code in (400, 429, 500):

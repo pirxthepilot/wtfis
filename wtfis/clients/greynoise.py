@@ -36,7 +36,7 @@ class GreynoiseClient(BaseClient):
                 greynoise_map[ip_data.ip] = ip_data
         return GreynoiseIpMap(__root__=greynoise_map)
 
-    def single_get_ip(self, ip: str) -> GreynoiseIp:
+    def single_get_ip(self, ip: str) -> GreynoiseIpMap:
         greynoise_map = {}
         ip_data = self.get_ip(ip)
         if ip_data:

@@ -24,7 +24,7 @@ from wtfis.utils import error_and_exit, refang
 
 def common_exception_handler(func: Callable) -> Callable:
     """ Decorator for handling common fetch errors """
-    def inner(*args, **kwargs):
+    def inner(*args, **kwargs) -> None:
         progress: Progress = args[0].progress  # args[0] is the method's self input
         try:
             func(*args, **kwargs)
