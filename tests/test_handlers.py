@@ -63,12 +63,14 @@ class TestDomainHandler:
         handler._fetch_vt_resolutions = MagicMock()
         handler._fetch_ip_enrichments = MagicMock()
         handler._fetch_whois = MagicMock()
+        handler._fetch_greynoise = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_domain.assert_called_once()
         handler._fetch_vt_resolutions.assert_called_once()
         handler._fetch_ip_enrichments.assert_called_once()
         handler._fetch_whois.assert_called_once()
+        handler._fetch_greynoise.assert_called_once()
 
     def test_fetch_data_2(self, domain_handler):
         """ Test with max_resolutions = 0 """
@@ -77,12 +79,14 @@ class TestDomainHandler:
         handler._fetch_vt_resolutions = MagicMock()
         handler._fetch_ip_enrichments = MagicMock()
         handler._fetch_whois = MagicMock()
+        handler._fetch_greynoise = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_domain.assert_called_once()
         handler._fetch_vt_resolutions.assert_not_called()
         handler._fetch_ip_enrichments.assert_not_called()
         handler._fetch_whois.assert_called_once()
+        handler._fetch_greynoise.assert_called_once()
 
     @patch.object(requests.Session, "get")
     def test_vt_http_error(self, mock_requests_get, domain_handler, capsys):
@@ -215,6 +219,43 @@ class TestDomainHandler:
         handler.print_warnings()
         capture = capsys.readouterr()
         assert capture.out.startswith("WARN: Could not fetch Whois: 429 Client Error:")
+
+    @patch.object(requests.Session, "get")
+    def test_greynoise_429_error(self, mock_requests_get, domain_handler, capsys, test_data):
+        """
+        Test fail open behavior of Greynoise when rate limited
+        """
+        handler = domain_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 429
+        mock_requests_get.return_value = mock_resp
+
+        handler.resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+
+        handler._fetch_greynoise()
+        assert handler.warnings[0].startswith("Could not fetch Greynoise: 429 Client Error:")
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch Greynoise: 429 Client Error:")
+
+    @patch.object(requests.Session, "get")
+    def test_greynoise_404_error(self, mock_requests_get, domain_handler, test_data):
+        """
+        Test fail open behavior of Greynoise when no IP found (404) and no warning message
+        """
+        handler = domain_handler(3)
+        mock_resp = requests.models.Response()
+
+        handler.resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+
+        mock_resp.status_code = 404
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_greynoise()
+        assert len(handler.warnings) == 0
+        assert handler.greynoise == GreynoiseIpMap(__root__={})
 
 
 class TestIpAddressHandler:
@@ -350,7 +391,7 @@ class TestIpAddressHandler:
         assert capture.out.startswith("WARN: Could not fetch Greynoise: 429 Client Error:")
 
     @patch.object(requests.Session, "get")
-    def test_greynoise_404_error(self, mock_requests_get, ip_handler, capsys):
+    def test_greynoise_404_error(self, mock_requests_get, ip_handler):
         """
         Test fail open behavior of Greynoise when no IP found (404) and no warning message
         """

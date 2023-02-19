@@ -7,6 +7,7 @@ from rich.table import Table
 from rich.text import Span, Text
 from unittest.mock import MagicMock
 
+from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.models.greynoise import GreynoiseIpMap
@@ -155,7 +156,7 @@ def view08(test_data, mock_shodan_get_ip):
 
 
 @pytest.fixture()
-def view09(test_data, mock_shodan_get_ip):
+def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
     """ one.one.one.one with Shodan. Only test resolution and IP enrich. """
     resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_one.json")))
 
@@ -164,13 +165,18 @@ def view09(test_data, mock_shodan_get_ip):
     shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
     ip_enrich = shodan_client.bulk_get_ip(resolutions, 1)
 
+    greynoise_pool = json.loads(test_data("greynoise_one.json"))
+    greynoise_client = GreynoiseClient("dummykey")
+    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.bulk_get_ip(resolutions, 1)
+
     return DomainView(
         console=Console(),
         entity=MagicMock(),
         resolutions=resolutions,
         whois=MagicMock(),
         ip_enrich=ip_enrich,
-        greynoise=GreynoiseIpMap(__root__={}),
+        greynoise=greynoise_enrich,
         max_resolutions=1,
     )
 
@@ -1070,6 +1076,10 @@ class TestView09:
                 spans=[Span(0, 8, "link https://www.shodan.io/host/1.0.0.1")]
             ),
             "Last Scan:",
+            Text(
+                "Greynoise:",
+                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.0.0.1")]
+            ),
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"
@@ -1133,7 +1143,18 @@ class TestView09:
                     Span(96, 100, "cyan"),
                 ]
             ),
-            display_timestamp("2022-08-22T02:35:34Z")
+            display_timestamp("2022-08-22T02:35:34Z"),
+            Text(
+                "✓ riot  ✗ noise  ✓ benign",
+                spans=[
+                    Span(0, 1, theme.info),
+                    Span(2, 6, theme.tags),
+                    Span(8, 9, theme.warn),
+                    Span(10, 15, theme.tags),
+                    Span(17, 18, theme.info),
+                    Span(19, 25, theme.tags_green),
+                ]
+            ),
         ]
 
         # Old timestamp warning

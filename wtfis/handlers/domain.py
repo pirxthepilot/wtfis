@@ -87,14 +87,11 @@ class DomainHandler(BaseHandler):
             self._fetch_ip_enrichments()
             self.progress.update(task2, completed=100)
 
-        # Greynoise rate limit is quite easy to hit, so disabling for domain lookups for now
-        #
-        self.greynoise = GreynoiseIpMap(__root__={})
-        # if self._greynoise:
-        #     task3 = self.progress.add_task(f"Fetching IP enrichments from {self._greynoise.name}")
-        #     self.progress.update(task3, advance=50)
-        #     self._fetch_greynoise()
-        #     self.progress.update(task3, completed=100)
+        if self._greynoise:
+            task3 = self.progress.add_task(f"Fetching IP enrichments from {self._greynoise.name}")
+            self.progress.update(task3, advance=50)
+            self._fetch_greynoise()
+            self.progress.update(task3, completed=100)
 
         task4 = self.progress.add_task(f"Fetching domain whois from {self._whois.name}")
         self.progress.update(task4, advance=50)
