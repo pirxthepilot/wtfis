@@ -5,14 +5,16 @@ from requests.exceptions import HTTPError, JSONDecodeError
 from rich.console import Console
 from rich.progress import Progress
 from shodan.exception import APIError
-from typing import Callable, List, Union
+from typing import Callable, List, Optional, Union
 
+from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.models.common import WhoisType
+from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.virustotal import Domain, IpAddress
@@ -22,7 +24,7 @@ from wtfis.utils import error_and_exit, refang
 
 def common_exception_handler(func: Callable) -> Callable:
     """ Decorator for handling common fetch errors """
-    def inner(*args, **kwargs):
+    def inner(*args, **kwargs) -> None:
         progress: Progress = args[0].progress  # args[0] is the method's self input
         try:
             func(*args, **kwargs)
@@ -44,6 +46,7 @@ class BaseHandler(abc.ABC):
         vt_client: VTClient,
         ip_enricher_client: Union[IpWhoisClient, ShodanClient],
         whois_client: Union[Ip2WhoisClient, PTClient, VTClient],
+        greynoise_client: Optional[GreynoiseClient],
     ):
         # Process-specific
         self.entity = refang(entity)
@@ -54,11 +57,13 @@ class BaseHandler(abc.ABC):
         self._vt = vt_client
         self._enricher = ip_enricher_client
         self._whois = whois_client
+        self._greynoise = greynoise_client
 
         # Dataset containers
         self.vt_info:   Union[Domain, IpAddress] = None        # type: ignore
         self.ip_enrich: Union[IpWhoisMap, ShodanIpMap] = None  # type: ignore
         self.whois:     WhoisType = None                       # type: ignore
+        self.greynoise: GreynoiseIpMap = None                  # type: ignore
 
         # Warning messages container
         self.warnings: List[str] = []

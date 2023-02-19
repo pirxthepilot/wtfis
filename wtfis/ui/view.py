@@ -10,6 +10,7 @@ from rich.text import Text
 from typing import List, Optional, Tuple, Union
 
 from wtfis.models.common import WhoisType
+from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.virustotal import (
@@ -32,9 +33,10 @@ class DomainView(BaseView):
         resolutions: Optional[Resolutions],
         whois: WhoisType,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
+        greynoise: GreynoiseIpMap,
         max_resolutions: int = 3,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich)
+        super().__init__(console, entity, whois, ip_enrich, greynoise)
         self.resolutions = resolutions
         self.max_resolutions = max_resolutions
 
@@ -129,6 +131,12 @@ class DomainView(BaseView):
                                                                                           # (source: Google)
                     ]
 
+            # Greynoise
+            greynoise = self._get_greynoise_enrichment(attributes.ip_address)
+
+            if greynoise:
+                data += [self._gen_greynoise_tuple(greynoise)]
+
             # Include a disclaimer if last seen is older than 1 year
             # Note: Disabled for now because I originally understood that the resolution date was the last time
             # the domain was resolved, but it may actually be he first time the IP itself was seen with the domain.
@@ -190,8 +198,9 @@ class IpAddressView(BaseView):
         entity: IpAddress,
         whois: WhoisType,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
+        greynoise: GreynoiseIpMap,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich)
+        super().__init__(console, entity, whois, ip_enrich, greynoise)
 
     def ip_panel(self) -> Panel:
         attributes = self.entity.data.attributes
@@ -243,6 +252,13 @@ class IpAddressView(BaseView):
                                                                                       # (source: Google)
                 ]
 
+        # Greynoise
+        greynoise = self._get_greynoise_enrichment(self.entity.data.id_)
+
+        if greynoise:
+            data += [self._gen_greynoise_tuple(greynoise)]
+
+        # Altogether now
         heading = self._gen_heading_text(
             self.entity.data.id_,
             hyperlink=f"{self.vt_gui_baseurl_ip}/{self.entity.data.id_}"

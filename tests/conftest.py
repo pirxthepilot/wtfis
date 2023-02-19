@@ -5,6 +5,7 @@ from typing import Optional
 from rich.console import RenderableType
 from rich.text import Span, Text
 
+from wtfis.models.greynoise import GreynoiseIp
 from wtfis.models.ipwhois import IpWhois
 from wtfis.models.shodan import ShodanIp
 
@@ -18,12 +19,23 @@ class TestTheme:
     timestamp_z = "dim bright_white"
     asn_org = "bright_white"
     whois_org = "bright_cyan"
+    tags = "bright_white on black"
+    tags_green = "bright_green on black"
+    tags_red = "bright_red on black"
+    info = "bold green"
+    warn = "bold yellow"
+    error = "bold red"
 
 
 def open_test_data(fname: str) -> str:
     path = Path(__file__).parent.resolve() / "test_data" / fname
     with open(path) as f:
         return f.read()
+
+
+def greynoise_get(ip, pool) -> GreynoiseIp:
+    """ Mock replacement for GreynoiseClient().get_ip() """
+    return GreynoiseIp.parse_obj(pool[ip])
 
 
 def ipwhois_get(ip, pool) -> IpWhois:
@@ -57,6 +69,11 @@ def test_data():
 @pytest.fixture(scope="module")
 def theme():
     return TestTheme()
+
+
+@pytest.fixture(scope="module")
+def mock_greynoise_get():
+    return greynoise_get
 
 
 @pytest.fixture(scope="module")

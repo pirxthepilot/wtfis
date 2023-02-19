@@ -3,11 +3,17 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 from wtfis.clients.base import requests
+from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
+
+
+@pytest.fixture()
+def greynoise_client():
+    return GreynoiseClient("dummykey")
 
 
 @pytest.fixture()
@@ -75,6 +81,12 @@ class TestIp2WhoisClient:
             with pytest.raises(requests.exceptions.HTTPError) as err:
                 ip2whois_client.get_whois("thisdoesntmatter")
             assert err.value.response.json()["error"]["error_code"] == 10008
+
+
+class TesGreynoiseClient:
+    def test_init(self, greynoise_client):
+        assert greynoise_client.name == "Greynoise"
+        assert greynoise_client.api_key == "dummykey"
 
 
 class TestIpWhoisClient:

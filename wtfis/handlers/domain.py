@@ -4,14 +4,16 @@ Logic handler for domain and hostname inputs
 from requests.exceptions import HTTPError
 from rich.console import Console
 from rich.progress import Progress
-from typing import Union
+from typing import Optional, Union
 
+from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.base import BaseHandler, common_exception_handler
+from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.virustotal import Resolutions
 
 
@@ -24,9 +26,11 @@ class DomainHandler(BaseHandler):
         vt_client: VTClient,
         ip_enricher_client: Union[IpWhoisClient, ShodanClient],
         whois_client: Union[Ip2WhoisClient, PTClient, VTClient],
+        greynoise_client: Optional[GreynoiseClient],
         max_resolutions: int = 0,
     ):
-        super().__init__(entity, console, progress, vt_client, ip_enricher_client, whois_client)
+        super().__init__(entity, console, progress, vt_client, ip_enricher_client,
+                         whois_client, greynoise_client)
 
         # Extended attributes
         self.max_resolutions = max_resolutions
@@ -51,6 +55,23 @@ class DomainHandler(BaseHandler):
     def _fetch_ip_enrichments(self) -> None:
         self.ip_enrich = self._enricher.bulk_get_ip(self.resolutions, self.max_resolutions)
 
+    @common_exception_handler
+    def _fetch_greynoise(self) -> None:
+        # Let continue on certain HTTP errors
+        try:
+            if self._greynoise:
+                self.greynoise = self._greynoise.bulk_get_ip(self.resolutions, self.max_resolutions)
+        except HTTPError as e:
+            # With warning message
+            if e.response.status_code in (400, 429, 500):
+                self.greynoise = GreynoiseIpMap(__root__={})
+                self.warnings.append(f"Could not fetch Greynoise: {e}")
+            # No warning message
+            elif e.response.status_code == 404:
+                self.greynoise = GreynoiseIpMap(__root__={})
+            else:
+                raise
+
     def fetch_data(self):
         task1 = self.progress.add_task("Fetching data from Virustotal")
         self.progress.update(task1, advance=33)
@@ -66,7 +87,13 @@ class DomainHandler(BaseHandler):
             self._fetch_ip_enrichments()
             self.progress.update(task2, completed=100)
 
-        task3 = self.progress.add_task(f"Fetching domain whois from {self._whois.name}")
-        self.progress.update(task3, advance=50)
+        if self._greynoise:
+            task3 = self.progress.add_task(f"Fetching IP enrichments from {self._greynoise.name}")
+            self.progress.update(task3, advance=50)
+            self._fetch_greynoise()
+            self.progress.update(task3, completed=100)
+
+        task4 = self.progress.add_task(f"Fetching domain whois from {self._whois.name}")
+        self.progress.update(task4, advance=50)
         self._fetch_whois()
-        self.progress.update(task3, completed=100)
+        self.progress.update(task4, completed=100)
