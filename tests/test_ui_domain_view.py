@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ip2whois import Whois as Ip2Whois
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.passivetotal import Whois as PTWhois
@@ -36,6 +37,7 @@ def view01(test_data, mock_ipwhois_get):
         resolutions=resolutions,
         whois=PTWhois.parse_obj(json.loads(test_data("pt_whois_gist.json"))),
         ip_enrich=ip_enrich,
+        greynoise=GreynoiseIpMap(__root__={}),
     )
 
 
@@ -51,6 +53,7 @@ def view02(test_data):
         resolutions=Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json"))),
         whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_gist.json"))),
         ip_enrich=IpWhoisMap(__root__={}),
+        greynoise=GreynoiseIpMap(__root__={}),
         max_resolutions=1,
     )
 
@@ -64,6 +67,7 @@ def view03(test_data):
         resolutions=MagicMock(),
         whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_bbc.json"))),
         ip_enrich=MagicMock(),
+        greynoise=MagicMock(),
     )
 
 
@@ -79,6 +83,7 @@ def view04(test_data):
         resolutions=None,
         whois=MagicMock(),
         ip_enrich=MagicMock(),
+        greynoise=MagicMock(),
     )
 
 
@@ -91,6 +96,7 @@ def view05(test_data):
         resolutions=MagicMock(),
         whois=MagicMock(),
         ip_enrich=MagicMock(),
+        greynoise=MagicMock(),
     )
 
 
@@ -103,6 +109,7 @@ def view06(test_data):
         resolutions=MagicMock(),
         whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_example_2.json"))),
         ip_enrich=MagicMock(),
+        greynoise=MagicMock(),
     )
 
 
@@ -122,6 +129,7 @@ def view07(test_data, mock_shodan_get_ip):
         resolutions=resolutions,
         whois=MagicMock(),
         ip_enrich=ip_enrich,
+        greynoise=GreynoiseIpMap(__root__={}),
     )
 
 
@@ -141,6 +149,7 @@ def view08(test_data, mock_shodan_get_ip):
         resolutions=resolutions,
         whois=MagicMock(),
         ip_enrich=ip_enrich,
+        greynoise=GreynoiseIpMap(__root__={}),
         max_resolutions=1,
     )
 
@@ -161,6 +170,7 @@ def view09(test_data, mock_shodan_get_ip):
         resolutions=resolutions,
         whois=MagicMock(),
         ip_enrich=ip_enrich,
+        greynoise=GreynoiseIpMap(__root__={}),
         max_resolutions=1,
     )
 
@@ -174,6 +184,7 @@ def view10(test_data):
         resolutions=MagicMock(),
         whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_foo.json"))),
         ip_enrich=MagicMock(),
+        greynoise=GreynoiseIpMap(__root__={}),
     )
 
 
@@ -193,6 +204,7 @@ def view11(test_data, mock_shodan_get_ip):
         resolutions=resolutions,
         whois=MagicMock(),
         ip_enrich=ip_enrich,
+        greynoise=GreynoiseIpMap(__root__={}),
     )
 
 
@@ -205,6 +217,7 @@ def view12(test_data):
         resolutions=MagicMock(),
         whois=Ip2Whois.parse_obj(json.loads(test_data("ip2whois_whois_hotmail.json"))),
         ip_enrich=MagicMock(),
+        greynoise=MagicMock(),
     )
 
 
@@ -217,6 +230,7 @@ def view13(test_data):
         resolutions=MagicMock(),
         whois=Ip2Whois.parse_obj(json.loads(test_data("ip2whois_whois_bbc.json"))),
         ip_enrich=MagicMock(),
+        greynoise=MagicMock(),
     )
 
 

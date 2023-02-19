@@ -4,6 +4,7 @@ from rich.console import Console
 from unittest.mock import MagicMock, patch
 
 from wtfis.clients.base import requests
+from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.virustotal import VTClient
@@ -20,6 +21,7 @@ def generate_domain_handler(max_resolutions=3):
         vt_client=VTClient("dummykey"),
         ip_enricher_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
+        greynoise_client=GreynoiseClient("dummykey"),
         max_resolutions=max_resolutions,
     )
 
@@ -32,6 +34,7 @@ def generate_ip_handler():
         vt_client=VTClient("dummykey"),
         ip_enricher_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
+        greynoise_client=GreynoiseClient("dummykey"),
     )
 
 

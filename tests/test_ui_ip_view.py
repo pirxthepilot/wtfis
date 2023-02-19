@@ -7,8 +7,10 @@ from rich.table import Table
 from rich.text import Span, Text
 from unittest.mock import MagicMock
 
+from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.passivetotal import Whois as PTWhois
 from wtfis.models.virustotal import (
@@ -19,7 +21,7 @@ from wtfis.ui.view import IpAddressView
 
 
 @pytest.fixture()
-def view01(test_data, mock_ipwhois_get):
+def view01(test_data, mock_ipwhois_get, mock_greynoise_get):
     """ 1.1.1.1 with PT whois. Complete test of all panels. Also test print(). """
     ip = "1.1.1.1"
     ipwhois_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
@@ -27,16 +29,22 @@ def view01(test_data, mock_ipwhois_get):
     ipwhois_client.get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
     ip_enrich = ipwhois_client.single_get_ip(ip)
 
+    greynoise_pool = json.loads(test_data("greynoise_1.1.1.1.json"))
+    greynoise_client = GreynoiseClient("dummykey")
+    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.single_get_ip(ip)
+
     return IpAddressView(
         console=Console(),
         entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         whois=PTWhois.parse_obj(json.loads(test_data("pt_whois_1.1.1.1.json"))),
         ip_enrich=ip_enrich,
+        greynoise=greynoise_enrich,
     )
 
 
 @pytest.fixture()
-def view02(test_data, mock_shodan_get_ip):
+def view02(test_data, mock_shodan_get_ip, mock_greynoise_get):
     """ 1.1.1.1 with Shodan. Test the whole IP panel. """
     ip = "1.1.1.1"
     shodan_pool = json.loads(test_data("shodan_1.1.1.1.json"))
@@ -44,11 +52,17 @@ def view02(test_data, mock_shodan_get_ip):
     shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
     ip_enrich = shodan_client.single_get_ip(ip)
 
+    greynoise_pool = json.loads(test_data("greynoise_1.1.1.1.json"))
+    greynoise_client = GreynoiseClient("dummykey")
+    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.single_get_ip(ip)
+
     return IpAddressView(
         console=Console(),
         entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         whois=MagicMock(),
         ip_enrich=ip_enrich,
+        greynoise=greynoise_enrich,
     )
 
 
@@ -60,19 +74,22 @@ def view03(test_data):
         entity=MagicMock(),
         whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_1.1.1.1.json"))),
         ip_enrich=MagicMock(),
+        greynoise=MagicMock(),
     )
 
 
 @pytest.fixture()
 def view04(test_data):
     """
-    142.251.220.110. Test whole IP panel with 0 malicious, 0 reputation and no IP enrichment.
+    142.251.220.110. Test whole IP panel with 0 malicious, 0 reputation and no IP and
+    Greynoise enrichment.
     """
     return IpAddressView(
         console=Console(),
         entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_142.251.220.110.json"))),
         whois=MagicMock(),
         ip_enrich=IpWhoisMap(__root__={}),
+        greynoise=GreynoiseIpMap(__root__={}),
     )
 
 
@@ -100,6 +117,10 @@ class TestView01:
             "ASN:",
             "ISP:",
             "Location:",
+            Text(
+                "Greynoise:",
+                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
+            ),
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"
@@ -130,7 +151,17 @@ class TestView01:
                     Span(6, 8, 'default'),
                     Span(23, 25, 'default'),
                 ]
-            )
+            ),
+            Text(
+                "✓ riot  ✗ noise  ✓ benign",
+                spans=[
+                    Span(0, 1, theme.info),
+                    Span(1, 8, theme.tags),
+                    Span(8, 9, theme.error),
+                    Span(9, 15, theme.tags),
+                    Span(15, 25, theme.info)
+                ]
+            ),
         ]
 
     def test_whois_panel(self, view01):
@@ -212,6 +243,10 @@ class TestView02:
                 spans=[Span(0, 8, "link https://www.shodan.io/host/1.1.1.1")]
             ),
             "Last Scan:",
+            Text(
+                "Greynoise:",
+                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
+            ),
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"
@@ -306,6 +341,16 @@ class TestView02:
                 ]
             ),
             display_timestamp("2022-09-04T01:03:56Z"),
+            Text(
+                "✓ riot  ✗ noise  ✓ benign",
+                spans=[
+                    Span(0, 1, theme.info),
+                    Span(1, 8, theme.tags),
+                    Span(8, 9, theme.error),
+                    Span(9, 15, theme.tags),
+                    Span(15, 25, theme.info)
+                ]
+            ),
         ]
 
 
