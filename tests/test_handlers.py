@@ -10,6 +10,7 @@ from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
+from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.virustotal import Resolutions
 
 
@@ -29,7 +30,7 @@ def generate_domain_handler(max_resolutions=3):
 def generate_ip_handler():
     return IpAddressHandler(
         entity="1[.]1[.]1[.]1",
-        console=MagicMock(),
+        console=Console(),
         progress=MagicMock(),
         vt_client=VTClient("dummykey"),
         ip_enricher_client=IpWhoisClient(),
@@ -226,11 +227,13 @@ class TestIpAddressHandler:
         handler._fetch_vt_ip_address = MagicMock()
         handler._fetch_ip_enrichments = MagicMock()
         handler._fetch_whois = MagicMock()
+        handler._fetch_greynoise = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_ip_address.assert_called_once()
         handler._fetch_ip_enrichments.assert_called_once()
         handler._fetch_whois.assert_called_once()
+        handler._fetch_greynoise.assert_called_once()
 
     @patch.object(requests.Session, "get")
     def test_vt_http_error(self, mock_requests_get, ip_handler, capsys):
@@ -307,3 +310,56 @@ class TestIpAddressHandler:
         assert capture.err == "Error fetching data: 403 Client Error: None for url: None\n"
         assert e.type == SystemExit
         assert e.value.code == 1
+
+    @patch.object(requests.Session, "get")
+    def test_greynoise_http_error(self, mock_requests_get, ip_handler, capsys):
+        """
+        Test Greynoise HTTP error that results in a SystemExit
+        """
+        handler = ip_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 401
+        mock_requests_get.return_value = mock_resp
+
+        with pytest.raises(SystemExit) as e:
+            handler._fetch_whois()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        assert e.type == SystemExit
+        assert e.value.code == 1
+
+    @patch.object(requests.Session, "get")
+    def test_greynoise_429_error(self, mock_requests_get, ip_handler, capsys):
+        """
+        Test fail open behavior of Greynoise when rate limited
+        """
+        handler = ip_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 429
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_greynoise()
+        assert handler.warnings[0].startswith("Could not fetch Greynoise: 429 Client Error:")
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch Greynoise: 429 Client Error:")
+
+    @patch.object(requests.Session, "get")
+    def test_greynoise_404_error(self, mock_requests_get, ip_handler, capsys):
+        """
+        Test fail open behavior of Greynoise when no IP found (404) and no warning message
+        """
+        handler = ip_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 404
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_greynoise()
+        assert len(handler.warnings) == 0
+        assert handler.greynoise == GreynoiseIpMap(__root__={})
