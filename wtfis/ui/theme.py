@@ -9,6 +9,8 @@ class Theme:
     nameserver_list = "bright_blue"
     disclaimer = "italic white on red"
     tags = "bright_white on black"
+    tags_green = "bright_green on black"
+    tags_red = "bright_red on black"
     product = "orange_red1"
     port = "bright_cyan"
     transport = "cyan"

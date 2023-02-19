@@ -188,7 +188,7 @@ class BaseView(abc.ABC):
         #
         text_style = self.theme.tags
         true_style = self.theme.info
-        false_style = self.theme.error
+        false_style = self.theme.warn
 
         text = Text()
 
@@ -196,20 +196,34 @@ class BaseView(abc.ABC):
         riot_icon = (Text("✓", style=true_style)
                      if ip.riot is True
                      else Text("✗", style=false_style))
-        text.append(riot_icon).append(Text(" riot  ", style=text_style))
+        (text
+         .append(riot_icon)
+         .append(" ")
+         .append(Text("riot", style=text_style))
+         .append("  "))
 
         # Noise
         noise_icon = (Text("✓", style=true_style)
                       if ip.noise is True
                       else Text("✗", style=false_style))
-        text.append(noise_icon).append(Text(" noise", style=text_style))
+        (text
+         .append(noise_icon)
+         .append(" ")
+         .append(Text("noise", style=text_style)))
 
         # Classification
         if ip.classification:
+            text.append("  ")
             if ip.classification == "benign":
-                text.append(Text("  ✓ benign", style=self.theme.info))
+                (text
+                 .append(Text("✓", style=self.theme.info))
+                 .append(" ")
+                 .append(Text("benign", style=self.theme.tags_green)))
             elif ip.classification == "malicious":
-                text.append(Text("  ! malicious", style=self.theme.error))
+                (text
+                 .append(Text("!", style=self.theme.error))
+                 .append(" ")
+                 .append(Text("malicious", style=self.theme.tags_red)))
             else:
                 text.append(Text(ip.classification, style=text_style))
 

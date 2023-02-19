@@ -20,7 +20,10 @@ class TestTheme:
     asn_org = "bright_white"
     whois_org = "bright_cyan"
     tags = "bright_white on black"
+    tags_green = "bright_green on black"
+    tags_red = "bright_red on black"
     info = "bold green"
+    warn = "bold yellow"
     error = "bold red"
 
 

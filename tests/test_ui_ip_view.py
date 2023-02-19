@@ -156,10 +156,11 @@ class TestView01:
                 "✓ riot  ✗ noise  ✓ benign",
                 spans=[
                     Span(0, 1, theme.info),
-                    Span(1, 8, theme.tags),
-                    Span(8, 9, theme.error),
-                    Span(9, 15, theme.tags),
-                    Span(15, 25, theme.info)
+                    Span(2, 6, theme.tags),
+                    Span(8, 9, theme.warn),
+                    Span(10, 15, theme.tags),
+                    Span(17, 18, theme.info),
+                    Span(19, 25, theme.tags_green),
                 ]
             ),
         ]
@@ -345,10 +346,11 @@ class TestView02:
                 "✓ riot  ✗ noise  ✓ benign",
                 spans=[
                     Span(0, 1, theme.info),
-                    Span(1, 8, theme.tags),
-                    Span(8, 9, theme.error),
-                    Span(9, 15, theme.tags),
-                    Span(15, 25, theme.info)
+                    Span(2, 6, theme.tags),
+                    Span(8, 9, theme.warn),
+                    Span(10, 15, theme.tags),
+                    Span(17, 18, theme.info),
+                    Span(19, 25, theme.tags_green),
                 ]
             ),
         ]
