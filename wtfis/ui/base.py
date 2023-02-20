@@ -225,7 +225,9 @@ class BaseView(abc.ABC):
                  .append(" ")
                  .append(Text("malicious", style=self.theme.tags_red)))
             else:
-                text.append(Text(ip.classification, style=text_style))
+                (text
+                 .append("? ")
+                 .append(Text(ip.classification, style=text_style)))
 
         return title, text
 

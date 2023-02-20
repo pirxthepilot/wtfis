@@ -45,7 +45,7 @@ def view01(test_data, mock_ipwhois_get, mock_greynoise_get):
 
 @pytest.fixture()
 def view02(test_data, mock_shodan_get_ip, mock_greynoise_get):
-    """ 1.1.1.1 with Shodan. Test the whole IP panel. """
+    """ 1.1.1.1 with Shodan and Greynoise. Test the whole IP panel. """
     ip = "1.1.1.1"
     shodan_pool = json.loads(test_data("shodan_1.1.1.1.json"))
     shodan_client = ShodanClient(MagicMock())
@@ -90,6 +90,42 @@ def view04(test_data):
         whois=MagicMock(),
         ip_enrich=IpWhoisMap(__root__={}),
         greynoise=GreynoiseIpMap(__root__={}),
+    )
+
+
+@pytest.fixture()
+def view05(test_data, mock_greynoise_get):
+    """ 1.1.1.1 with alt Greynoise results. Test Greynoise only. """
+    ip = "1.1.1.1"
+    greynoise_pool = json.loads(test_data("greynoise_1.1.1.1_malicious.json"))
+    greynoise_client = GreynoiseClient("dummykey")
+    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.single_get_ip(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        whois=MagicMock(),
+        ip_enrich=IpWhoisMap(__root__={}),
+        greynoise=greynoise_enrich,
+    )
+
+
+@pytest.fixture()
+def view06(test_data, mock_greynoise_get):
+    """ 1.1.1.1 with another alt Greynoise result (unknown class). Test Greynoise only. """
+    ip = "1.1.1.1"
+    greynoise_pool = json.loads(test_data("greynoise_1.1.1.1_unknown.json"))
+    greynoise_client = GreynoiseClient("dummykey")
+    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.single_get_ip(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        whois=MagicMock(),
+        ip_enrich=IpWhoisMap(__root__={}),
+        greynoise=greynoise_enrich,
     )
 
 
@@ -452,3 +488,40 @@ class TestView04:
             Text("0"),
             display_timestamp("2022-09-03T16:58:45Z"),
         ]
+
+
+class TestView05:
+    def test_ip_panel_greynoise_only(self, view05, theme):
+        ip = view05.ip_panel()
+
+        # Table
+        table = ip.renderable.renderables[1]
+        assert table.columns[1]._cells[-1] == Text(
+            "✗ riot  ✓ noise  ! malicious",
+            spans=[
+                Span(0, 1, theme.warn),
+                Span(2, 6, theme.tags),
+                Span(8, 9, theme.info),
+                Span(10, 15, theme.tags),
+                Span(17, 18, theme.error),
+                Span(19, 28, theme.tags_red),
+            ]
+        )
+
+
+class TestView06:
+    def test_ip_panel_greynoise_only(self, view06, theme):
+        ip = view06.ip_panel()
+
+        # Table
+        table = ip.renderable.renderables[1]
+        assert table.columns[1]._cells[-1] == Text(
+            "✓ riot  ✗ noise  ? unknown",
+            spans=[
+                Span(0, 1, theme.info),
+                Span(2, 6, theme.tags),
+                Span(8, 9, theme.warn),
+                Span(10, 15, theme.tags),
+                Span(19, 26, theme.tags),
+            ]
+        )
