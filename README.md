@@ -163,6 +163,8 @@ Greynoise is automatically included if the `GREYNOISE_API_KEY` is set - no need 
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-greynoise.png?raw=true)
 
+The `Greynoise` field name is also a hyperlink (if terminal-supported) that points to the IP entry in the Greynoise web interface, where more context is shown.
+
 
 ### Display options
 
