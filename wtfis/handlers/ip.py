@@ -25,11 +25,11 @@ class IpAddressHandler(BaseHandler):
         except HTTPError as e:
             # With warning message
             if e.response.status_code in (400, 429, 500):
-                self.greynoise = GreynoiseIpMap(__root__={})
+                self.greynoise = GreynoiseIpMap.empty()
                 self.warnings.append(f"Could not fetch Greynoise: {e}")
             # No warning message
             elif e.response.status_code == 404:
-                self.greynoise = GreynoiseIpMap(__root__={})
+                self.greynoise = GreynoiseIpMap.empty()
             else:
                 raise
 
