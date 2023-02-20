@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel
 from typing import Dict, Optional
 
@@ -15,3 +17,7 @@ class GreynoiseIp(BaseModel):
 
 class GreynoiseIpMap(BaseModel):
     __root__: Dict[str, GreynoiseIp]
+
+    @classmethod
+    def empty(cls) -> GreynoiseIpMap:
+        return cls(__root__={})

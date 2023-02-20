@@ -63,7 +63,7 @@ class BaseHandler(abc.ABC):
         self.vt_info:   Union[Domain, IpAddress] = None        # type: ignore
         self.ip_enrich: Union[IpWhoisMap, ShodanIpMap] = None  # type: ignore
         self.whois:     WhoisType = None                       # type: ignore
-        self.greynoise: GreynoiseIpMap = None                  # type: ignore
+        self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()
 
         # Warning messages container
         self.warnings: List[str] = []
