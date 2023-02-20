@@ -19,6 +19,15 @@ The project name is a play on "whois".
 
 ## Data Sources
 
+| Service | Used in lookup | Required | Free Tier |
+| --- | --- | --- | --- |
+| [Virustotal](https://virustotal.com) | All | Yes | [Yes](https://www.virustotal.com/gui/join-us) |
+| [Passivetotal](https://community.riskiq.com) | All | No | [Yes](https://community.riskiq.com/registration/)
+| [IP2Whois](https://www.ip2whois.com) | Domain/FQDN | No | [Yes](https://www.ip2location.io/pricing#ip2whois)
+| [IPWhois](https://ipwhois.io) | IP address | No | Yes (no signup) |
+| [Shodan](https://shodan.io) | IP address | No | [No](https://account.shodan.io/billing) |
+| [Greynoise](https://greynoise.io) | IP address | No | [Yes](https://www.greynoise.io/plans/community)
+
 ### Virustotal
 
 The primary source of information. Retrieves:
@@ -28,8 +37,6 @@ The primary source of information. Retrieves:
     * Reputation score (based on VT community votes)
     * Popularity ranks (Alexa, Cisco Umbrella, etc.) (FQDN and domain only)
     * Categories (assigned by different vendors)
-    * Last IP or DNS record update date
-    * Date DNS record was last retrieved by VT (FQDN and domain only)
 * [Resolutions](https://developers.virustotal.com/reference/domain-resolutions) (FQDN and domain only)
     * Last n IP addresses (default: 3, max: 10)
     * Latest analysis stats of each IP above
@@ -50,27 +57,42 @@ Passivetotal is recommended over Virustotal for whois data for a couple of reaso
 * PT whois data tends to be of better quality than VT. Also, VT's registrant data is apparently [anonymized](https://developers.virustotal.com/reference/whois).
 * You can save one VT API call by offloading to PT
 
-### IP2WHOIS
+### IP2Whois
 
 Optionally used if creds are provided and Passivetotal creds are not supplied. (i.e. second in line for Whois information)
 
 * [Whois](https://www.ip2location.io/ip2whois-documentation)
     * Various whois data about the domain itself
 
-As above, IP2WHOIS is recommended over Virustotal, if a Passivetotal account cannot be obtained.
+As above, IP2Whois is recommended over Virustotal, if a Passivetotal account cannot be obtained.
 
 ### IPWhois
 
-IP address enrichments for VT resolutions. For each IP, retrieves the ASN, Org, ISP and Geolocation. (Not to be confused with IP2WHOIS, which provides domain Whois data.)
+Default enrichment for IP addresses. Retrieves:
+
+* ASN, Org, ISP and Geolocation
+
+IPWhois should not be confused with IP2Whois, which provides domain Whois data.
 
 ### Shodan
 
 Alternative IP address enrichment source. GETs data from the `/shodan/host/{ip}` endpoint (see [doc](https://developer.shodan.io/api)). For each IP, retrieves:
 
 * ASN, Org, ISP and Geolocation
+* List of open ports and services
 * Operating system (if available)
-* List of open ports and detected services
 * Tags (assigned by Shodan)
+
+### Greynoise
+
+Supplementary IP address enrichment source. Using its [community API](https://docs.greynoise.io/docs/using-the-greynoise-community-api), wtfis will show whether an IP is in one of Greynoise's datasets:
+
+* **Noise**: IP has been seen regularly scanning the Internet
+* **RIOT**: IP belongs to a common business application (e.g. Microsoft O365, Google Workspace, Slack)
+
+More information about the datasets [here](https://docs.greynoise.io/docs/understanding-greynoise-data-sets).
+
+In addition, the API also returns Greynoise's [classification](https://docs.greynoise.io/docs/understanding-greynoise-classifications) of an IP (if available). Possible values are **benign**, **malicious**, and **unknown**.
 
 
 ## Install
@@ -79,6 +101,7 @@ Alternative IP address enrichment source. GETs data from the `/shodan/host/{ip}`
 $ pip install wtfis
 ```
 
+
 ## Setup
 
 wtfis uses these environment variables:
@@ -86,8 +109,9 @@ wtfis uses these environment variables:
 * `VT_API_KEY` (required) - Virustotal API key
 * `PT_API_KEY` (optional) - Passivetotal API key
 * `PT_API_USER` (optional) - Passivetotal API user
-* `SHODAN_API_KEY` (optional) - Shodan API key
 * `IP2WHOIS_API_KEY` (optional) - IP2WHOIS API key
+* `SHODAN_API_KEY` (optional) - Shodan API key
+* `GREYNOISE_API_KEY` (optional) - Greynoise API key
 * `WTFIS_DEFAULTS` (optional) - Default arguments
 
 Set these using your own method.
@@ -132,6 +156,13 @@ Shodan can be used to enrich the IP addresses (instead of IPWhois). Invoke with 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-shodan.png?raw=true)
 
 The `Services` field name is a hyperlink (if supported by the terminal) that takes you to the IP in the Shodan web interface.
+
+### Greynoise enrichment
+
+Greynoise is automatically included if the `GREYNOISE_API_KEY` is set - no need to set any flags.
+
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-greynoise.png?raw=true)
+
 
 ### Display options
 
@@ -195,9 +226,3 @@ Altenatively, you can set the environment variables yourself, then run, e.g.:
 ```
 $ docker run -e VT_API_KEY -e SHODAN_API_KEY -it wtfis
 ```
-
-## TODOs
-
-* Consider adding Greynoise enrichment (RIOT, etc.)
-* URL lookup
-* Keyring support
