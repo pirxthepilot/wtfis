@@ -13,6 +13,7 @@ POSSIBLE_ENV_VARS = [
     "PT_API_USER",
     "IP2WHOIS_API_KEY",
     "SHODAN_API_KEY",
+    "GREYNOISE_API_KEY",
     "WTFIS_DEFAULTS",
 ]
 
@@ -44,6 +45,7 @@ def fake_load_dotenv_1(tmp_path):
         "PT_API_USER": "baz@example.com",
         "IP2WHOIS_API_KEY": "alice",
         "SHODAN_API_KEY": "hunter2",
+        "GREYNOISE_API_KEY": "upupdowndown",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -63,6 +65,16 @@ def fake_load_dotenv_3(tmp_path):
     fake_env_vars = {
         "VT_API_KEY": "foo",
         "WTFIS_DEFAULTS": "--no-color",
+    }
+    return fake_load_dotenv(tmp_path, fake_env_vars)
+
+
+@pytest.fixture()
+def fake_load_dotenv_4(tmp_path):
+    fake_env_vars = {
+        "VT_API_KEY": "foo",
+        "GREYNOISE_API_KEY": "bar",
+        "WTFIS_DEFAULTS": "-g",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -159,6 +171,32 @@ class TestArgs:
         assert e.type == SystemExit
         assert e.value.code == 2
 
+    def test_greynoise_ok(self):
+        os.environ["GREYNOISE_API_KEY"] = "foo"
+        with patch("sys.argv", [
+            "main",
+            "www.example.com",
+            "-g",
+        ]):
+            args = parse_args()
+            assert args.use_greynoise is True
+        del os.environ["GREYNOISE_API_KEY"]
+
+    def test_greynoise_error(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            with patch("sys.argv", [
+                "main",
+                "www.example.com",
+                "-g",
+            ]):
+                parse_args()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == "usage: main [-h]\nmain: error: GREYNOISE_API_KEY is not set\n"
+        assert e.type == SystemExit
+        assert e.value.code == 2
+
 
 class TestEnvs:
     def test_env_file(self, fake_load_dotenv_1):
@@ -169,6 +207,7 @@ class TestEnvs:
             assert os.environ["PT_API_USER"] == "baz@example.com"
             assert os.environ["IP2WHOIS_API_KEY"] == "alice"
             assert os.environ["SHODAN_API_KEY"] == "hunter2"
+            assert os.environ["GREYNOISE_API_KEY"] == "upupdowndown"
         unset_env_vars()
 
     @patch("wtfis.main.load_dotenv", MagicMock())
@@ -240,4 +279,19 @@ class TestDefaults:
                 assert args.no_color is True
                 assert args.one_column is False
                 assert args.use_shodan is False
+        unset_env_vars()
+
+    def test_defaults_4(self, fake_load_dotenv_4):
+        with patch("wtfis.main.load_dotenv", fake_load_dotenv_4):
+            with patch("sys.argv", [
+                "main",
+                "1.1.1.1",
+            ]):
+                parse_env()
+                args = parse_args()
+                assert args.entity == "1.1.1.1"
+                assert args.no_color is False
+                assert args.one_column is False
+                assert args.use_shodan is False
+                assert args.use_greynoise is True
         unset_env_vars()
