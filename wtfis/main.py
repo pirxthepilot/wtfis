@@ -49,6 +49,7 @@ def parse_args() -> Namespace:
         default=DEFAULT_MAX_RESOLUTIONS
     )
     parser.add_argument("-s", "--use-shodan", help="Use Shodan to enrich IPs", action="store_true")
+    parser.add_argument("-g", "--use-greynoise", help="Enable Greynoise for IPs", action="store_true")
     parser.add_argument("-n", "--no-color", help="Show output without colors", action="store_true")
     parser.add_argument("-1", "--one-column", help="Display results in one column", action="store_true")
     parser.add_argument(
@@ -64,6 +65,8 @@ def parse_args() -> Namespace:
     for option in os.environ.get("WTFIS_DEFAULTS", "").split(" "):
         if option in ("-s", "--use-shodan"):
             parsed.use_shodan = not parsed.use_shodan
+        elif option in ("-g", "--use-greynoise"):
+            parsed.use_greynoise = not parsed.use_greynoise
         elif option in ("-n", "--no-color"):
             parsed.no_color = not parsed.no_color
         elif option in ("-1", "--one-column"):
@@ -74,6 +77,8 @@ def parse_args() -> Namespace:
         argparse.ArgumentParser().error("Maximum --max-resolutions value is 10")
     if parsed.use_shodan and not os.environ.get("SHODAN_API_KEY"):
         argparse.ArgumentParser().error("SHODAN_API_KEY is not set")
+    if parsed.use_greynoise and not os.environ.get("GREYNOISE_API_KEY"):
+        argparse.ArgumentParser().error("GREYNOISE_API_KEY is not set")
     if is_ip(parsed.entity) and parsed.max_resolutions != DEFAULT_MAX_RESOLUTIONS:
         argparse.ArgumentParser().error("--max-resolutions is not applicable to IPs")
 
@@ -118,9 +123,11 @@ def main():
             whois_client = vt_client
 
         # Greynoise client (optional)
-        greynoise_client = (GreynoiseClient(os.environ.get("GREYNOISE_API_KEY"))
-                            if os.environ.get("GREYNOISE_API_KEY")
-                            else None)
+        greynoise_client = (
+            GreynoiseClient(os.environ.get("GREYNOISE_API_KEY"))
+            if args.use_greynoise
+            else None
+        )
 
         # Domain / FQDN handler
         if not is_ip(args.entity):

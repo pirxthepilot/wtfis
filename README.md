@@ -159,7 +159,7 @@ The `Services` field name is a hyperlink (if supported by the terminal) that tak
 
 ### Greynoise enrichment
 
-Greynoise is automatically included if the `GREYNOISE_API_KEY` is set - no need to set any flags.
+To enable Greynoise, invoke with the `-g` or `--use-greynoise` flag. Because the API quota is quite low (50 requests per week as of March 2023), this lookup is off by default.
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-greynoise.png?raw=true)
 
