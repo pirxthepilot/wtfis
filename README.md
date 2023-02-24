@@ -101,6 +101,8 @@ In addition, the API also returns Greynoise's [classification](https://docs.grey
 $ pip install wtfis
 ```
 
+To install via `conda` (from conda-forge), see [wtfis-feedstock](https://github.com/conda-forge/wtfis-feedstock).
+
 
 ## Setup
 
@@ -122,7 +124,7 @@ Alternatively, create a file in your home directory `~/.env.wtfis` with the abov
 ## Usage
 
 ```
-usage: wtfis [-h] [-m N] [-s] [-n] [-1] [-V] entity
+usage: wtfis [-h] [-m N] [-s] [-g] [-n] [-1] [-V] entity
 
 positional arguments:
   entity                Hostname, domain or IP
@@ -132,6 +134,7 @@ optional arguments:
   -m N, --max-resolutions N
                         Maximum number of resolutions to show (default: 3)
   -s, --use-shodan      Use Shodan to enrich IPs
+  -g, --use-greynoise   Enable Greynoise for IPs
   -n, --no-color        Show output without colors
   -1, --one-column      Display results in one column
   -V, --version         Print version number

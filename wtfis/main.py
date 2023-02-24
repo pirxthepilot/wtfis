@@ -5,6 +5,8 @@ from argparse import Namespace
 from dotenv import load_dotenv
 from pathlib import Path
 from rich.console import Console
+from rich.progress import Progress
+from typing import Union
 
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
@@ -12,9 +14,12 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.virustotal import VTClient
+from wtfis.handlers.base import BaseHandler
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
+from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.utils import error_and_exit, is_ip
+from wtfis.ui.base import BaseView
 from wtfis.ui.progress import get_progress
 from wtfis.ui.view import DomainView, IpAddressView
 from wtfis.version import get_version
@@ -85,6 +90,99 @@ def parse_args() -> Namespace:
     return parsed
 
 
+def generate_entity_handler(
+    args: Namespace,
+    console: Console,
+    progress: Progress,
+) -> BaseHandler:
+    # Virustotal client
+    vt_client = VTClient(os.environ["VT_API_KEY"])
+
+    # IP enrichment client selector
+    enricher_client: Union[IpWhoisClient, ShodanClient] = (
+        ShodanClient(os.environ["SHODAN_API_KEY"])
+        if args.use_shodan
+        else IpWhoisClient()
+    )
+
+    # Whois client selector
+    # Order of use based on set envvars:
+    #    1. Passivetotal
+    #    2. IP2Whois (Domain only)
+    #    2. Virustotal (fallback)
+    if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
+        whois_client: Union[PTClient, Ip2WhoisClient, VTClient] = (
+            PTClient(os.environ["PT_API_USER"], os.environ["PT_API_KEY"])
+        )
+    elif os.environ.get("IP2WHOIS_API_KEY") and not is_ip(args.entity):
+        whois_client = Ip2WhoisClient(os.environ["IP2WHOIS_API_KEY"])
+    else:
+        whois_client = vt_client
+
+    # Greynoise client (optional)
+    greynoise_client = (
+        GreynoiseClient(os.environ["GREYNOISE_API_KEY"])
+        if args.use_greynoise
+        else None
+    )
+
+    # Domain / FQDN handler
+    if not is_ip(args.entity):
+        entity: BaseHandler = DomainHandler(
+            entity=args.entity,
+            console=console,
+            progress=progress,
+            vt_client=vt_client,
+            ip_enricher_client=enricher_client,
+            whois_client=whois_client,
+            greynoise_client=greynoise_client,
+            max_resolutions=args.max_resolutions,
+        )
+    # IP address handler
+    else:
+        entity = IpAddressHandler(
+            entity=args.entity,
+            console=console,
+            progress=progress,
+            vt_client=vt_client,
+            ip_enricher_client=enricher_client,
+            whois_client=whois_client,
+            greynoise_client=greynoise_client,
+        )
+
+    return entity
+
+
+def generate_view(
+    args: Namespace,
+    console: Console,
+    entity: BaseHandler,
+) -> BaseView:
+    # Output display
+    if isinstance(entity, DomainHandler) and isinstance(entity.vt_info, Domain):
+        view: BaseView = DomainView(
+            console,
+            entity.vt_info,
+            entity.resolutions,
+            entity.whois,
+            entity.ip_enrich,
+            entity.greynoise,
+            max_resolutions=args.max_resolutions,
+        )
+    elif isinstance(entity, IpAddressHandler) and isinstance(entity.vt_info, IpAddress):
+        view = IpAddressView(
+            console,
+            entity.vt_info,
+            entity.whois,
+            entity.ip_enrich,
+            entity.greynoise,
+        )
+    else:
+        raise Exception("Unsupported entity!")
+
+    return view
+
+
 def main():
     # Load environment variables
     parse_env()
@@ -98,84 +196,18 @@ def main():
     # Progress animation controller
     progress = get_progress(console)
 
+    # Entity handler
+    entity = generate_entity_handler(args, console, progress)
+
     # Fetch data
     with progress:
-        # Virustotal client
-        vt_client = VTClient(os.environ.get("VT_API_KEY"))
-
-        # IP enrichment client selector
-        enricher_client = (
-            ShodanClient(os.environ.get("SHODAN_API_KEY"))
-            if args.use_shodan
-            else IpWhoisClient()
-        )
-
-        # Whois client selector
-        # Order of use based on set envvars:
-        #    1. Passivetotal
-        #    2. IP2Whois (Domain only)
-        #    2. Virustotal (fallback)
-        if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
-            whois_client = PTClient(os.environ.get("PT_API_USER"), os.environ.get("PT_API_KEY"))
-        elif os.environ.get("IP2WHOIS_API_KEY") and not is_ip(args.entity):
-            whois_client = Ip2WhoisClient(os.environ.get("IP2WHOIS_API_KEY"))
-        else:
-            whois_client = vt_client
-
-        # Greynoise client (optional)
-        greynoise_client = (
-            GreynoiseClient(os.environ.get("GREYNOISE_API_KEY"))
-            if args.use_greynoise
-            else None
-        )
-
-        # Domain / FQDN handler
-        if not is_ip(args.entity):
-            entity = DomainHandler(
-                entity=args.entity,
-                console=console,
-                progress=progress,
-                vt_client=vt_client,
-                ip_enricher_client=enricher_client,
-                whois_client=whois_client,
-                greynoise_client=greynoise_client,
-                max_resolutions=args.max_resolutions,
-            )
-        # IP address handler
-        else:
-            entity = IpAddressHandler(
-                entity=args.entity,
-                console=console,
-                progress=progress,
-                vt_client=vt_client,
-                ip_enricher_client=enricher_client,
-                whois_client=whois_client,
-                greynoise_client=greynoise_client,
-            )
-
-        # Data fetching proper
         entity.fetch_data()
 
-    # Print warnings, if any
+    # Print fetch warnings, if any
     entity.print_warnings()
 
     # Output display
-    if isinstance(entity, DomainHandler):
-        view = DomainView(
-            console,
-            entity.vt_info,
-            entity.resolutions,
-            entity.whois,
-            entity.ip_enrich,
-            entity.greynoise,
-            max_resolutions=args.max_resolutions,
-        )
-    else:
-        view = IpAddressView(
-            console,
-            entity.vt_info,
-            entity.whois,
-            entity.ip_enrich,
-            entity.greynoise,
-        )
+    view = generate_view(args, console, entity)
+
+    # Finally, print output
     view.print(one_column=args.one_column)

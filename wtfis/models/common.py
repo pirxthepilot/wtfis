@@ -1,7 +1,7 @@
 import abc
 
 from pydantic import BaseModel
-from typing import List, Optional, TypeVar
+from typing import List, Optional
 
 
 class WhoisBase(BaseModel, abc.ABC):
@@ -23,6 +23,3 @@ class WhoisBase(BaseModel, abc.ABC):
     date_changed: Optional[str]
     date_expires: Optional[str]
     dnssec: Optional[str]
-
-
-WhoisType = TypeVar("WhoisType", bound=WhoisBase)

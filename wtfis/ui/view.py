@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.text import Text
 from typing import List, Optional, Tuple, Union
 
-from wtfis.models.common import WhoisType
+from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
@@ -31,7 +31,7 @@ class DomainView(BaseView):
         console: Console,
         entity: Domain,
         resolutions: Optional[Resolutions],
-        whois: WhoisType,
+        whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
         max_resolutions: int = 3,
@@ -196,7 +196,7 @@ class IpAddressView(BaseView):
         self,
         console: Console,
         entity: IpAddress,
-        whois: WhoisType,
+        whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
     ) -> None:

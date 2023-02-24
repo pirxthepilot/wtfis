@@ -11,7 +11,7 @@ from rich.table import Table
 from rich.text import Text
 from typing import Any, Generator, List, Optional, Tuple, Union
 
-from wtfis.models.common import WhoisType
+from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
@@ -36,7 +36,7 @@ class BaseView(abc.ABC):
         self,
         console: Console,
         entity: Any,
-        whois: Optional[WhoisType],
+        whois: Optional[WhoisBase],
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
     ) -> None:
