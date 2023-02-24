@@ -38,8 +38,6 @@ def common_exception_handler(func: Callable) -> Callable:
 
 
 class BaseHandler(abc.ABC):
-    # whois: WhoisBase
-
     def __init__(
         self,
         entity: str,

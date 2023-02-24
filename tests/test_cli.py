@@ -2,9 +2,31 @@ import os
 import pytest
 from dotenv import load_dotenv
 from pathlib import Path
+from rich.console import Console
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TimeElapsedColumn,
+    TextColumn,
+)
 from unittest.mock import patch, MagicMock
 
-from wtfis.main import parse_args, parse_env
+from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2whois import Ip2WhoisClient
+from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.passivetotal import PTClient
+from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.virustotal import VTClient
+from wtfis.handlers.domain import DomainHandler
+from wtfis.handlers.ip import IpAddressHandler
+from wtfis.main import (
+    generate_entity_handler,
+    main,
+    parse_args,
+    parse_env,
+)
 
 
 POSSIBLE_ENV_VARS = [
@@ -35,6 +57,17 @@ def fake_load_dotenv(tmp_path, fake_env_vars):
         load_dotenv(path)
 
     return fake
+
+
+def simulate_progress(console):
+    return Progress(
+        SpinnerColumn(finished_text="[green]✓"),
+        TextColumn("[bold]{task.description}"),
+        BarColumn(),
+        TaskProgressColumn(),
+        TimeElapsedColumn(),
+        console=console,
+    )
 
 
 @pytest.fixture()
@@ -75,6 +108,23 @@ def fake_load_dotenv_4(tmp_path):
         "VT_API_KEY": "foo",
         "GREYNOISE_API_KEY": "bar",
         "WTFIS_DEFAULTS": "-g",
+    }
+    return fake_load_dotenv(tmp_path, fake_env_vars)
+
+
+@pytest.fixture()
+def fake_load_dotenv_vt_whois(tmp_path):
+    fake_env_vars = {
+        "VT_API_KEY": "foo",
+    }
+    return fake_load_dotenv(tmp_path, fake_env_vars)
+
+
+@pytest.fixture()
+def fake_load_dotenv_ip2whois(tmp_path):
+    fake_env_vars = {
+        "VT_API_KEY": "foo",
+        "IP2WHOIS_API_KEY": "alice",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -248,6 +298,7 @@ class TestDefaults:
                 assert args.no_color is False
                 assert args.one_column is True
                 assert args.use_shodan is True
+                assert args.use_greynoise is False
         unset_env_vars()
 
     def test_defaults_2(self, fake_load_dotenv_2):
@@ -264,6 +315,7 @@ class TestDefaults:
                 assert args.no_color is False
                 assert args.one_column is True
                 assert args.use_shodan is False
+                assert args.use_greynoise is False
         unset_env_vars()
 
     def test_defaults_3(self, fake_load_dotenv_3):
@@ -279,6 +331,7 @@ class TestDefaults:
                 assert args.no_color is True
                 assert args.one_column is False
                 assert args.use_shodan is False
+                assert args.use_greynoise is False
         unset_env_vars()
 
     def test_defaults_4(self, fake_load_dotenv_4):
@@ -294,4 +347,102 @@ class TestDefaults:
                 assert args.one_column is False
                 assert args.use_shodan is False
                 assert args.use_greynoise is True
+        unset_env_vars()
+
+
+class TestGenEntityHandler:
+    """ Tests for the generate_entity_handler function """
+    @patch("sys.argv", ["main", "www.example[.]com"])
+    def test_handler_domain_1(self, fake_load_dotenv_1):
+        """ Domain with default params """
+        with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
+            parse_env()
+            console = Console()
+            progress = simulate_progress(console),
+            entity = generate_entity_handler(parse_args(), console, progress)
+        assert isinstance(entity, DomainHandler)
+        assert entity.entity == "www.example.com"
+        assert entity.max_resolutions == 3
+        assert entity.console == console
+        assert entity.progress == progress
+        assert isinstance(entity._vt, VTClient)
+        assert isinstance(entity._enricher, IpWhoisClient)
+        assert isinstance(entity._whois, PTClient)
+        assert entity._greynoise is None
+        unset_env_vars()
+
+    @patch("sys.argv", ["main", "www.example[.]com", "-s", "-g", "-m", "5"])
+    def test_handler_domain_2(self, fake_load_dotenv_1):
+        """ Domain with Shodan and Greynoise and non-default max_resolutions """
+        with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
+            parse_env()
+            console = Console()
+            progress = simulate_progress(console),
+            entity = generate_entity_handler(parse_args(), console, progress)
+        assert entity.max_resolutions == 5
+        assert isinstance(entity._enricher, ShodanClient)
+        assert isinstance(entity._whois, PTClient)
+        assert isinstance(entity._greynoise, GreynoiseClient)
+        unset_env_vars()
+
+    @patch("sys.argv", ["main", "www.example[.]com"])
+    def test_handler_domain_3(self, fake_load_dotenv_vt_whois):
+        """ Domain using default Ip2Whois for whois """
+        with patch("wtfis.main.load_dotenv", fake_load_dotenv_vt_whois):
+            parse_env()
+            console = Console()
+            progress = simulate_progress(console),
+            entity = generate_entity_handler(parse_args(), console, progress)
+        assert isinstance(entity._whois, VTClient)
+        unset_env_vars()
+
+    @patch("sys.argv", ["main", "www.example[.]com"])
+    def test_handler_domain_4(self, fake_load_dotenv_ip2whois):
+        """ Domain using default Ip2Whois for whois """
+        with patch("wtfis.main.load_dotenv", fake_load_dotenv_ip2whois):
+            parse_env()
+            console = Console()
+            progress = simulate_progress(console),
+            entity = generate_entity_handler(parse_args(), console, progress)
+        assert isinstance(entity._whois, Ip2WhoisClient)
+        unset_env_vars()
+
+    @patch("sys.argv", ["main", "1[.]1[.]1[.]1"])
+    def test_handler_ip_1(self, fake_load_dotenv_1):
+        """ IP with default params """
+        with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
+            parse_env()
+            console = Console()
+            progress = simulate_progress(console),
+            entity = generate_entity_handler(parse_args(), console, progress)
+        assert isinstance(entity, IpAddressHandler)
+        assert entity.entity == "1.1.1.1"
+        assert entity.console == console
+        assert entity.progress == progress
+        assert isinstance(entity._vt, VTClient)
+        assert isinstance(entity._enricher, IpWhoisClient)
+        assert isinstance(entity._whois, PTClient)
+        assert entity._greynoise is None
+        unset_env_vars()
+
+
+class TestMain:
+    @patch("sys.argv", ["main", "www.example.com"])
+    @patch("wtfis.main.Console", return_value=Console())
+    @patch("wtfis.main.parse_args")
+    @patch("wtfis.main.get_progress")
+    @patch("wtfis.main.generate_entity_handler", return_value=MagicMock())
+    @patch("wtfis.main.generate_view", return_value=MagicMock())
+    def test_main_default(self, m_view, m_handler, m_progress, m_args, m_console, fake_load_dotenv_1):
+        """ Test all calls with default values """
+        m_args.return_value = parse_args()
+        m_progress.return_value = simulate_progress(m_console())
+        with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
+            main()
+        m_args.assert_called_once_with()
+        m_handler.assert_called_once_with(m_args(), m_console(), m_progress())
+        m_handler().fetch_data.assert_called_once_with()
+        m_handler().print_warnings.assert_called_once_with()
+        m_view.assert_called_once_with(m_args(), m_console(), m_handler())
+        m_view().print.assert_called_once_with(one_column=False)
         unset_env_vars()
