@@ -1,3 +1,4 @@
+import json
 import os
 import pytest
 from dotenv import load_dotenv
@@ -23,10 +24,13 @@ from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
 from wtfis.main import (
     generate_entity_handler,
+    generate_view,
     main,
     parse_args,
     parse_env,
 )
+from wtfis.models.virustotal import Domain, IpAddress
+from wtfis.ui.view import DomainView, IpAddressView
 
 
 POSSIBLE_ENV_VARS = [
@@ -424,6 +428,50 @@ class TestGenEntityHandler:
         assert isinstance(entity._whois, PTClient)
         assert entity._greynoise is None
         unset_env_vars()
+
+
+class TestGenView:
+    """ Tests for the generate_view function """
+    @patch("wtfis.main.DomainView", return_value=MagicMock(spec=DomainView))
+    def test_view_domain_1(self, m_domain_view, test_data):
+        """ Domain view with default params """
+        entity = DomainHandler(
+            entity=MagicMock(),
+            console=MagicMock(),
+            progress=MagicMock(),
+            vt_client=MagicMock(),
+            ip_enricher_client=MagicMock(),
+            whois_client=MagicMock(),
+            greynoise_client=MagicMock(),
+        )
+        entity.vt_info = Domain.parse_obj(json.loads(test_data("vt_domain_gist.json")))
+        entity.whois = MagicMock()
+        entity.ip_enrich = MagicMock()
+        view = generate_view(MagicMock(), MagicMock(), entity)
+        assert isinstance(view, DomainView)
+
+    @patch("wtfis.main.IpAddressView", return_value=MagicMock(spec=IpAddressView))
+    def test_view_ip_1(self, m_ip_view, test_data):
+        """ IP address view with default params """
+        entity = IpAddressHandler(
+            entity=MagicMock(),
+            console=MagicMock(),
+            progress=MagicMock(),
+            vt_client=MagicMock(),
+            ip_enricher_client=MagicMock(),
+            whois_client=MagicMock(),
+            greynoise_client=MagicMock(),
+        )
+        entity.vt_info = IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json")))
+        entity.whois = MagicMock()
+        entity.ip_enrich = MagicMock()
+        view = generate_view(MagicMock(), MagicMock(), entity)
+        assert isinstance(view, IpAddressView)
+
+    def test_view_error(self):
+        """ IP address view with default params """
+        with pytest.raises(Exception):
+            generate_view(MagicMock(), MagicMock(), "foobar")
 
 
 class TestMain:
