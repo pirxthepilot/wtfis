@@ -59,6 +59,8 @@ disable = true
 # Hatch default env
 [tool.hatch.envs.default]
 dependencies = [
+    "bandit",
+    "flake8>=6.0.0",
     "freezegun",
     "mypy",
     "pytest",
@@ -81,7 +83,7 @@ python = ["38", "39", "310"]
 # Hatch lint env
 [tool.hatch.envs.lint]
 detached = true
-dependencies = [
+dependencies = [  # Make sure the respective versions are synced with default!
     "bandit",
     "flake8>=6.0.0",
 ]
