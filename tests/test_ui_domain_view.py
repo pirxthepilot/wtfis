@@ -25,7 +25,7 @@ from wtfis.ui.view import DomainView
 @pytest.fixture()
 def view01(test_data, mock_ipwhois_get):
     """ gist.github.com with PT whois. Complete test of all panels. Also test print(). """
-    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
     ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
     ipwhois_client = IpWhoisClient()
@@ -34,11 +34,11 @@ def view01(test_data, mock_ipwhois_get):
 
     return DomainView(
         console=Console(),
-        entity=Domain.parse_obj(json.loads(test_data("vt_domain_gist.json"))),
+        entity=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
         resolutions=resolutions,
-        whois=PTWhois.parse_obj(json.loads(test_data("pt_whois_gist.json"))),
+        whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
         ip_enrich=ip_enrich,
-        greynoise=GreynoiseIpMap(__root__={}),
+        greynoise=GreynoiseIpMap.model_validate({}),
     )
 
 
@@ -51,10 +51,10 @@ def view02(test_data):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
-        resolutions=Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json"))),
-        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_gist.json"))),
-        ip_enrich=IpWhoisMap(__root__={}),
-        greynoise=GreynoiseIpMap(__root__={}),
+        resolutions=Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json"))),
+        whois=VTWhois.model_validate(json.loads(test_data("vt_whois_gist.json"))),
+        ip_enrich=IpWhoisMap.model_validate({}),
+        greynoise=GreynoiseIpMap.model_validate({}),
         max_resolutions=1,
     )
 
@@ -66,7 +66,7 @@ def view03(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
-        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_bbc.json"))),
+        whois=VTWhois.model_validate(json.loads(test_data("vt_whois_bbc.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
     )
@@ -80,7 +80,7 @@ def view04(test_data):
     """
     return DomainView(
         console=Console(),
-        entity=Domain.parse_obj(json.loads(test_data("vt_domain_google.json"))),
+        entity=Domain.model_validate(json.loads(test_data("vt_domain_google.json"))),
         resolutions=None,
         whois=MagicMock(),
         ip_enrich=MagicMock(),
@@ -93,7 +93,7 @@ def view05(test_data):
     """ tucows.com domain. Domain test only. Test domain with negative reputation and no popularity."""
     return DomainView(
         console=Console(),
-        entity=Domain.parse_obj(json.loads(test_data("vt_domain_tucows.json"))),
+        entity=Domain.model_validate(json.loads(test_data("vt_domain_tucows.json"))),
         resolutions=MagicMock(),
         whois=MagicMock(),
         ip_enrich=MagicMock(),
@@ -108,7 +108,7 @@ def view06(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
-        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_example_2.json"))),
+        whois=VTWhois.model_validate(json.loads(test_data("vt_whois_example_2.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
     )
@@ -117,7 +117,7 @@ def view06(test_data):
 @pytest.fixture()
 def view07(test_data, mock_shodan_get_ip):
     """ gist.github.com with Shodan. Only test resolution and IP enrich. """
-    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
     shodan_pool = json.loads(test_data("shodan_gist.json"))
     shodan_client = ShodanClient(MagicMock())
@@ -130,14 +130,14 @@ def view07(test_data, mock_shodan_get_ip):
         resolutions=resolutions,
         whois=MagicMock(),
         ip_enrich=ip_enrich,
-        greynoise=GreynoiseIpMap(__root__={}),
+        greynoise=GreynoiseIpMap.model_validate({}),
     )
 
 
 @pytest.fixture()
 def view08(test_data, mock_shodan_get_ip):
     """ www.wired.com with Shodan. Only test resolution and IP enrich. """
-    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_wired.json")))
+    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_wired.json")))
 
     shodan_pool = json.loads(test_data("shodan_wired.json"))
     shodan_client = ShodanClient(MagicMock())
@@ -150,7 +150,7 @@ def view08(test_data, mock_shodan_get_ip):
         resolutions=resolutions,
         whois=MagicMock(),
         ip_enrich=ip_enrich,
-        greynoise=GreynoiseIpMap(__root__={}),
+        greynoise=GreynoiseIpMap.model_validate({}),
         max_resolutions=1,
     )
 
@@ -158,7 +158,7 @@ def view08(test_data, mock_shodan_get_ip):
 @pytest.fixture()
 def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
     """ one.one.one.one with Shodan. Only test resolution and IP enrich. """
-    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_one.json")))
+    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_one.json")))
 
     shodan_pool = json.loads(test_data("shodan_one.json"))
     shodan_client = ShodanClient(MagicMock())
@@ -188,16 +188,16 @@ def view10(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
-        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_foo.json"))),
+        whois=VTWhois.model_validate(json.loads(test_data("vt_whois_foo.json"))),
         ip_enrich=MagicMock(),
-        greynoise=GreynoiseIpMap(__root__={}),
+        greynoise=GreynoiseIpMap.model_validate({}),
     )
 
 
 @pytest.fixture()
 def view11(test_data, mock_shodan_get_ip):
     """ gist.github.com with Shodan. Only test IP enrich. Test empty open ports. """
-    resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
     shodan_pool = json.loads(test_data("shodan_gist_2.json"))
     shodan_client = ShodanClient(MagicMock())
@@ -210,7 +210,7 @@ def view11(test_data, mock_shodan_get_ip):
         resolutions=resolutions,
         whois=MagicMock(),
         ip_enrich=ip_enrich,
-        greynoise=GreynoiseIpMap(__root__={}),
+        greynoise=GreynoiseIpMap.model_validate({}),
     )
 
 
@@ -221,7 +221,7 @@ def view12(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
-        whois=Ip2Whois.parse_obj(json.loads(test_data("ip2whois_whois_hotmail.json"))),
+        whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_hotmail.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
     )
@@ -234,7 +234,7 @@ def view13(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
-        whois=Ip2Whois.parse_obj(json.loads(test_data("ip2whois_whois_bbc.json"))),
+        whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_bbc.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
     )

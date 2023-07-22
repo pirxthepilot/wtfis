@@ -57,7 +57,7 @@ class TestDomainHandler:
     def test_fetch_data_1(self, domain_handler, test_data):
         """ Test with max_resolutions = 3 (default) """
         handler = domain_handler()
-        handler.resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
         handler._fetch_vt_domain = MagicMock()
         handler._fetch_vt_resolutions = MagicMock()
@@ -135,9 +135,9 @@ class TestDomainHandler:
 
             capture = capsys.readouterr()
 
-            assert capture.err == (
+            assert capture.err.startswith(
                 "Data model validation error: 1 validation error for Domain\ndata\n"
-                "  field required (type=value_error.missing)\n"
+                "  Field required [type=missing, input_value={'intentionally': 'wrong data'}, input_type=dict]\n"
             )
             assert e.type == SystemExit
             assert e.value.code == 1
@@ -150,7 +150,7 @@ class TestDomainHandler:
     @patch.object(requests.Session, "get")
     def test_ipwhois_http_error(self, mock_requests_get, domain_handler, capsys, test_data):
         handler = domain_handler()
-        handler.resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
         mock_resp = requests.models.Response()
 
@@ -231,7 +231,7 @@ class TestDomainHandler:
         mock_resp.status_code = 429
         mock_requests_get.return_value = mock_resp
 
-        handler.resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
         handler._fetch_greynoise()
         assert handler.warnings[0].startswith("Could not fetch Greynoise: 429 Client Error:")
@@ -248,14 +248,14 @@ class TestDomainHandler:
         handler = domain_handler(3)
         mock_resp = requests.models.Response()
 
-        handler.resolutions = Resolutions.parse_obj(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
         mock_resp.status_code = 404
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_greynoise()
         assert len(handler.warnings) == 0
-        assert handler.greynoise == GreynoiseIpMap(__root__={})
+        assert handler.greynoise == GreynoiseIpMap.model_validate({})
 
 
 class TestIpAddressHandler:
@@ -310,9 +310,9 @@ class TestIpAddressHandler:
 
             capture = capsys.readouterr()
 
-            assert capture.err == (
+            assert capture.err.startswith(
                 "Data model validation error: 1 validation error for IpAddress\ndata\n"
-                "  field required (type=value_error.missing)\n"
+                "  Field required [type=missing, input_value={'intentionally': 'wrong data'}, input_type=dict]\n"
             )
             assert e.type == SystemExit
             assert e.value.code == 1
@@ -403,4 +403,4 @@ class TestIpAddressHandler:
 
         handler._fetch_greynoise()
         assert len(handler.warnings) == 0
-        assert handler.greynoise == GreynoiseIpMap(__root__={})
+        assert handler.greynoise == GreynoiseIpMap.model_validate({})

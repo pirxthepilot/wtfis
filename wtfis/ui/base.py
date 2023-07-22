@@ -49,7 +49,7 @@ class BaseView(abc.ABC):
 
     def _vendors_who_flagged_malicious(self) -> List[str]:
         vendors = []
-        for key, result in self.entity.data.attributes.last_analysis_results.__root__.items():
+        for key, result in self.entity.data.attributes.last_analysis_results.root.items():
             if result.category == "malicious":
                 vendors.append(key)
         return vendors
@@ -130,16 +130,16 @@ class BaseView(abc.ABC):
         return Text(str(reputation), style=rep_style(reputation))
 
     def _gen_vt_popularity(self, popularity_ranks: PopularityRanks) -> Optional[Text]:
-        if len(popularity_ranks.__root__) == 0:
+        if len(popularity_ranks.root) == 0:
             return None
 
         text = Text()
-        for source, popularity in popularity_ranks.__root__.items():
+        for source, popularity in popularity_ranks.root.items():
             text.append(source, style=self.theme.popularity_source)
             text.append(" (")
             text.append(str(popularity.rank), style=self.theme.inline_stat)
             text.append(")")
-            if source != list(popularity_ranks.__root__.keys())[-1]:
+            if source != list(popularity_ranks.root.keys())[-1]:
                 text.append("\n")
         return text
 
@@ -245,10 +245,10 @@ class BaseView(abc.ABC):
         return text
 
     def _get_ip_enrichment(self, ip: str) -> Optional[Union[IpWhois, ShodanIp]]:
-        return self.ip_enrich.__root__[ip] if ip in self.ip_enrich.__root__.keys() else None
+        return self.ip_enrich.root[ip] if ip in self.ip_enrich.root.keys() else None
 
     def _get_greynoise_enrichment(self, ip: str) -> Optional[GreynoiseIp]:
-        return self.greynoise.__root__[ip] if ip in self.greynoise.__root__.keys() else None
+        return self.greynoise.root[ip] if ip in self.greynoise.root.keys() else None
 
     def whois_panel(self) -> Optional[Panel]:
         # Do nothing if no whois

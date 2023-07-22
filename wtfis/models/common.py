@@ -1,25 +1,29 @@
 import abc
 
-from pydantic import BaseModel
-from typing import List, Optional
+from pydantic import BaseModel, BeforeValidator
+from pydantic.v1.validators import str_validator
+from typing import Annotated, List, Optional
+
+
+LaxStr = Annotated[str, BeforeValidator(str_validator)]
 
 
 class WhoisBase(BaseModel, abc.ABC):
     """ Use to normalize WHOIS fields from different sources """
-    source: Optional[str]
-    domain: Optional[str]
-    registrar: Optional[str]
-    organization: Optional[str]
-    name: Optional[str]
-    email: Optional[str]
-    phone: Optional[str]
-    street: Optional[str]
-    city: Optional[str]
-    state: Optional[str]
-    country: Optional[str]
-    postal_code: Optional[str]
+    source: Optional[str] = None
+    domain: Optional[str] = None
+    registrar: Optional[str] = None
+    organization: Optional[str] = None
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    street: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = None
     name_servers: List[str] = []
-    date_created: Optional[str]
-    date_changed: Optional[str]
-    date_expires: Optional[str]
-    dnssec: Optional[str]
+    date_created: Optional[str] = None
+    date_changed: Optional[str] = None
+    date_expires: Optional[str] = None
+    dnssec: Optional[str] = None

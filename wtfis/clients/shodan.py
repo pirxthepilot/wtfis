@@ -19,7 +19,7 @@ class ShodanClient:
 
     def get_ip(self, ip: str) -> Optional[ShodanIp]:
         try:
-            return ShodanIp.parse_obj(self.s.host(ip, minify=False))
+            return ShodanIp.model_validate(self.s.host(ip, minify=False))
         except APIError as e:
             if str(e) == "Invalid API key":
                 raise APIError("Invalid Shodan API key")
@@ -38,11 +38,11 @@ class ShodanClient:
             ip_data = self.get_ip(ip.attributes.ip_address)
             if ip_data:
                 shodan_map[ip_data.ip_str] = ip_data
-        return ShodanIpMap(__root__=shodan_map)
+        return ShodanIpMap.model_validate(shodan_map)
 
     def single_get_ip(self, ip: str) -> ShodanIpMap:
         shodan_map = {}
         ip_data = self.get_ip(ip)
         if ip_data:
             shodan_map[ip] = ip_data
-        return ShodanIpMap(__root__=shodan_map)
+        return ShodanIpMap.model_validate(shodan_map)

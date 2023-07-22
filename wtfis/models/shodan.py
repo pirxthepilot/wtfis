@@ -1,28 +1,30 @@
 from collections import defaultdict, namedtuple
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 from typing import Dict, List, Optional
+
+from wtfis.models.common import LaxStr
 
 
 class PortData(BaseModel):
     port: int
-    product: Optional[str]
+    product: Optional[str] = None
     transport: str
 
 
 class ShodanIp(BaseModel):
-    asn: Optional[str]
-    city: Optional[str]
+    asn: Optional[LaxStr] = None
+    city: Optional[str] = None
     country_code: str
     country_name: str
     data: List[PortData]
     ip_str: str
-    isp: Optional[str]
+    isp: Optional[str] = None
     last_update: str
-    org: Optional[str]
-    os: Optional[str]
-    ports: Optional[List[int]]
-    region_name: Optional[str]
-    tags: Optional[List[str]]
+    org: Optional[str] = None
+    os: Optional[str] = None
+    ports: Optional[List[int]] = None
+    region_name: Optional[str] = None
+    tags: Optional[List[str]] = None
 
     def group_ports_by_product(self) -> dict:
         PortProtocol = namedtuple("PortProtocol", "port transport")
@@ -39,5 +41,5 @@ class ShodanIp(BaseModel):
         return result
 
 
-class ShodanIpMap(BaseModel):
-    __root__: Dict[str, ShodanIp]
+class ShodanIpMap(RootModel):
+    root: Dict[str, ShodanIp]

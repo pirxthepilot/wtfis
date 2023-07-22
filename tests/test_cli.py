@@ -444,7 +444,7 @@ class TestGenView:
             whois_client=MagicMock(),
             greynoise_client=MagicMock(),
         )
-        entity.vt_info = Domain.parse_obj(json.loads(test_data("vt_domain_gist.json")))
+        entity.vt_info = Domain.model_validate(json.loads(test_data("vt_domain_gist.json")))
         entity.whois = MagicMock()
         entity.ip_enrich = MagicMock()
         view = generate_view(MagicMock(), MagicMock(), entity)
@@ -462,7 +462,7 @@ class TestGenView:
             whois_client=MagicMock(),
             greynoise_client=MagicMock(),
         )
-        entity.vt_info = IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json")))
+        entity.vt_info = IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json")))
         entity.whois = MagicMock()
         entity.ip_enrich = MagicMock()
         view = generate_view(MagicMock(), MagicMock(), entity)

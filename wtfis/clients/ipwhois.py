@@ -13,7 +13,7 @@ class IpWhoisClient(BaseClient):
 
     def get_ipwhois(self, ip: str) -> Optional[IpWhois]:
         result = self._get(f"/{ip}")
-        return IpWhois.parse_obj(result) if result.get("success") is True else None
+        return IpWhois.model_validate(result) if result.get("success") is True else None
 
     @property
     def name(self) -> str:
@@ -31,11 +31,11 @@ class IpWhoisClient(BaseClient):
             ipwhois = self.get_ipwhois(ip.attributes.ip_address)
             if ipwhois:
                 ipwhois_map[ipwhois.ip] = ipwhois
-        return IpWhoisMap(__root__=ipwhois_map)
+        return IpWhoisMap.model_validate(ipwhois_map)
 
     def single_get_ip(self, ip: str) -> IpWhoisMap:
         ipwhois_map = {}
         ipwhois = self.get_ipwhois(ip)
         if ipwhois:
             ipwhois_map[ip] = ipwhois
-        return IpWhoisMap(__root__=ipwhois_map)
+        return IpWhoisMap.model_validate(ipwhois_map)
