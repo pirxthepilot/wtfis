@@ -78,7 +78,7 @@ test-all = [
 
 # Hatch test env
 [[tool.hatch.envs.test.matrix]]
-python = ["38", "39", "310"]
+python = ["38", "39", "310", "311"]
 
 # Hatch lint env
 [tool.hatch.envs.lint]

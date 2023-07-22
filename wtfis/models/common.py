@@ -1,8 +1,14 @@
 import abc
+import sys
 
 from pydantic import BaseModel, BeforeValidator
 from pydantic.v1.validators import str_validator
-from typing import Annotated, List, Optional
+from typing import List, Optional
+
+if sys.version_info >= (3, 9):
+    from typing import Annotated
+else:
+    from typing_extensions import Annotated
 
 
 LaxStr = Annotated[str, BeforeValidator(str_validator)]
