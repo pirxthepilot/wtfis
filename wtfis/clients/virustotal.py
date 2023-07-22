@@ -26,19 +26,19 @@ class VTClient(BaseClient):
         return "Virustotal"
 
     def get_domain(self, domain: str) -> Domain:
-        return Domain.parse_obj(self._get(f"/domains/{domain}"))
+        return Domain.model_validate(self._get(f"/domains/{domain}"))
 
     def get_domain_resolutions(self, domain: str) -> Resolutions:
-        return Resolutions.parse_obj(self._get(f"/domains/{domain}/resolutions"))
+        return Resolutions.model_validate(self._get(f"/domains/{domain}/resolutions"))
 
     def get_domain_whois(self, domain: str) -> Whois:
-        return Whois.parse_obj(self._get(f"/domains/{domain}/historical_whois"))
+        return Whois.model_validate(self._get(f"/domains/{domain}/historical_whois"))
 
     def get_ip_address(self, ip: str) -> IpAddress:
-        return IpAddress.parse_obj(self._get(f"/ip_addresses/{ip}"))
+        return IpAddress.model_validate(self._get(f"/ip_addresses/{ip}"))
 
     def get_ip_whois(self, ip: str) -> Whois:
-        return Whois.parse_obj(self._get(f"/ip_addresses/{ip}/historical_whois"))
+        return Whois.model_validate(self._get(f"/ip_addresses/{ip}/historical_whois"))
 
     def get_whois(self, entity: str) -> Whois:
         """ Generalized for domain and IP """

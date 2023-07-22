@@ -36,8 +36,8 @@ def view01(test_data, mock_ipwhois_get, mock_greynoise_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
-        whois=PTWhois.parse_obj(json.loads(test_data("pt_whois_1.1.1.1.json"))),
+        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        whois=PTWhois.model_validate(json.loads(test_data("pt_whois_1.1.1.1.json"))),
         ip_enrich=ip_enrich,
         greynoise=greynoise_enrich,
     )
@@ -59,7 +59,7 @@ def view02(test_data, mock_shodan_get_ip, mock_greynoise_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=greynoise_enrich,
@@ -72,7 +72,7 @@ def view03(test_data):
     return IpAddressView(
         console=Console(),
         entity=MagicMock(),
-        whois=VTWhois.parse_obj(json.loads(test_data("vt_whois_1.1.1.1.json"))),
+        whois=VTWhois.model_validate(json.loads(test_data("vt_whois_1.1.1.1.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
     )
@@ -86,10 +86,10 @@ def view04(test_data):
     """
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_142.251.220.110.json"))),
+        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_142.251.220.110.json"))),
         whois=MagicMock(),
-        ip_enrich=IpWhoisMap(__root__={}),
-        greynoise=GreynoiseIpMap(__root__={}),
+        ip_enrich=IpWhoisMap.model_validate({}),
+        greynoise=GreynoiseIpMap.model_validate({}),
     )
 
 
@@ -104,9 +104,9 @@ def view05(test_data, mock_greynoise_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         whois=MagicMock(),
-        ip_enrich=IpWhoisMap(__root__={}),
+        ip_enrich=IpWhoisMap.model_validate({}),
         greynoise=greynoise_enrich,
     )
 
@@ -122,9 +122,9 @@ def view06(test_data, mock_greynoise_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.parse_obj(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         whois=MagicMock(),
-        ip_enrich=IpWhoisMap(__root__={}),
+        ip_enrich=IpWhoisMap.model_validate({}),
         greynoise=greynoise_enrich,
     )
 

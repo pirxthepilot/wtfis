@@ -1,5 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, RootModel
 from typing import Dict
+
+from wtfis.models.common import LaxStr
 
 
 class Flag(BaseModel):
@@ -9,7 +11,7 @@ class Flag(BaseModel):
 
 
 class Connection(BaseModel):
-    asn: str
+    asn: LaxStr
     org: str
     isp: str
     domain: str
@@ -18,7 +20,7 @@ class Connection(BaseModel):
 class IpWhois(BaseModel):
     ip: str
     success: bool
-    type_: str
+    type_: str = Field(alias="type")
     continent: str
     continent_code: str
     country: str
@@ -34,11 +36,6 @@ class IpWhois(BaseModel):
     flag: Flag
     connection: Connection
 
-    class Config:
-        fields = {
-            "type_": "type",
-        }
 
-
-class IpWhoisMap(BaseModel):
-    __root__: Dict[str, IpWhois]
+class IpWhoisMap(RootModel):
+    root: Dict[str, IpWhois]

@@ -1,4 +1,4 @@
-from pydantic import root_validator
+from pydantic import Field, model_validator
 from typing import List, Optional
 
 from wtfis.models.common import WhoisBase
@@ -6,34 +6,24 @@ from wtfis.models.common import WhoisBase
 
 class Whois(WhoisBase):
     source: str = "passivetotal"
-    registrar: Optional[str]
-    organization: Optional[str]
-    name: Optional[str]
-    email: Optional[str]
-    phone: Optional[str]
-    street: Optional[str]
-    city: Optional[str]
-    state: Optional[str]
-    country: Optional[str]
-    postal_code: Optional[str]
-    name_servers: List[str] = []
-    date_created: Optional[str]
-    date_changed: Optional[str]
-    date_expires: Optional[str]
-    dnssec: Optional[str]
+    registrar: Optional[str] = None
+    organization: Optional[str] = None
+    name: Optional[str] = None
+    email: Optional[str] = Field(None, alias="contactEmail")
+    phone: Optional[str] = Field(None, alias="telephone")
+    street: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = Field(None, alias="postalCode")
+    name_servers: List[str] = Field([], alias="nameServers")
+    date_created: Optional[str] = Field(None, alias="registered")
+    date_changed: Optional[str] = Field(None, alias="registryUpdatedAt")
+    date_expires: Optional[str] = Field(None, alias="expiresAt")
+    dnssec: Optional[str] = None
 
-    class Config:
-        fields = {
-            "email": "contactEmail",
-            "phone": "telephone",
-            "name_servers": "nameServers",
-            "postal_code": "postalCode",
-            "date_created": "registered",
-            "date_changed": "registryUpdatedAt",
-            "date_expires": "expiresAt",
-        }
-
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def extract_registrant(cls, v):
         registrant = v.pop("registrant")
         for field in ["telephone", "street", "city", "state", "country", "postalCode"]:

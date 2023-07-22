@@ -1,19 +1,13 @@
-from pydantic import BaseModel, root_validator, validator
+from pydantic import BaseModel, Field, RootModel, field_validator, model_validator
 from typing import Any, Dict, List, Optional
 
-from wtfis.models.common import WhoisBase
+from wtfis.models.common import LaxStr, WhoisBase
 
 
 class BaseData(BaseModel):
-    attributes: Any
-    id_: str
-    type_: str
-
-    class Config:
-        fields = {
-            "id_": "id",
-            "type_": "type",
-        }
+    attributes: Any = None
+    id_: str = Field(alias="id")
+    type_: str = Field(alias="type")
 
 
 class Meta(BaseModel):
@@ -27,8 +21,8 @@ class AnalysisResult(BaseModel):
     result: str
 
 
-class LastAnalysisResults(BaseModel):
-    __root__: Dict[str, AnalysisResult]
+class LastAnalysisResults(RootModel):
+    root: Dict[str, AnalysisResult]
 
 
 class LastAnalysisStats(BaseModel):
@@ -44,29 +38,30 @@ class Popularity(BaseModel):
     timestamp: int
 
 
-class PopularityRanks(BaseModel):
-    __root__: Dict[str, Popularity]
+class PopularityRanks(RootModel):
+    root: Dict[str, Popularity]
 
 
 class BaseAttributes(BaseModel):
-    jarm: Optional[str]
+    jarm: Optional[str] = None
     last_analysis_results: LastAnalysisResults
     last_analysis_stats: LastAnalysisStats
-    last_https_certificate_date: Optional[int]
-    last_modification_date: Optional[int]
+    last_https_certificate_date: Optional[int] = None
+    last_modification_date: Optional[int] = None
     reputation: int
     tags: List[str]
 
 
 class DomainAttributes(BaseAttributes):
     categories: List[str]
-    creation_date: Optional[int]
-    last_dns_records_date: Optional[int]
-    last_update_date: Optional[int]
+    creation_date: Optional[int] = None
+    last_dns_records_date: Optional[int] = None
+    last_update_date: Optional[int] = None
     popularity_ranks: PopularityRanks
-    registrar: Optional[str]
+    registrar: Optional[str] = None
 
-    @validator("categories", pre=True)
+    @field_validator("categories", mode="before")
+    @classmethod
     def transform_categories(cls, v):
         cats = set()
         for category in v.values():
@@ -88,10 +83,10 @@ class Domain(BaseModel):
 
 
 class IpAttributes(BaseAttributes):
-    asn: Optional[int]
-    continent: Optional[str]
-    country: Optional[str]
-    network: Optional[str]
+    asn: Optional[LaxStr] = None
+    continent: Optional[str] = None
+    country: Optional[str] = None
+    network: Optional[str] = None
 
 
 class IpData(BaseData):
@@ -122,38 +117,25 @@ class Resolutions(BaseModel):
 
 class Whois(WhoisBase):
     source: str = "virustotal"
-    domain: str = ""
-    registrar: Optional[str]
-    organization: Optional[str]
-    name: Optional[str]
-    email: Optional[str]
-    phone: Optional[str]
-    street: Optional[str]
-    city: Optional[str]
-    state: Optional[str]
-    country: Optional[str]
-    postal_code: Optional[str]
-    name_servers: List[str] = []
-    date_created: Optional[str]
-    date_changed: Optional[str]
-    date_expires: Optional[str]
-    dnssec: Optional[str]
+    domain: str = Field("", alias="Domain Name")
+    registrar: Optional[str] = None
+    organization: Optional[str] = Field(None, alias="Registrant Organization")
+    name: Optional[str] = None
+    email: Optional[str] = Field(None, alias="Registrant Email")
+    phone: Optional[str] = Field(None, alias="Registrant Phone")
+    street: Optional[str] = Field(None, alias="Registrant Street")
+    city: Optional[str] = Field(None, alias="Registrant City")
+    state: Optional[str] = Field(None, alias="Registrant State/Province")
+    country: Optional[str] = None
+    postal_code: Optional[str] = Field(None, alias="Registrant Postal Code")
+    name_servers: List[str] = Field([], alias="Name Server")
+    date_created: Optional[str] = None
+    date_changed: Optional[LaxStr] = None
+    date_expires: Optional[str] = None
+    dnssec: Optional[str] = Field(None, alias="DNSSEC")
 
-    class Config:
-        fields = {
-            "domain": "Domain Name",
-            "organization": "Registrant Organization",
-            "email": "Registrant Email",
-            "phone": "Registrant Phone",
-            "street": "Registrant Street",
-            "city": "Registrant City",
-            "state": "Registrant State/Province",
-            "postal_code": "Registrant Postal Code",
-            "name_servers": "Name Server",
-            "dnssec": "DNSSEC",
-        }
-
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def get_latest_whois_record_and_transform(cls, v):
         data = v.pop("data")
         if not data:
@@ -195,15 +177,18 @@ class Whois(WhoisBase):
 
         return {**transformed, **fields_w_multiple_possible_sources}
 
-    @validator("name_servers", pre=True)
+    @field_validator("name_servers", mode="before")
+    @classmethod
     def transform_nameservers(cls, v):
         return v.lower().split(" | ")
 
-    @validator("domain", pre=True)
+    @field_validator("domain", mode="before")
+    @classmethod
     def lowercase_domain(cls, v):
         return v.lower()
 
-    @validator("*")
+    @field_validator("*")
+    @classmethod
     def dedupe_values(cls, v):
         if v is not None and "|" in v:
             return v.split(" | ")[0]

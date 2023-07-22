@@ -27,12 +27,12 @@ class Ip2WhoisClient(BaseClient):
 
         # Let a 404 or invalid domain pass
         try:
-            return Whois.parse_obj(self._get("/", params))
+            return Whois.model_validate(self._get("/", params))
         except HTTPError as e:
             if (
                 e.response.status_code == 404 or
                 (e.response.status_code == 400 and
                  e.response.json().get("error", {})["error_code"] == 10007)
             ):
-                return Whois.parse_obj({})
+                return Whois.model_validate({})
             raise

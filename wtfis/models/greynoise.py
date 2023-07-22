@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 from typing import Dict, Optional
 
 
@@ -10,14 +10,14 @@ class GreynoiseIp(BaseModel):
     riot: bool
     message: str
     link: str
-    classification: Optional[str]
-    name: Optional[str]
-    last_seen: Optional[str]
+    classification: Optional[str] = None
+    name: Optional[str] = None
+    last_seen: Optional[str] = None
 
 
-class GreynoiseIpMap(BaseModel):
-    __root__: Dict[str, GreynoiseIp]
+class GreynoiseIpMap(RootModel):
+    root: Dict[str, GreynoiseIp]
 
     @classmethod
     def empty(cls) -> GreynoiseIpMap:
-        return cls(__root__={})
+        return cls.model_validate({})

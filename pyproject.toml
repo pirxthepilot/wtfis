@@ -29,7 +29,7 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
-    "pydantic~=1.10.2",
+    "pydantic~=2.0.3",
     "python-dotenv~=0.21.0",
     "requests~=2.28.1",
     "rich~=12.6.0",
@@ -59,6 +59,8 @@ disable = true
 # Hatch default env
 [tool.hatch.envs.default]
 dependencies = [
+    "bandit",
+    "flake8>=6.0.0",
     "freezegun",
     "mypy",
     "pytest",
@@ -76,12 +78,12 @@ test-all = [
 
 # Hatch test env
 [[tool.hatch.envs.test.matrix]]
-python = ["38", "39", "310"]
+python = ["38", "39", "310", "311"]
 
 # Hatch lint env
 [tool.hatch.envs.lint]
 detached = true
-dependencies = [
+dependencies = [  # Make sure the respective versions are synced with default!
     "bandit",
     "flake8>=6.0.0",
 ]

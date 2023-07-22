@@ -1,4 +1,4 @@
-from pydantic import root_validator, validator
+from pydantic import Field, field_validator, model_validator
 from typing import List, Optional
 
 from wtfis.models.common import WhoisBase
@@ -7,35 +7,25 @@ from wtfis.models.common import WhoisBase
 class Whois(WhoisBase):
     source: str = "ip2whois"
     domain: str = ""
-    registrar: Optional[str]
-    organization: Optional[str]
-    name: Optional[str]
-    email: Optional[str]
-    phone: Optional[str]
-    street: Optional[str]
-    city: Optional[str]
-    state: Optional[str]
-    country: Optional[str]
-    postal_code: Optional[str]
-    name_servers: List[str] = []
-    date_created: Optional[str]
-    date_changed: Optional[str]
-    date_expires: Optional[str]
-    whois_server: Optional[str]
-    dnssec: Optional[str]
+    registrar: Optional[str] = None
+    organization: Optional[str] = None
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    street: Optional[str] = Field(None, alias="street_address")
+    city: Optional[str] = None
+    state: Optional[str] = Field(None, alias="region")
+    country: Optional[str] = None
+    postal_code: Optional[str] = Field(None, alias="zip_code")
+    name_servers: List[str] = Field([], alias="nameservers")
+    date_created: Optional[str] = Field(None, alias="create_date")
+    date_changed: Optional[str] = Field(None, alias="update_date")
+    date_expires: Optional[str] = Field(None, alias="expire_date")
+    whois_server: Optional[str] = None
+    dnssec: Optional[str] = None
 
-    class Config:
-        fields = {
-            "date_created": "create_date",
-            "date_changed": "update_date",
-            "date_expires": "expire_date",
-            "street": "street_address",
-            "state": "region",
-            "postal_code": "zip_code",
-            "name_servers": "nameservers",
-        }
-
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def extract_registrant(cls, v):
         """ Surface registrant fields to root level """
         registrant = v.pop("registrant", {})
@@ -48,7 +38,8 @@ class Whois(WhoisBase):
             v[field] = registrant.get(field)
         return v
 
-    @validator("registrar", pre=True)
+    @field_validator("registrar", mode="before")
+    @classmethod
     def transform_registrar(cls, v):
         """ Convert registrar from dict to simply registrar.name """
         return v.get("name") if v else v

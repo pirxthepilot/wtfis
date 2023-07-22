@@ -27,4 +27,4 @@ class PTClient(BaseClient):
         return self._query("/dns/passive", refang(domain))
 
     def get_whois(self, entity: str) -> Whois:
-        return Whois.parse_obj(self._query("/whois", refang(entity)))
+        return Whois.model_validate(self._query("/whois", refang(entity)))

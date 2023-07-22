@@ -35,17 +35,17 @@ def open_test_data(fname: str) -> str:
 
 def greynoise_get(ip, pool) -> GreynoiseIp:
     """ Mock replacement for GreynoiseClient().get_ip() """
-    return GreynoiseIp.parse_obj(pool[ip])
+    return GreynoiseIp.model_validate(pool[ip])
 
 
 def ipwhois_get(ip, pool) -> IpWhois:
     """ Mock replacement for IpWhoisClient().get_ipwhois() """
-    return IpWhois.parse_obj(pool[ip])
+    return IpWhois.model_validate(pool[ip])
 
 
 def shodan_get_ip(ip, pool) -> ShodanIp:
     """ Mock replacement for ShodanClient().get_ip() """
-    return ShodanIp.parse_obj(pool[ip])
+    return ShodanIp.model_validate(pool[ip])
 
 
 def timestamp_text(ts) -> Optional[RenderableType]:

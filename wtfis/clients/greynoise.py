@@ -18,7 +18,7 @@ class GreynoiseClient(BaseClient):
         return "Greynoise"
 
     def get_ip(self, ip: str) -> GreynoiseIp:
-        return GreynoiseIp.parse_obj(
+        return GreynoiseIp.model_validate(
             self._get(f"/{ip}", headers={"key": self.api_key})
         )
 
@@ -34,11 +34,11 @@ class GreynoiseClient(BaseClient):
             ip_data = self.get_ip(ip.attributes.ip_address)
             if ip_data:
                 greynoise_map[ip_data.ip] = ip_data
-        return GreynoiseIpMap(__root__=greynoise_map)
+        return GreynoiseIpMap.model_validate(greynoise_map)
 
     def single_get_ip(self, ip: str) -> GreynoiseIpMap:
         greynoise_map = {}
         ip_data = self.get_ip(ip)
         if ip_data:
             greynoise_map[ip] = ip_data
-        return GreynoiseIpMap(__root__=greynoise_map)
+        return GreynoiseIpMap.model_validate(greynoise_map)
