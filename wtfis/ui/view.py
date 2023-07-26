@@ -41,40 +41,13 @@ class DomainView(BaseView):
         self.max_resolutions = max_resolutions
 
     def domain_panel(self) -> Panel:
-        attributes = self.entity.data.attributes
+        # Virustotal section
+        vt_section = self._gen_vt_section()
 
-        # Analysis
-        analysis = self._gen_vt_analysis_stats(
-            attributes.last_analysis_stats,
-            self._vendors_who_flagged_malicious()
-        )
+        # Altogether now
+        content = [vt_section]
 
-        # Reputation
-        reputation = self._gen_vt_reputation(attributes.reputation)
-
-        # Popularity
-        popularity = self._gen_vt_popularity(attributes.popularity_ranks)
-
-        # Categories
-        categories = (
-            smart_join(*attributes.categories, style=self.theme.tags)
-            if attributes.categories else None
-        )
-
-        # Content
-        heading = self._gen_heading_text(
-            self.entity.data.id_,
-            hyperlink=f"{self.vt_gui_baseurl_domain}/{self.entity.data.id_}"
-        )
-        body = self._gen_table(
-            ("Analysis:", analysis),
-            ("Reputation:", reputation),
-            ("Popularity:", popularity),
-            ("Categories:", categories),
-            ("Updated:", Timestamp(attributes.last_modification_date).render),
-            ("Last Seen:", Timestamp(attributes.last_dns_records_date).render),
-        )
-        return self._gen_panel("virustotal", self._gen_info(body, heading))
+        return self._gen_panel(self.entity.data.id_, self._gen_group(content), main_panel=True)
 
     def resolutions_panel(self) -> Optional[Panel]:
         # Skip if no resolutions data
@@ -149,7 +122,7 @@ class DomainView(BaseView):
             #     body = self._gen_table(*data)
 
             body = self._gen_table(*data)
-            content.append(self._gen_info(body, heading))
+            content.append(self._gen_section(body, heading))
 
             # Add extra line break if not last item in list
             if (
@@ -203,69 +176,23 @@ class IpAddressView(BaseView):
         super().__init__(console, entity, whois, ip_enrich, greynoise)
 
     def ip_panel(self) -> Panel:
-        attributes = self.entity.data.attributes
+        # Virustotal section
+        vt_section = self._gen_vt_section()
 
-        # Analysis
-        analysis = self._gen_vt_analysis_stats(
-            attributes.last_analysis_stats,
-            self._vendors_who_flagged_malicious()
-        )
+        # IP Enrichment section
+        ip_enrich_section = self._gen_ip_enrich_section()
 
-        # Reputation
-        reputation = self._gen_vt_reputation(attributes.reputation)
-
-        # Content
-        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
-            ("Analysis:", analysis),
-            ("Reputation:", reputation),
-            ("Updated:", Timestamp(attributes.last_modification_date).render),
-        ]
-
-        # IP Enrichment
-        enrich = self._get_ip_enrichment(self.entity.data.id_)
-
-        if enrich:
-            if isinstance(enrich, IpWhois):
-                # IPWhois
-                asn = self._gen_asn_text(enrich.connection.asn, enrich.connection.org)
-                data += [
-                    ("ASN:", asn),
-                    ("ISP:", enrich.connection.isp),
-                    ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
-                ]
-            else:
-                # Shodan
-                asn = self._gen_asn_text(enrich.asn, enrich.org)
-                tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
-                services_linked = self._gen_linked_field_name(
-                    "Services",
-                    hyperlink=f"{self.shodan_gui_baseurl}/{self.entity.data.id_}"
-                )
-                data += [
-                    ("ASN:", asn),
-                    ("ISP:", enrich.isp),
-                    ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
-                    ("OS:", enrich.os),
-                    (services_linked, self._gen_shodan_services(enrich)),
-                    ("Tags:", tags),
-                    ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
-                                                                                      # (source: Google)
-                ]
-
-        # Greynoise
-        greynoise = self._get_greynoise_enrichment(self.entity.data.id_)
-
-        if greynoise:
-            data += [self._gen_greynoise_tuple(greynoise)]
+        # Other section
+        other_section = self._gen_ip_other_section()
 
         # Altogether now
-        heading = self._gen_heading_text(
-            self.entity.data.id_,
-            hyperlink=f"{self.vt_gui_baseurl_ip}/{self.entity.data.id_}"
-        )
-        body = self._gen_table(*data)
+        content = [vt_section]
+        for section in (ip_enrich_section, other_section):
+            if section is not None:
+                content.append("")
+                content.append(section)
 
-        return self._gen_panel("ip", self._gen_info(body, heading))
+        return self._gen_panel(self.entity.data.id_, self._gen_group(content), main_panel=True)
 
     def print(self, one_column: bool = False) -> None:
         renderables = [i for i in (

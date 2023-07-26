@@ -1,5 +1,6 @@
 class Theme:
-    panel_title = "default"
+    panel_title_default = "default"
+    panel_title_main = "bold default"
     heading = "bold yellow"
     table_field = "bold bright_magenta"
     table_value = "none"
