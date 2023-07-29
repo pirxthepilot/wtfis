@@ -133,11 +133,12 @@ class DomainView(BaseView):
 
         # Info about how many more IPs were not shown
         if self.max_resolutions < self.resolutions.meta.count:
+            content.append("")
             content.append(
-                Text(
-                    f"\n+{self.resolutions.meta.count - self.max_resolutions} more",
-                    justify="center",
-                    style=self.theme.footer,
+                Text(justify="center", end="\n").append(
+                    f"+{self.resolutions.meta.count - self.max_resolutions} more",
+                    style=(f"{self.theme.footer} "
+                           f"link {self.vt_gui_baseurl_domain}/{self.entity.data.id_}/relations"),
                 )
             )
 

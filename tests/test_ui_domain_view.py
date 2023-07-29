@@ -435,7 +435,11 @@ class TestView01:
         # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing and remaining count
-        assert res.renderable.renderables[5] == Text("\n+34 more")
+        assert res.renderable.renderables[5] == ""
+        assert res.renderable.renderables[6] == Text(
+            "+34 more",
+            spans=[Span(0, 8, 'cyan link https://virustotal.com/gui/domain/gist.github.com/relations')]
+        )
 
     def test_whois_panel(self, view01, theme, display_timestamp):
         whois = view01.whois_panel()
@@ -553,7 +557,8 @@ class TestView02:
         ]
 
         # Spacing and remaining count
-        assert res.renderable.renderables[1] == Text("\n+36 more")
+        assert res.renderable.renderables[1] == ""
+        assert str(res.renderable.renderables[2]) == "+36 more"
 
     def test_whois_panel(self, view02, display_timestamp):
         whois = view02.whois_panel()
@@ -988,7 +993,8 @@ class TestView07:
         # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing and remaining count
-        assert res.renderable.renderables[5] == Text("\n+34 more")
+        assert res.renderable.renderables[5] == ""
+        assert str(res.renderable.renderables[6]) == "+34 more"
 
 
 class TestView08:
@@ -1062,7 +1068,8 @@ class TestView08:
         ]
 
         # Spacing
-        assert res.renderable.renderables[1] == Text("\n+199 more")
+        assert res.renderable.renderables[1] == ""
+        assert str(res.renderable.renderables[2]) == "+199 more"
 
 
 class TestView09:
@@ -1180,7 +1187,8 @@ class TestView09:
         # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing
-        assert res.renderable.renderables[1] == Text("\n+1 more")
+        assert res.renderable.renderables[1] == ""
+        assert str(res.renderable.renderables[2]) == "+1 more"
 
 
 class TestView10:
