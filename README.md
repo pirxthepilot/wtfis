@@ -64,7 +64,7 @@ Optionally used if creds are provided and Passivetotal creds are not supplied. (
 * [Whois](https://www.ip2location.io/ip2whois-documentation)
     * Various whois data about the domain itself
 
-As above, IP2Whois is recommended over Virustotal, if a Passivetotal account cannot be obtained.
+As above, IP2Whois is recommended over Virustotal if a Passivetotal account cannot be obtained.
 
 ### IPWhois
 
@@ -150,7 +150,7 @@ and you will get results organized by panel, similar to the image above.
 
 Defanged input is accepted (e.g. `api[.]google[.]com`).
 
-If your terminal supports it, FQDN, domain, and IP headings are clickable hyperlinks that point to the appropriate pages on the VT or PT (RiskIQ) website.
+If supported by the terminal, the `VirusTotal` heading, IP headings in the resolutions panel, and (if using PT) headings in the whois panel are clickable hyperlinks that point to the appropriate pages on the VT or PT website.
 
 ### Shodan enrichment
 
@@ -158,7 +158,7 @@ Shodan can be used to enrich the IP addresses (instead of IPWhois). Invoke with 
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-shodan.png?raw=true)
 
-The `Services` field name is a hyperlink (if supported by the terminal) that takes you to the IP in the Shodan web interface.
+If supported by the terminal, the `Shodan` heading in the IP panel and `Services` field in the resolution panel are clickable hyperlinks that take you to the Shodan web interface.
 
 ### Greynoise enrichment
 
