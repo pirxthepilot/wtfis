@@ -20,7 +20,7 @@ from wtfis.models.virustotal import (
     PopularityRanks,
 )
 from wtfis.ui.theme import Theme
-from wtfis.utils import Timestamp, smart_join
+from wtfis.utils import Timestamp, is_ip, smart_join
 
 
 class BaseView(abc.ABC):
@@ -90,11 +90,16 @@ class BaseView(abc.ABC):
             yield item
 
     @staticmethod
-    def _gen_info(body: RenderableType, heading: Optional[Text] = None) -> RenderableType:
+    def _gen_section(body: RenderableType, heading: Optional[Text] = None) -> RenderableType:
+        """ A section is a subset of a panel, with its own title and content """
         return Group(heading, body) if heading else body
 
-    def _gen_panel(self, title: str, renderable: RenderableType) -> Panel:
-        panel_title = Text(title, style=self.theme.panel_title)
+    def _gen_panel(self, title: str, renderable: RenderableType, main_panel=False) -> Panel:
+        if main_panel is True:
+            title_style = self.theme.panel_title_main
+        else:
+            title_style = self.theme.panel_title_default
+        panel_title = Text(title, style=title_style)
         return Panel(renderable, title=panel_title, expand=False)
 
     def _gen_vt_analysis_stats(
@@ -250,6 +255,117 @@ class BaseView(abc.ABC):
     def _get_greynoise_enrichment(self, ip: str) -> Optional[GreynoiseIp]:
         return self.greynoise.root[ip] if ip in self.greynoise.root.keys() else None
 
+    def _gen_vt_section(self) -> RenderableType:
+        """ Virustotal section. Applies to both domain and IP views """
+        attributes = self.entity.data.attributes
+
+        # Analysis (IP and domain)
+        analysis = self._gen_vt_analysis_stats(
+            attributes.last_analysis_stats,
+            self._vendors_who_flagged_malicious()
+        )
+
+        # Reputation (IP and domain)
+        reputation = self._gen_vt_reputation(attributes.reputation)
+
+        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
+            ("Analysis:", analysis),
+            ("Reputation:", reputation),
+        ]
+
+        # Popularity (Domain only)
+        if hasattr(attributes, "popularity_ranks"):
+            data += [
+                ("Popularity:", self._gen_vt_popularity(attributes.popularity_ranks))
+            ]
+
+        # Categories (Domain only)
+        if hasattr(attributes, "categories"):
+            data += [
+                ("Categories:",
+                 smart_join(*attributes.categories, style=self.theme.tags)
+                 if attributes.categories else None)
+            ]
+
+        # Updated (IP and domain)
+        data += [
+            ("Updated:", Timestamp(attributes.last_modification_date).render)
+        ]
+
+        # Last seen (Domain only)
+        if hasattr(attributes, "last_dns_records_date"):
+            data += [
+                ("Last Seen:", Timestamp(attributes.last_dns_records_date).render)
+            ]
+
+        baseurl = self.vt_gui_baseurl_ip if is_ip(self.entity.data.id_) else self.vt_gui_baseurl_domain
+
+        return self._gen_section(
+            self._gen_table(*data),
+            self._gen_heading_text(
+                "VirusTotal",
+                hyperlink=f"{baseurl}/{self.entity.data.id_}"
+            )
+        )
+
+    def _gen_ip_enrich_section(self) -> Optional[RenderableType]:
+        """ IP enrichment section. Applies to IP views only """
+        enrich = self._get_ip_enrichment(self.entity.data.id_)
+
+        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
+
+        if enrich:
+            if isinstance(enrich, IpWhois):
+                # IPWhois
+                section_title = "IPwhois"
+                hyperlink = None
+                asn = self._gen_asn_text(enrich.connection.asn, enrich.connection.org)
+                data += [
+                    ("ASN:", asn),
+                    ("ISP:", enrich.connection.isp),
+                    ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
+                ]
+            else:
+                # Shodan
+                section_title = "Shodan"
+                hyperlink = f"{self.shodan_gui_baseurl}/{self.entity.data.id_}"
+                asn = self._gen_asn_text(enrich.asn, enrich.org)
+                tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+                data += [
+                    ("ASN:", asn),
+                    ("ISP:", enrich.isp),
+                    ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
+                    ("OS:", enrich.os),
+                    ("Services:", self._gen_shodan_services(enrich)),
+                    ("Tags:", tags),
+                    ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
+                                                                                      # (source: Google)
+                ]
+
+            return self._gen_section(
+                self._gen_table(*data),
+                self._gen_heading_text(section_title, hyperlink)
+            )
+
+        return None  # No enrichment data
+
+    def _gen_ip_other_section(self) -> Optional[RenderableType]:
+        """ Other section for IP views """
+        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
+
+        # Greynoise
+        greynoise = self._get_greynoise_enrichment(self.entity.data.id_)
+        if greynoise:
+            data.append(self._gen_greynoise_tuple(greynoise))
+
+        if data:
+            return self._gen_section(
+                self._gen_table(*data),
+                self._gen_heading_text("Other")
+            )
+
+        return None  # No other data
+
     def whois_panel(self) -> Optional[Panel]:
         # Do nothing if no whois
         if self.whois is None:
@@ -287,7 +403,7 @@ class BaseView(abc.ABC):
 
         # Return message if no whois data
         if body:
-            return self._gen_panel("whois", self._gen_info(body, heading))
+            return self._gen_panel("whois", self._gen_section(body, heading))
         else:
             return self._gen_panel("whois", Text("No whois data found", style=self.theme.disclaimer))
 

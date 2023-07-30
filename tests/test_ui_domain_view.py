@@ -244,16 +244,23 @@ class TestView01:
     def test_domain_panel(self, view01, display_timestamp):
         domain = view01.domain_panel()
         assert type(domain) is Panel
-        assert domain.title == Text("virustotal")
+        assert domain.title == Text("gist.github.com")
+        assert domain.title.style == "bold default"
+
+        #
+        # VT section
+        #
+
+        vt_section = domain.renderable.renderables[0]
 
         # Heading
-        assert domain.renderable.renderables[0] == Text(
-            "gist.github.com",
-            spans=[Span(0, 15, 'bold yellow link https://virustotal.com/gui/domain/gist.github.com')]
+        assert vt_section.renderables[0] == Text(
+            "VirusTotal",
+            spans=[Span(0, 10, 'bold yellow link https://virustotal.com/gui/domain/gist.github.com')],
         )
 
         # Table
-        table = domain.renderable.renderables[1]
+        table = vt_section.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == "bold bright_magenta"
         assert table.columns[0].justify == "left"
@@ -428,7 +435,11 @@ class TestView01:
         # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing and remaining count
-        assert res.renderable.renderables[5] == Text("\n+34 more")
+        assert res.renderable.renderables[5] == ""
+        assert res.renderable.renderables[6] == Text(
+            "+34 more",
+            spans=[Span(0, 8, 'cyan link https://virustotal.com/gui/domain/gist.github.com/relations')]
+        )
 
     def test_whois_panel(self, view01, theme, display_timestamp):
         whois = view01.whois_panel()
@@ -546,7 +557,8 @@ class TestView02:
         ]
 
         # Spacing and remaining count
-        assert res.renderable.renderables[1] == Text("\n+36 more")
+        assert res.renderable.renderables[1] == ""
+        assert str(res.renderable.renderables[2]) == "+36 more"
 
     def test_whois_panel(self, view02, display_timestamp):
         whois = view02.whois_panel()
@@ -619,16 +631,22 @@ class TestView04:
     def test_domain_panel(self, view04, display_timestamp):
         domain = view04.domain_panel()
         assert type(domain) is Panel
-        assert domain.title == Text("virustotal")
+        assert domain.title == Text("google.com")
+
+        #
+        # VT section
+        #
+
+        vt_section = domain.renderable.renderables[0]
 
         # Heading
-        assert domain.renderable.renderables[0] == Text(
-            "google.com",
+        assert vt_section.renderables[0] == Text(
+            "VirusTotal",
             spans=[Span(0, 10, 'bold yellow link https://virustotal.com/gui/domain/google.com')]
         )
 
         # Table
-        table = domain.renderable.renderables[1]
+        table = vt_section.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == "bold bright_magenta"
         assert table.columns[0].justify == "left"
@@ -693,16 +711,22 @@ class TestView05:
     def test_domain_panel(self, view05, display_timestamp):
         domain = view05.domain_panel()
         assert type(domain) is Panel
-        assert domain.title == Text("virustotal")
+        assert domain.title == Text("tucows.com")
+
+        #
+        # VT section
+        #
+
+        vt_section = domain.renderable.renderables[0]
 
         # Heading
-        assert domain.renderable.renderables[0] == Text(
-            "tucows.com",
+        assert vt_section.renderables[0] == Text(
+            "VirusTotal",
             spans=[Span(0, 10, 'bold yellow link https://virustotal.com/gui/domain/tucows.com')]
         )
 
         # Table
-        table = domain.renderable.renderables[1]
+        table = vt_section.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == "bold bright_magenta"
         assert table.columns[0].justify == "left"
@@ -969,7 +993,8 @@ class TestView07:
         # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing and remaining count
-        assert res.renderable.renderables[5] == Text("\n+34 more")
+        assert res.renderable.renderables[5] == ""
+        assert str(res.renderable.renderables[6]) == "+34 more"
 
 
 class TestView08:
@@ -1043,7 +1068,8 @@ class TestView08:
         ]
 
         # Spacing
-        assert res.renderable.renderables[1] == Text("\n+199 more")
+        assert res.renderable.renderables[1] == ""
+        assert str(res.renderable.renderables[2]) == "+199 more"
 
 
 class TestView09:
@@ -1161,7 +1187,8 @@ class TestView09:
         # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing
-        assert res.renderable.renderables[1] == Text("\n+1 more")
+        assert res.renderable.renderables[1] == ""
+        assert str(res.renderable.renderables[2]) == "+1 more"
 
 
 class TestView10:

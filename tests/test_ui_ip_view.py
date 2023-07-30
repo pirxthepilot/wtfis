@@ -133,16 +133,30 @@ class TestView01:
     def test_ip_panel(self, view01, theme, display_timestamp):
         ip = view01.ip_panel()
         assert type(ip) is Panel
-        assert ip.title == Text("ip")
+        assert ip.title == Text("1.1.1.1")
+        assert ip.title.style == "bold default"
+
+        # Sections
+        vt_section = ip.renderable.renderables[0]
+        enrich_section = ip.renderable.renderables[2]
+        other_section = ip.renderable.renderables[4]
+
+        # Line breaks between sections
+        assert ip.renderable.renderables[1] == ""
+        assert ip.renderable.renderables[3] == ""
+
+        #
+        # VT section
+        #
 
         # Heading
-        assert ip.renderable.renderables[0] == Text(
-            "1.1.1.1",
-            spans=[Span(0, 7, 'bold yellow link https://virustotal.com/gui/ip-address/1.1.1.1')]
+        assert vt_section.renderables[0] == Text(
+            "VirusTotal",
+            spans=[Span(0, 10, 'bold yellow link https://virustotal.com/gui/ip-address/1.1.1.1')]
         )
 
         # Table
-        table = ip.renderable.renderables[1]
+        table = vt_section.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == "bold bright_magenta"
         assert table.columns[0].justify == "left"
@@ -150,13 +164,6 @@ class TestView01:
             "Analysis:",
             "Reputation:",
             "Updated:",
-            "ASN:",
-            "ISP:",
-            "Location:",
-            Text(
-                "Greynoise:",
-                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
-            ),
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"
@@ -176,6 +183,31 @@ class TestView01:
             ),
             Text("134"),
             display_timestamp("2022-09-03T06:47:04Z"),
+        ]
+
+        #
+        # IP enrich section
+        #
+
+        # Heading
+        assert enrich_section.renderables[0] == Text(
+            "IPwhois",
+            spans=[Span(0, 7, 'bold yellow')]
+        )
+
+        # Table
+        table = enrich_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "ASN:",
+            "ISP:",
+            "Location:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
             Text(
                 "13335 (APNIC and Cloudflare DNS Resolver project)",
                 spans=[Span(7, 48, theme.asn_org)],
@@ -188,6 +220,32 @@ class TestView01:
                     Span(23, 25, 'default'),
                 ]
             ),
+        ]
+
+        #
+        # Other section
+        #
+
+        # Heading
+        assert other_section.renderables[0] == Text(
+            "Other",
+            spans=[Span(0, 5, 'bold yellow')]
+        )
+
+        # Table
+        table = other_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            Text(
+                "Greynoise:",
+                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
+            ),
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
             Text(
                 "✓ riot  ✗ noise  ✓ benign",
                 spans=[
@@ -255,16 +313,29 @@ class TestView02:
     def test_ip_panel(self, view02, theme, display_timestamp):
         ip = view02.ip_panel()
         assert type(ip) is Panel
-        assert ip.title == Text("ip")
+        assert ip.title == Text("1.1.1.1")
+
+        # Sections
+        vt_section = ip.renderable.renderables[0]
+        enrich_section = ip.renderable.renderables[2]
+        other_section = ip.renderable.renderables[4]
+
+        # Line breaks between sections
+        assert ip.renderable.renderables[1] == ""
+        assert ip.renderable.renderables[3] == ""
+
+        #
+        # VT section
+        #
 
         # Heading
-        assert ip.renderable.renderables[0] == Text(
-            "1.1.1.1",
-            spans=[Span(0, 7, "bold yellow link https://virustotal.com/gui/ip-address/1.1.1.1")]
+        assert vt_section.renderables[0] == Text(
+            "VirusTotal",
+            spans=[Span(0, 10, "bold yellow link https://virustotal.com/gui/ip-address/1.1.1.1")]
         )
 
         # Table
-        table = ip.renderable.renderables[1]
+        table = vt_section.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == "bold bright_magenta"
         assert table.columns[0].justify == "left"
@@ -272,18 +343,6 @@ class TestView02:
             "Analysis:",
             "Reputation:",
             "Updated:",
-            "ASN:",
-            "ISP:",
-            "Location:",
-            Text(
-                "Services:",
-                spans=[Span(0, 8, "link https://www.shodan.io/host/1.1.1.1")]
-            ),
-            "Last Scan:",
-            Text(
-                "Greynoise:",
-                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
-            ),
         ]
         assert table.columns[1].style == "none"
         assert table.columns[1].justify == "left"
@@ -303,6 +362,33 @@ class TestView02:
             ),
             Text("134"),
             display_timestamp("2022-09-03T06:47:04Z"),
+        ]
+
+        #
+        # IP enrich section
+        #
+
+        # Heading
+        assert enrich_section.renderables[0] == Text(
+            "Shodan",
+            spans=[Span(0, 6, "bold yellow link https://www.shodan.io/host/1.1.1.1")]
+        )
+
+        # Table
+        table = enrich_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            "ASN:",
+            "ISP:",
+            "Location:",
+            "Services:",
+            "Last Scan:",
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
             Text(
                 "13335 (APNIC and Cloudflare DNS Resolver project)",
                 spans=[Span(7, 48, theme.asn_org)],
@@ -378,6 +464,32 @@ class TestView02:
                 ]
             ),
             display_timestamp("2022-09-04T01:03:56Z"),
+        ]
+
+        #
+        # Other section
+        #
+
+        # Heading
+        assert other_section.renderables[0] == Text(
+            "Other",
+            spans=[Span(0, 5, "bold yellow")]
+        )
+
+        # Table
+        table = other_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            Text(
+                "Greynoise:",
+                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
+            ),
+        ]
+        assert table.columns[1].style == "none"
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
             Text(
                 "✓ riot  ✗ noise  ✓ benign",
                 spans=[
@@ -463,16 +575,23 @@ class TestView04:
     def test_ip_panel(self, view04, display_timestamp):
         ip = view04.ip_panel()
         assert type(ip) is Panel
-        assert ip.title == Text("ip")
+        assert ip.title == Text("142.251.220.110")
+
+        # Sections
+        vt_section = ip.renderable.renderables[0]
+
+        #
+        # VT section
+        #
 
         # Heading
-        assert ip.renderable.renderables[0] == Text(
-            "142.251.220.110",
-            spans=[Span(0, 15, "bold yellow link https://virustotal.com/gui/ip-address/142.251.220.110")]
+        assert vt_section.renderables[0] == Text(
+            "VirusTotal",
+            spans=[Span(0, 10, "bold yellow link https://virustotal.com/gui/ip-address/142.251.220.110")]
         )
 
         # Table
-        table = ip.renderable.renderables[1]
+        table = vt_section.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == "bold bright_magenta"
         assert table.columns[0].justify == "left"
@@ -494,8 +613,10 @@ class TestView05:
     def test_ip_panel_greynoise_only(self, view05, theme):
         ip = view05.ip_panel()
 
+        other_section = ip.renderable.renderables[2]
+
         # Table
-        table = ip.renderable.renderables[1]
+        table = other_section.renderables[1]
         assert table.columns[1]._cells[-1] == Text(
             "✗ riot  ✓ noise  ! malicious",
             spans=[
@@ -513,8 +634,10 @@ class TestView06:
     def test_ip_panel_greynoise_only(self, view06, theme):
         ip = view06.ip_panel()
 
+        other_section = ip.renderable.renderables[2]
+
         # Table
-        table = ip.renderable.renderables[1]
+        table = other_section.renderables[1]
         assert table.columns[1]._cells[-1] == Text(
             "✓ riot  ✗ noise  ? unknown",
             spans=[
