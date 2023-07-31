@@ -54,10 +54,20 @@ class BaseView(abc.ABC):
                 vendors.append(key)
         return vendors
 
-    def _gen_heading_text(self, heading: str, hyperlink: Optional[str] = None) -> Text:
-        text = Text(justify="center", end="\n")
-        style = f"{self.theme.heading} link {hyperlink}" if hyperlink else self.theme.heading
-        return text.append(heading, style=style)
+    def _gen_heading_text(self, heading: str, hyperlink: Optional[str] = None, type: Optional[str] = "h1") -> Text:
+        """ Heading text
+            Generates 2 types:
+                "h1": Style is applied across the entire line
+                "h2": Style is applied to the text only
+        """
+        link_style = f" link {hyperlink}" if hyperlink else ""
+        if type == "h1":
+            return Text(heading, style=f"{self.theme.heading_h1}{link_style}", justify="center")
+        elif type == "h2":
+            text = Text(justify="center")
+            return text.append(heading, style=f"{self.theme.heading_h2}{link_style}")
+        else:
+            raise Exception(f"Invalid heading type \"{type}\"")
 
     def _gen_linked_field_name(self, name: str, hyperlink: str) -> Text:
         text = Text(style=self.theme.table_field)
@@ -379,6 +389,7 @@ class BaseView(abc.ABC):
         heading = self._gen_heading_text(
             self.whois.domain,
             hyperlink=hyperlink,
+            type="h2",
         ) if self.whois.domain else None
 
         organization = (Text(self.whois.organization, style=self.theme.whois_org)

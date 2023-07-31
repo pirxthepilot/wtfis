@@ -66,7 +66,8 @@ class DomainView(BaseView):
             # Content
             heading = self._gen_heading_text(
                 attributes.ip_address,
-                hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}"
+                hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}",
+                type="h2",
             )
             data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
                 ("Analysis:", analysis),
