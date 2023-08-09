@@ -1,7 +1,7 @@
 class Theme:
     panel_title_default = "default"
     panel_title_main = "bold yellow"
-    heading_h1 = "bold black on green"
+    heading_h1 = "bold bright_green on dark_green"
     heading_h2 = "bold yellow"
     table_field = "bold bright_magenta"
     table_value = "none"
