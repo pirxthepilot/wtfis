@@ -62,14 +62,19 @@ class DomainView(BaseView):
 
             # Analysis
             analysis = self._gen_vt_analysis_stats(attributes.ip_address_last_analysis_stats)
+            analysis_field = self._gen_linked_field_name(
+                "Analysis",
+                hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}",
+            )
 
             # Content
             heading = self._gen_heading_text(
                 attributes.ip_address,
-                hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}"
+                # hyperlink=f"{self.vt_gui_baseurl_ip}/{attributes.ip_address}",
+                type="h2",
             )
             data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
-                ("Analysis:", analysis),
+                (analysis_field, analysis),
                 ("Resolved:", Timestamp(attributes.date).render),
             ]
 
@@ -89,7 +94,7 @@ class DomainView(BaseView):
                     # Shodan
                     asn = self._gen_asn_text(enrich.asn, enrich.org)
                     tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
-                    services_linked = self._gen_linked_field_name(
+                    services_field = self._gen_linked_field_name(
                         "Services",
                         hyperlink=f"{self.shodan_gui_baseurl}/{attributes.ip_address}"
                     )
@@ -98,7 +103,7 @@ class DomainView(BaseView):
                         ("ISP:", enrich.isp),
                         ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
                         ("OS:", enrich.os),
-                        (services_linked, self._gen_shodan_services(enrich)),
+                        (services_field, self._gen_shodan_services(enrich)),
                         ("Tags:", tags),
                         ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
                                                                                           # (source: Google)

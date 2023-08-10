@@ -54,10 +54,20 @@ class BaseView(abc.ABC):
                 vendors.append(key)
         return vendors
 
-    def _gen_heading_text(self, heading: str, hyperlink: Optional[str] = None) -> Text:
-        text = Text(justify="center", end="\n")
-        style = f"{self.theme.heading} link {hyperlink}" if hyperlink else self.theme.heading
-        return text.append(heading, style=style)
+    def _gen_heading_text(self, heading: str, hyperlink: Optional[str] = None, type: Optional[str] = "h1") -> Text:
+        """ Heading text
+            Generates 2 types:
+                "h1": Style is applied across the entire line
+                "h2": Style is applied to the text only
+        """
+        link_style = f" link {hyperlink}" if hyperlink else ""
+        if type == "h1":
+            return Text(heading, style=f"{self.theme.heading_h1}{link_style}", justify="center")
+        elif type == "h2":
+            text = Text(justify="center")
+            return text.append(heading, style=f"{self.theme.heading_h2}{link_style}")
+        else:
+            raise Exception(f"Invalid heading type \"{type}\"")
 
     def _gen_linked_field_name(self, name: str, hyperlink: str) -> Text:
         text = Text(style=self.theme.table_field)
@@ -186,7 +196,7 @@ class BaseView(abc.ABC):
         #
         # Title
         #
-        title = self._gen_linked_field_name("Greynoise", hyperlink=ip.link)
+        title = self._gen_linked_field_name("GreyNoise", hyperlink=ip.link)
 
         #
         # Content
@@ -258,18 +268,23 @@ class BaseView(abc.ABC):
     def _gen_vt_section(self) -> RenderableType:
         """ Virustotal section. Applies to both domain and IP views """
         attributes = self.entity.data.attributes
+        baseurl = self.vt_gui_baseurl_ip if is_ip(self.entity.data.id_) else self.vt_gui_baseurl_domain
 
         # Analysis (IP and domain)
         analysis = self._gen_vt_analysis_stats(
             attributes.last_analysis_stats,
             self._vendors_who_flagged_malicious()
         )
+        analysis_field = self._gen_linked_field_name(
+            "Analysis",
+            hyperlink=f"{baseurl}/{self.entity.data.id_}"
+        )
 
         # Reputation (IP and domain)
         reputation = self._gen_vt_reputation(attributes.reputation)
 
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
-            ("Analysis:", analysis),
+            (analysis_field, analysis),
             ("Reputation:", reputation),
         ]
 
@@ -298,14 +313,9 @@ class BaseView(abc.ABC):
                 ("Last Seen:", Timestamp(attributes.last_dns_records_date).render)
             ]
 
-        baseurl = self.vt_gui_baseurl_ip if is_ip(self.entity.data.id_) else self.vt_gui_baseurl_domain
-
         return self._gen_section(
             self._gen_table(*data),
-            self._gen_heading_text(
-                "VirusTotal",
-                hyperlink=f"{baseurl}/{self.entity.data.id_}"
-            )
+            self._gen_heading_text("VirusTotal")
         )
 
     def _gen_ip_enrich_section(self) -> Optional[RenderableType]:
@@ -318,7 +328,6 @@ class BaseView(abc.ABC):
             if isinstance(enrich, IpWhois):
                 # IPWhois
                 section_title = "IPwhois"
-                hyperlink = None
                 asn = self._gen_asn_text(enrich.connection.asn, enrich.connection.org)
                 data += [
                     ("ASN:", asn),
@@ -328,15 +337,18 @@ class BaseView(abc.ABC):
             else:
                 # Shodan
                 section_title = "Shodan"
-                hyperlink = f"{self.shodan_gui_baseurl}/{self.entity.data.id_}"
                 asn = self._gen_asn_text(enrich.asn, enrich.org)
                 tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+                services_field = self._gen_linked_field_name(
+                    "Services",
+                    hyperlink=f"{self.shodan_gui_baseurl}/{self.entity.data.id_}"
+                )
                 data += [
                     ("ASN:", asn),
                     ("ISP:", enrich.isp),
                     ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
                     ("OS:", enrich.os),
-                    ("Services:", self._gen_shodan_services(enrich)),
+                    (services_field, self._gen_shodan_services(enrich)),
                     ("Tags:", tags),
                     ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
                                                                                       # (source: Google)
@@ -344,7 +356,7 @@ class BaseView(abc.ABC):
 
             return self._gen_section(
                 self._gen_table(*data),
-                self._gen_heading_text(section_title, hyperlink)
+                self._gen_heading_text(section_title)
             )
 
         return None  # No enrichment data
@@ -379,6 +391,7 @@ class BaseView(abc.ABC):
         heading = self._gen_heading_text(
             self.whois.domain,
             hyperlink=hyperlink,
+            type="h2",
         ) if self.whois.domain else None
 
         organization = (Text(self.whois.organization, style=self.theme.whois_org)

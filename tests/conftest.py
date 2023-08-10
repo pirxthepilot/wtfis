@@ -12,6 +12,10 @@ from wtfis.models.shodan import ShodanIp
 
 class TestTheme:
     """ Expected theme values for the tests """
+    panel_title_main = "bold yellow"
+    heading_h1 = "bold bright_green on dark_green"
+    heading_h2 = "bold yellow"
+    table_field = "bold bright_magenta"
     nameserver_list = "bright_blue"
     timestamp_date = "not bold default"
     timestamp_t = "dim bright_white"
