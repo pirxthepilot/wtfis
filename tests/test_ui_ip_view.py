@@ -134,7 +134,7 @@ class TestView01:
         ip = view01.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("1.1.1.1")
-        assert ip.title.style == "bold default"
+        assert ip.title.style == theme.panel_title_main
 
         # Sections
         vt_section = ip.renderable.renderables[0]
@@ -150,18 +150,19 @@ class TestView01:
         #
 
         # Heading
-        assert vt_section.renderables[0] == Text(
-            "VirusTotal",
-            spans=[Span(0, 10, 'bold yellow link https://virustotal.com/gui/ip-address/1.1.1.1')]
-        )
+        assert vt_section.renderables[0] == Text("VirusTotal")
+        assert vt_section.renderables[0].style == theme.heading_h1
 
         # Table
         table = vt_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/1.1.1.1')],
+            ),
             "Reputation:",
             "Updated:",
         ]
@@ -190,15 +191,13 @@ class TestView01:
         #
 
         # Heading
-        assert enrich_section.renderables[0] == Text(
-            "IPwhois",
-            spans=[Span(0, 7, 'bold yellow')]
-        )
+        assert enrich_section.renderables[0] == Text("IPwhois")
+        assert enrich_section.renderables[0].style == theme.heading_h1
 
         # Table
         table = enrich_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             "ASN:",
@@ -227,19 +226,17 @@ class TestView01:
         #
 
         # Heading
-        assert other_section.renderables[0] == Text(
-            "Other",
-            spans=[Span(0, 5, 'bold yellow')]
-        )
+        assert other_section.renderables[0] == Text("Other")
+        assert other_section.renderables[0].style == theme.heading_h1
 
         # Table
         table = other_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             Text(
-                "Greynoise:",
+                "GreyNoise:",
                 spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
             ),
         ]
@@ -259,7 +256,7 @@ class TestView01:
             ),
         ]
 
-    def test_whois_panel(self, view01):
+    def test_whois_panel(self, view01, theme):
         whois = view01.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -273,7 +270,7 @@ class TestView01:
         # Table
         table = whois.renderable.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             "Registrar:",
@@ -329,18 +326,19 @@ class TestView02:
         #
 
         # Heading
-        assert vt_section.renderables[0] == Text(
-            "VirusTotal",
-            spans=[Span(0, 10, "bold yellow link https://virustotal.com/gui/ip-address/1.1.1.1")]
-        )
+        assert vt_section.renderables[0] == Text("VirusTotal")
+        assert vt_section.renderables[0].style == theme.heading_h1
 
         # Table
         table = vt_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/1.1.1.1')],
+            ),
             "Reputation:",
             "Updated:",
         ]
@@ -369,21 +367,22 @@ class TestView02:
         #
 
         # Heading
-        assert enrich_section.renderables[0] == Text(
-            "Shodan",
-            spans=[Span(0, 6, "bold yellow link https://www.shodan.io/host/1.1.1.1")]
-        )
+        assert enrich_section.renderables[0] == Text("Shodan")
+        assert enrich_section.renderables[0].style == theme.heading_h1
 
         # Table
         table = enrich_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             "ASN:",
             "ISP:",
             "Location:",
-            "Services:",
+            Text(
+                "Services:",
+                spans=[Span(0, 8, 'link https://www.shodan.io/host/1.1.1.1')],
+            ),
             "Last Scan:",
         ]
         assert table.columns[1].style == "none"
@@ -471,19 +470,17 @@ class TestView02:
         #
 
         # Heading
-        assert other_section.renderables[0] == Text(
-            "Other",
-            spans=[Span(0, 5, "bold yellow")]
-        )
+        assert other_section.renderables[0] == Text("Other")
+        assert other_section.renderables[0].style == theme.heading_h1
 
         # Table
         table = other_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             Text(
-                "Greynoise:",
+                "GreyNoise:",
                 spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
             ),
         ]
@@ -505,7 +502,7 @@ class TestView02:
 
 
 class TestView03:
-    def test_whois_panel(self, view03):
+    def test_whois_panel(self, view03, theme):
         whois = view03.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -513,13 +510,13 @@ class TestView03:
         # Heading
         assert whois.renderable.renderables[0] == Text(
             "one.one",
-            spans=[Span(0, 7, "bold yellow")]
+            spans=[Span(0, 7, theme.heading_h2)]
         )
 
         # Table
         table = whois.renderable.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             "Registrar:",
@@ -572,7 +569,7 @@ class TestView03:
 
 
 class TestView04:
-    def test_ip_panel(self, view04, display_timestamp):
+    def test_ip_panel(self, view04, theme, display_timestamp):
         ip = view04.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("142.251.220.110")
@@ -585,18 +582,18 @@ class TestView04:
         #
 
         # Heading
-        assert vt_section.renderables[0] == Text(
-            "VirusTotal",
-            spans=[Span(0, 10, "bold yellow link https://virustotal.com/gui/ip-address/142.251.220.110")]
-        )
+        assert vt_section.renderables[0] == Text("VirusTotal")
 
         # Table
         table = vt_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/142.251.220.110')],
+            ),
             "Reputation:",
             "Updated:",
         ]

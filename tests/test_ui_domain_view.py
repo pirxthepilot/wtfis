@@ -241,11 +241,11 @@ def view13(test_data):
 
 
 class TestView01:
-    def test_domain_panel(self, view01, display_timestamp):
+    def test_domain_panel(self, view01, theme, display_timestamp):
         domain = view01.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("gist.github.com")
-        assert domain.title.style == "bold default"
+        assert domain.title.style == theme.panel_title_main
 
         #
         # VT section
@@ -254,18 +254,19 @@ class TestView01:
         vt_section = domain.renderable.renderables[0]
 
         # Heading
-        assert vt_section.renderables[0] == Text(
-            "VirusTotal",
-            spans=[Span(0, 10, 'bold yellow link https://virustotal.com/gui/domain/gist.github.com')],
-        )
+        assert vt_section.renderables[0] == Text("VirusTotal")
+        assert vt_section.renderables[0].style == theme.heading_h1
 
         # Table
         table = vt_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/domain/gist.github.com')],
+            ),
             "Reputation:",
             "Popularity:",
             "Categories:",
@@ -314,14 +315,17 @@ class TestView01:
         # Heading
         assert group[0] == Text(
             "13.234.210.38",
-            spans=[Span(0, 13, "bold yellow link https://virustotal.com/gui/ip-address/13.234.210.38")],
+            spans=[Span(0, 13, theme.heading_h2)],
         )
 
         # Table
-        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].style == theme.table_field
         assert group[1].columns[0].justify == "left"
         assert group[1].columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.210.38')],
+            ),
             "Resolved:",
             "ASN:",
             "ISP:",
@@ -355,14 +359,17 @@ class TestView01:
         # Heading
         assert group[0] == Text(
             "192.30.255.113",
-            spans=[Span(0, 14, "bold yellow link https://virustotal.com/gui/ip-address/192.30.255.113")],
+            spans=[Span(0, 14, theme.heading_h2)],
         )
 
         # Table
-        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].style == theme.table_field
         assert group[1].columns[0].justify == "left"
         assert group[1].columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/192.30.255.113')],
+            ),
             "Resolved:",
             "ASN:",
             "ISP:",
@@ -396,17 +403,20 @@ class TestView01:
         # Heading
         assert group[0] == Text(
             "13.234.176.102",
-            spans=[Span(0, 14, "bold yellow link https://virustotal.com/gui/ip-address/13.234.176.102")],
+            spans=[Span(0, 14, theme.heading_h2)],
         )
 
         # Unlike the previous entries, the table is inside a group of (Table, Text) due to
         # old timestamp warning
         # table = group[1].renderables[0]
         table = group[1]
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.176.102')],
+            ),
             "Resolved:",
             "ASN:",
             "ISP:",
@@ -455,7 +465,7 @@ class TestView01:
         # Table
         table = whois.renderable.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             "Registrar:",
@@ -529,7 +539,7 @@ class TestView01:
 
 
 class TestView02:
-    def test_resolutions_panel(self, view02, display_timestamp):
+    def test_resolutions_panel(self, view02, theme, display_timestamp):
         res = view02.resolutions_panel()
         assert type(res) is Panel
 
@@ -539,14 +549,17 @@ class TestView02:
         # Heading
         assert group[0] == Text(
             "13.234.210.38",
-            spans=[Span(0, 13, "bold yellow link https://virustotal.com/gui/ip-address/13.234.210.38")],
+            spans=[Span(0, 13, theme.heading_h2)],
         )
 
         # Table
-        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].style == theme.table_field
         assert group[1].columns[0].justify == "left"
         assert group[1].columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.210.38')],
+            ),
             "Resolved:",
         ]
         assert group[1].columns[1].style == "none"
@@ -560,7 +573,7 @@ class TestView02:
         assert res.renderable.renderables[1] == ""
         assert str(res.renderable.renderables[2]) == "+36 more"
 
-    def test_whois_panel(self, view02, display_timestamp):
+    def test_whois_panel(self, view02, theme):
         whois = view02.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -574,7 +587,7 @@ class TestView02:
         # Table
         table = whois.renderable.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             "Registrar:",
@@ -599,7 +612,7 @@ class TestView02:
 
 
 class TestView03:
-    def test_whois_panel(self, view03):
+    def test_whois_panel(self, view03, theme):
         whois = view03.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -609,7 +622,7 @@ class TestView03:
         # Table
         table = whois.renderable
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             "Nameservers:",
@@ -628,7 +641,7 @@ class TestView03:
 
 
 class TestView04:
-    def test_domain_panel(self, view04, display_timestamp):
+    def test_domain_panel(self, view04, theme, display_timestamp):
         domain = view04.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("google.com")
@@ -640,18 +653,19 @@ class TestView04:
         vt_section = domain.renderable.renderables[0]
 
         # Heading
-        assert vt_section.renderables[0] == Text(
-            "VirusTotal",
-            spans=[Span(0, 10, 'bold yellow link https://virustotal.com/gui/domain/google.com')]
-        )
+        assert vt_section.renderables[0] == Text("VirusTotal")
+        assert vt_section.renderables[0].style == theme.heading_h1
 
         # Table
         table = vt_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/domain/google.com')],
+            ),
             "Reputation:",
             "Popularity:",
             "Categories:",
@@ -708,7 +722,7 @@ class TestView04:
 
 
 class TestView05:
-    def test_domain_panel(self, view05, display_timestamp):
+    def test_domain_panel(self, view05, theme, display_timestamp):
         domain = view05.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("tucows.com")
@@ -720,18 +734,19 @@ class TestView05:
         vt_section = domain.renderable.renderables[0]
 
         # Heading
-        assert vt_section.renderables[0] == Text(
-            "VirusTotal",
-            spans=[Span(0, 10, 'bold yellow link https://virustotal.com/gui/domain/tucows.com')]
-        )
+        assert vt_section.renderables[0] == Text("VirusTotal")
+        assert vt_section.renderables[0].style == theme.heading_h1
 
         # Table
         table = vt_section.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/domain/tucows.com')],
+            ),
             "Reputation:",
             "Categories:",
             "Updated:",
@@ -795,14 +810,17 @@ class TestView07:
         # Heading
         assert group[0] == Text(
             "13.234.210.38",
-            spans=[Span(0, 13, "bold yellow link https://virustotal.com/gui/ip-address/13.234.210.38")],
+            spans=[Span(0, 13, theme.heading_h2)],
         )
 
         # Table
-        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].style == theme.table_field
         assert group[1].columns[0].justify == "left"
         assert group[1].columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.210.38')],
+            ),
             "Resolved:",
             "ASN:",
             "ISP:",
@@ -864,14 +882,17 @@ class TestView07:
         # Heading
         assert group[0] == Text(
             "192.30.255.113",
-            spans=[Span(0, 14, "bold yellow link https://virustotal.com/gui/ip-address/192.30.255.113")],
+            spans=[Span(0, 14, theme.heading_h2)],
         )
 
         # Table
-        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].style == theme.table_field
         assert group[1].columns[0].justify == "left"
         assert group[1].columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/192.30.255.113')],
+            ),
             "Resolved:",
             "ASN:",
             "ISP:",
@@ -926,17 +947,20 @@ class TestView07:
         # Heading
         assert group[0] == Text(
             "13.234.176.102",
-            spans=[Span(0, 14, "bold yellow link https://virustotal.com/gui/ip-address/13.234.176.102")],
+            spans=[Span(0, 14, theme.heading_h2)],
         )
 
         # Unlike the previous entries, the table is inside a group of (Table, Text) due to
         # old timestamp warning
         # table = group[1].renderables[0]
         table = group[1]
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.176.102')],
+            ),
             "Resolved:",
             "ASN:",
             "ISP:",
@@ -1008,14 +1032,17 @@ class TestView08:
         # Heading
         assert group[0] == Text(
             "199.232.34.194",
-            spans=[Span(0, 14, "bold yellow link https://virustotal.com/gui/ip-address/199.232.34.194")],
+            spans=[Span(0, 14, theme.heading_h2)],
         )
 
         # Table
-        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].style == theme.table_field
         assert group[1].columns[0].justify == "left"
         assert group[1].columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/199.232.34.194')],
+            ),
             "Resolved:",
             "ASN:",
             "ISP:",
@@ -1083,16 +1110,19 @@ class TestView09:
         # Heading
         assert group[0] == Text(
             "1.0.0.1",
-            spans=[Span(0, 7, "bold yellow link https://virustotal.com/gui/ip-address/1.0.0.1")],
+            spans=[Span(0, 7, theme.heading_h2)],
         )
 
         # Table
         # table = group[1].renderables[0]
         table = group[1]
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/1.0.0.1')],
+            ),
             "Resolved:",
             "ASN:",
             "ISP:",
@@ -1103,7 +1133,7 @@ class TestView09:
             ),
             "Last Scan:",
             Text(
-                "Greynoise:",
+                "GreyNoise:",
                 spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.0.0.1")]
             ),
         ]
@@ -1212,14 +1242,17 @@ class TestView11:
         # Heading
         assert group[0] == Text(
             "13.234.210.38",
-            spans=[Span(0, 13, "bold yellow link https://virustotal.com/gui/ip-address/13.234.210.38")],
+            spans=[Span(0, 13, theme.heading_h2)],
         )
 
         # Table
-        assert group[1].columns[0].style == "bold bright_magenta"
+        assert group[1].columns[0].style == theme.table_field
         assert group[1].columns[0].justify == "left"
         assert group[1].columns[0]._cells == [
-            "Analysis:",
+            Text(
+                "Analysis:",
+                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.210.38')],
+            ),
             "Resolved:",
             "ASN:",
             "ISP:",
@@ -1254,7 +1287,7 @@ class TestView11:
 
 
 class TestView12:
-    def test_whois_panel(self, view12):
+    def test_whois_panel(self, view12, theme):
         whois = view12.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -1268,7 +1301,7 @@ class TestView12:
         # Table
         table = whois.renderable.renderables[1]
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             "Registrar:",
@@ -1308,7 +1341,7 @@ class TestView12:
 
 
 class TestView13:
-    def test_whois_panel(self, view13):
+    def test_whois_panel(self, view13, theme):
         whois = view13.whois_panel()
         assert type(whois) is Panel
         assert whois.title == Text("whois")
@@ -1318,7 +1351,7 @@ class TestView13:
         # Table
         table = whois.renderable
         assert type(table) is Table
-        assert table.columns[0].style == "bold bright_magenta"
+        assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
         assert table.columns[0]._cells == [
             "Registered:",
