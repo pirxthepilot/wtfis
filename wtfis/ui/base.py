@@ -104,13 +104,20 @@ class BaseView(abc.ABC):
         """ A section is a subset of a panel, with its own title and content """
         return Group(heading, body) if heading else body
 
-    def _gen_panel(self, title: str, renderable: RenderableType, main_panel=False) -> Panel:
-        if main_panel is True:
-            title_style = self.theme.panel_title_main
-        else:
-            title_style = self.theme.panel_title_default
-        panel_title = Text(title, style=title_style)
-        return Panel(renderable, title=panel_title, expand=False)
+    def _gen_panel(
+        self,
+        renderable: RenderableType,
+        title: Optional[str] = None,
+        main_panel: bool = False
+    ) -> Panel:
+        if title is not None:
+            if main_panel is True:
+                title_style = self.theme.panel_title_main
+            else:
+                title_style = self.theme.panel_title_default
+            panel_title = Text(title, style=title_style)
+            return Panel(renderable, title=panel_title, expand=False)
+        return Panel(renderable, expand=False)
 
     def _gen_vt_analysis_stats(
         self,
@@ -414,11 +421,13 @@ class BaseView(abc.ABC):
             ("Expires:", Timestamp(self.whois.date_expires).render),
         )
 
-        # Return message if no whois data
+        content: List[RenderableType] = [self._gen_heading_text("Whois")]
+
         if body:
-            return self._gen_panel("whois", self._gen_section(body, heading))
+            content.append(self._gen_section(body, heading))
         else:
-            return self._gen_panel("whois", Text("No whois data found", style=self.theme.disclaimer))
+            content.append(Text("No WHOIS data was found", style=self.theme.disclaimer))
+        return self._gen_panel(self._gen_group(content))
 
     @abc.abstractmethod
     def print(self, one_column: bool = False) -> None:  # pragma: no cover
