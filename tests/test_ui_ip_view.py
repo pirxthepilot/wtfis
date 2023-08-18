@@ -259,16 +259,24 @@ class TestView01:
     def test_whois_panel(self, view01, theme):
         whois = view01.whois_panel()
         assert type(whois) is Panel
-        assert whois.title == Text("whois")
+        assert whois.title is None
+
+        # Sections
+        title = whois.renderable.renderables[0]
+        content = whois.renderable.renderables[1]
+
+        # Title
+        assert title == Text("Whois")
+        assert title.style == theme.heading_h1
 
         # Heading
-        assert whois.renderable.renderables[0] == Text(
+        assert content.renderables[0] == Text(
             "1.1.1.0",
-            spans=[Span(0, 7, "bold yellow link https://community.riskiq.com/search/1.1.1.0/whois")]
+            spans=[Span(0, 7, f"{theme.heading_h2} link https://community.riskiq.com/search/1.1.1.0/whois")]
         )
 
         # Table
-        table = whois.renderable.renderables[1]
+        table = content.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
@@ -505,16 +513,23 @@ class TestView03:
     def test_whois_panel(self, view03, theme):
         whois = view03.whois_panel()
         assert type(whois) is Panel
-        assert whois.title == Text("whois")
+        assert whois.title is None
 
-        # Heading
-        assert whois.renderable.renderables[0] == Text(
+        # Sections
+        title = whois.renderable.renderables[0]
+        content = whois.renderable.renderables[1]
+
+        # Title
+        assert title == Text("Whois")
+        assert title.style == theme.heading_h1
+
+        # Content
+        assert content.renderables[0] == Text(
             "one.one",
-            spans=[Span(0, 7, theme.heading_h2)]
+            spans=[Span(0, 7, 'bold yellow')],
         )
 
-        # Table
-        table = whois.renderable.renderables[1]
+        table = content.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"

@@ -309,8 +309,19 @@ class TestView01:
         res = view01.resolutions_panel()
         assert type(res) is Panel
 
+        # Sections
+        title = res.renderable.renderables[0]
+        ip1 = res.renderable.renderables[1]
+        ip2 = res.renderable.renderables[3]
+        ip3 = res.renderable.renderables[5]
+        footer = res.renderable.renderables[7]
+
+        # Title
+        assert title == Text("Resolutions")
+        assert title.style == theme.heading_h1
+
         # Entry 1
-        group = res.renderable.renderables[0].renderables
+        group = ip1.renderables
 
         # Heading
         assert group[0] == Text(
@@ -351,10 +362,10 @@ class TestView01:
         ]
 
         # Spacing
-        assert res.renderable.renderables[1] == ""
+        assert res.renderable.renderables[2] == ""
 
         # Entry 2
-        group = res.renderable.renderables[2].renderables
+        group = ip2.renderables
 
         # Heading
         assert group[0] == Text(
@@ -395,10 +406,10 @@ class TestView01:
         ]
 
         # Spacing
-        assert res.renderable.renderables[3] == ""
+        assert res.renderable.renderables[4] == ""
 
         # Entry 3 (NOTE: Timestamp on data modified to be really old)
-        group = res.renderable.renderables[4].renderables
+        group = ip3.renderables
 
         # Heading
         assert group[0] == Text(
@@ -444,26 +455,31 @@ class TestView01:
         # Old timestamp warning
         # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
-        # Spacing and remaining count
-        assert res.renderable.renderables[5] == ""
-        assert res.renderable.renderables[6] == Text(
-            "+34 more",
-            spans=[Span(0, 8, 'cyan link https://virustotal.com/gui/domain/gist.github.com/relations')]
-        )
+        # Spacing and remaining count footer
+        assert res.renderable.renderables[6] == ""
+        assert str(footer) == "+34 more"
+        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
 
     def test_whois_panel(self, view01, theme, display_timestamp):
         whois = view01.whois_panel()
         assert type(whois) is Panel
-        assert whois.title == Text("whois")
+        assert whois.title is None
 
-        # Heading
-        assert whois.renderable.renderables[0] == Text(
+        # Sections
+        title = whois.renderable.renderables[0]
+        content = whois.renderable.renderables[1]
+
+        # Title
+        assert title == Text("Whois")
+        assert title.style == theme.heading_h1
+
+        # Content
+        assert content.renderables[0] == Text(
             "github.com",
             spans=[Span(0, 10, 'bold yellow link https://community.riskiq.com/search/github.com/whois')]
         )
 
-        # Table
-        table = whois.renderable.renderables[1]
+        table = content.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
@@ -543,8 +559,17 @@ class TestView02:
         res = view02.resolutions_panel()
         assert type(res) is Panel
 
+        # Sections
+        title = res.renderable.renderables[0]
+        ip1 = res.renderable.renderables[1]
+        footer = res.renderable.renderables[3]
+
+        # Title
+        assert title == Text("Resolutions")
+        assert title.style == theme.heading_h1
+
         # Entry 1
-        group = res.renderable.renderables[0].renderables
+        group = ip1.renderables
 
         # Heading
         assert group[0] == Text(
@@ -569,23 +594,31 @@ class TestView02:
             display_timestamp("2022-08-06T14:56:20Z"),
         ]
 
-        # Spacing and remaining count
-        assert res.renderable.renderables[1] == ""
-        assert str(res.renderable.renderables[2]) == "+36 more"
+        # Spacing and remaining count footer
+        assert res.renderable.renderables[2] == ""
+        assert str(footer) == "+36 more"
+        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
 
     def test_whois_panel(self, view02, theme):
         whois = view02.whois_panel()
         assert type(whois) is Panel
-        assert whois.title == Text("whois")
+        assert whois.title is None
 
-        # Heading
-        assert whois.renderable.renderables[0] == Text(
+        # Sections
+        title = whois.renderable.renderables[0]
+        content = whois.renderable.renderables[1]
+
+        # Title
+        assert title == Text("Whois")
+        assert title.style == theme.heading_h1
+
+        # Content
+        assert content.renderables[0] == Text(
             "github.com",
             spans=[Span(0, 10, 'bold yellow')]
         )
 
-        # Table
-        table = whois.renderable.renderables[1]
+        table = content.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
@@ -615,12 +648,19 @@ class TestView03:
     def test_whois_panel(self, view03, theme):
         whois = view03.whois_panel()
         assert type(whois) is Panel
-        assert whois.title == Text("whois")
+        assert whois.title is None
 
-        # No Heading!
+        # Sections
+        title = whois.renderable.renderables[0]
+        content = whois.renderable.renderables[1]
+
+        # Title
+        assert title == Text("Whois")
+        assert title.style == theme.heading_h1
 
         # Table
-        table = whois.renderable
+        # Note: there should not be a subheading (a.k.a the domain)
+        table = content
         assert type(table) is Table
         assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
@@ -790,13 +830,22 @@ class TestView05:
 
 
 class TestView06:
-    def test_whois_panel(self, view06):
+    def test_whois_panel(self, view06, theme):
         whois = view06.whois_panel()
         assert type(whois) is Panel
-        assert whois.title == Text("whois")
+        assert whois.title is None
+
+        # Sections
+        title = whois.renderable.renderables[0]
+        content = whois.renderable.renderables[1]
+
+        # Title
+        assert title == Text("Whois")
+        assert title.style == theme.heading_h1
 
         # Warning message
-        assert whois.renderable == Text("No whois data found")
+        assert content == Text("No WHOIS data was found")
+        assert content.style == theme.disclaimer
 
 
 class TestView07:
@@ -804,8 +853,19 @@ class TestView07:
         res = view07.resolutions_panel()
         assert type(res) is Panel
 
+        # Sections
+        title = res.renderable.renderables[0]
+        ip1 = res.renderable.renderables[1]
+        ip2 = res.renderable.renderables[3]
+        ip3 = res.renderable.renderables[5]
+        footer = res.renderable.renderables[7]
+
+        # Title
+        assert title == Text("Resolutions")
+        assert title.style == theme.heading_h1
+
         # Entry 1
-        group = res.renderable.renderables[0].renderables
+        group = ip1.renderables
 
         # Heading
         assert group[0] == Text(
@@ -874,10 +934,10 @@ class TestView07:
         ]
 
         # Spacing
-        assert res.renderable.renderables[1] == ""
+        assert res.renderable.renderables[2] == ""
 
         # Entry 2
-        group = res.renderable.renderables[2].renderables
+        group = ip2.renderables
 
         # Heading
         assert group[0] == Text(
@@ -939,10 +999,10 @@ class TestView07:
         ]
 
         # Spacing
-        assert res.renderable.renderables[3] == ""
+        assert res.renderable.renderables[4] == ""
 
         # Entry 3 (NOTE: Timestamp on data modified to be really old)
-        group = res.renderable.renderables[4].renderables
+        group = ip3.renderables
 
         # Heading
         assert group[0] == Text(
@@ -1016,9 +1076,10 @@ class TestView07:
         # Old timestamp warning
         # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
-        # Spacing and remaining count
-        assert res.renderable.renderables[5] == ""
-        assert str(res.renderable.renderables[6]) == "+34 more"
+        # Spacing and remaining count footer
+        assert res.renderable.renderables[6] == ""
+        assert str(footer) == "+34 more"
+        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
 
 
 class TestView08:
@@ -1026,8 +1087,17 @@ class TestView08:
         res = view08.resolutions_panel()
         assert type(res) is Panel
 
+        # Sections
+        title = res.renderable.renderables[0]
+        ip1 = res.renderable.renderables[1]
+        footer = res.renderable.renderables[3]
+
+        # Title
+        assert title == Text("Resolutions")
+        assert title.style == theme.heading_h1
+
         # Entry 1
-        group = res.renderable.renderables[0].renderables
+        group = ip1.renderables
 
         # Heading
         assert group[0] == Text(
@@ -1095,8 +1165,11 @@ class TestView08:
         ]
 
         # Spacing
-        assert res.renderable.renderables[1] == ""
-        assert str(res.renderable.renderables[2]) == "+199 more"
+        assert res.renderable.renderables[2] == ""
+
+        # Footer
+        assert str(footer) == "+199 more"
+        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
 
 
 class TestView09:
@@ -1104,8 +1177,17 @@ class TestView09:
         res = view09.resolutions_panel()
         assert type(res) is Panel
 
+        # Sections
+        title = res.renderable.renderables[0]
+        ip1 = res.renderable.renderables[1]
+        footer = res.renderable.renderables[3]
+
+        # Title
+        assert title == Text("Resolutions")
+        assert title.style == theme.heading_h1
+
         # Entry 1
-        group = res.renderable.renderables[0].renderables
+        group = ip1.renderables
 
         # Heading
         assert group[0] == Text(
@@ -1217,18 +1299,30 @@ class TestView09:
         # assert group[1].renderables[1] == Text("**Enrichment data may be inaccurate")
 
         # Spacing
-        assert res.renderable.renderables[1] == ""
-        assert str(res.renderable.renderables[2]) == "+1 more"
+        assert res.renderable.renderables[2] == ""
+
+        # Footer
+        assert str(footer) == "+1 more"
+        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
 
 
 class TestView10:
-    def test_whois_panel(self, view10):
+    def test_whois_panel(self, view10, theme):
         whois = view10.whois_panel()
         assert type(whois) is Panel
-        assert whois.title == Text("whois")
+        assert whois.title is None
+
+        # Sections
+        title = whois.renderable.renderables[0]
+        content = whois.renderable.renderables[1]
+
+        # Title
+        assert title == Text("Whois")
+        assert title.style == theme.heading_h1
 
         # Warning message
-        assert whois.renderable == Text("No whois data found")
+        assert content == Text("No WHOIS data was found")
+        assert content.style == theme.disclaimer
 
 
 class TestView11:
@@ -1236,8 +1330,16 @@ class TestView11:
         res = view11.resolutions_panel()
         assert type(res) is Panel
 
+        # Sections
+        title = res.renderable.renderables[0]
+        ip1 = res.renderable.renderables[1]
+
+        # Title
+        assert title == Text("Resolutions")
+        assert title.style == theme.heading_h1
+
         # Entry 1
-        group = res.renderable.renderables[0].renderables
+        group = ip1.renderables
 
         # Heading
         assert group[0] == Text(
@@ -1290,16 +1392,24 @@ class TestView12:
     def test_whois_panel(self, view12, theme):
         whois = view12.whois_panel()
         assert type(whois) is Panel
-        assert whois.title == Text("whois")
+        assert whois.title is None
 
-        # Heading
-        assert whois.renderable.renderables[0] == Text(
+        # Sections
+        title = whois.renderable.renderables[0]
+        content = whois.renderable.renderables[1]
+
+        # Title
+        assert title == Text("Whois")
+        assert title.style == theme.heading_h1
+
+        # Content
+        assert content.renderables[0] == Text(
             "hotmail.com",
             spans=[Span(0, 11, "bold yellow")]
         )
 
         # Table
-        table = whois.renderable.renderables[1]
+        table = content.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
@@ -1344,12 +1454,19 @@ class TestView13:
     def test_whois_panel(self, view13, theme):
         whois = view13.whois_panel()
         assert type(whois) is Panel
-        assert whois.title == Text("whois")
+        assert whois.title is None
 
-        # No Heading!
+        # Sections
+        title = whois.renderable.renderables[0]
+        content = whois.renderable.renderables[1]
 
-        # Table
-        table = whois.renderable
+        # Title
+        assert title == Text("Whois")
+        assert title.style == theme.heading_h1
+
+        # Content
+        # Note: there should not be a subheading (a.k.a the domain)
+        table = content
         assert type(table) is Table
         assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
