@@ -47,14 +47,15 @@ class DomainView(BaseView):
         # Altogether now
         content = [vt_section]
 
-        return self._gen_panel(self.entity.data.id_, self._gen_group(content), main_panel=True)
+        return self._gen_panel(self._gen_group(content), self.entity.data.id_, main_panel=True)
 
     def resolutions_panel(self) -> Optional[Panel]:
         # Skip if no resolutions data
         if not self.resolutions:
             return None
 
-        content = []
+        content: List[RenderableType] = [self._gen_heading_text("Resolutions")]
+
         for idx, ip in enumerate(self.resolutions.data):
             if idx == self.max_resolutions:
                 break
@@ -148,8 +149,8 @@ class DomainView(BaseView):
             )
 
         # Render results, if existent
-        if content:
-            return self._gen_panel("resolutions", self._gen_group(content))
+        if len(content) > 1:
+            return self._gen_panel(self._gen_group(content))
 
         # No result
         return None
@@ -198,7 +199,7 @@ class IpAddressView(BaseView):
                 content.append("")
                 content.append(section)
 
-        return self._gen_panel(self.entity.data.id_, self._gen_group(content), main_panel=True)
+        return self._gen_panel(self._gen_group(content), self.entity.data.id_, main_panel=True)
 
     def print(self, one_column: bool = False) -> None:
         renderables = [i for i in (
