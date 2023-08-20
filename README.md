@@ -7,6 +7,8 @@ Passive hostname, domain and IP lookup tool for non-robots
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/demo.gif?raw=true)
 
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-ip.png?raw=true)
+
 
 ## WTF is it?
 
@@ -150,7 +152,7 @@ and you will get results organized by panel, similar to the image above.
 
 Defanged input is accepted (e.g. `api[.]google[.]com`).
 
-If supported by the terminal, the `VirusTotal` heading, IP headings in the resolutions panel, and (if using PT) headings in the whois panel are clickable hyperlinks that point to the appropriate pages on the VT or PT website.
+If supported by the terminal, the `Analysis` field and (if using PT) headings in the whois panel are clickable hyperlinks that point to the appropriate pages on the VT or PT website.
 
 ### Shodan enrichment
 
@@ -158,7 +160,7 @@ Shodan can be used to enrich the IP addresses (instead of IPWhois). Invoke with 
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-shodan.png?raw=true)
 
-If supported by the terminal, the `Shodan` heading in the IP panel and `Services` field in the resolution panel are clickable hyperlinks that take you to the Shodan web interface.
+If supported by the terminal, the `Services` field is a clickable hyperlink that takes you to the Shodan web interface.
 
 ### Greynoise enrichment
 
@@ -166,7 +168,7 @@ To enable Greynoise, invoke with the `-g` or `--use-greynoise` flag. Because the
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-greynoise.png?raw=true)
 
-The `Greynoise` field name is also a hyperlink (if terminal-supported) that points to the IP entry in the Greynoise web interface, where more context is shown.
+The `GreyNoise` field name is also a hyperlink (if terminal-supported) that points to the IP entry in the Greynoise web interface, where more context is shown.
 
 
 ### Display options
