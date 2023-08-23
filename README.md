@@ -105,6 +105,10 @@ $ pip install wtfis
 
 To install via `conda` (from conda-forge), see [wtfis-feedstock](https://github.com/conda-forge/wtfis-feedstock).
 
+To install via [`brew`](https://brew.sh):
+```
+brew install wtfis
+```
 
 ## Setup
 
