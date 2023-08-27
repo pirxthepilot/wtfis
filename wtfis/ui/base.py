@@ -113,7 +113,7 @@ class BaseView(abc.ABC):
         if title is not None:
             if main_panel is True:
                 title_style = self.theme.panel_title_main
-            else:
+            else:  # Note to future self: we might not need two panel title styles anymore
                 title_style = self.theme.panel_title_default
             panel_title = Text(title, style=title_style)
             return Panel(renderable, title=panel_title, expand=False)
