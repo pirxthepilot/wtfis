@@ -61,7 +61,7 @@ class BaseHandler(abc.ABC):
 
         # Dataset containers
         self.vt_info:   Union[Domain, IpAddress]
-        self.ip_enrich: Union[IpWhoisMap, ShodanIpMap]
+        self.ip_enrich: Union[IpWhoisMap, ShodanIpMap] = IpWhoisMap.empty()
         self.whois:     WhoisBase
         self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()
 

@@ -11,6 +11,7 @@ from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
 from wtfis.models.greynoise import GreynoiseIpMap
+from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.virustotal import Resolutions
 
 
@@ -87,6 +88,9 @@ class TestDomainHandler:
         handler._fetch_ip_enrichments.assert_not_called()
         handler._fetch_whois.assert_called_once()
         handler._fetch_greynoise.assert_called_once()
+
+        assert handler.ip_enrich == IpWhoisMap.model_validate({})
+        assert handler.ip_enrich.root == {}
 
     @patch.object(requests.Session, "get")
     def test_vt_http_error(self, mock_requests_get, domain_handler, capsys):
