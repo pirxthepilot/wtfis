@@ -261,6 +261,28 @@ class TestDomainHandler:
         assert len(handler.warnings) == 0
         assert handler.greynoise == GreynoiseIpMap.model_validate({})
 
+    @patch.object(requests.Session, "get")
+    def test_greynoise_403_error(self, mock_requests_get, domain_handler, test_data, capsys):
+        """
+        Test exception behavior of Greynoise when not under any of the handled cases
+        """
+        handler = domain_handler(3)
+        mock_resp = requests.models.Response()
+
+        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+
+        mock_resp.status_code = 403
+        mock_requests_get.return_value = mock_resp
+
+        with pytest.raises(SystemExit) as e:
+            handler._fetch_greynoise()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == "Error fetching data: 403 Client Error: None for url: None\n"
+        assert e.type == SystemExit
+        assert e.value.code == 1
+
 
 class TestIpAddressHandler:
     def test_entity_refang(self, ip_handler):
@@ -408,3 +430,23 @@ class TestIpAddressHandler:
         handler._fetch_greynoise()
         assert len(handler.warnings) == 0
         assert handler.greynoise == GreynoiseIpMap.model_validate({})
+
+    @patch.object(requests.Session, "get")
+    def test_greynoise_403_error(self, mock_requests_get, ip_handler, capsys):
+        """
+        Test exception behavior of Greynoise when not under any of the handled cases
+        """
+        handler = ip_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 403
+        mock_requests_get.return_value = mock_resp
+
+        with pytest.raises(SystemExit) as e:
+            handler._fetch_greynoise()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == "Error fetching data: 403 Client Error: None for url: None\n"
+        assert e.type == SystemExit
+        assert e.value.code == 1
