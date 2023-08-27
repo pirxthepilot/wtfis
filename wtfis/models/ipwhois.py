@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, Field, RootModel
 from typing import Dict
 
@@ -39,3 +41,7 @@ class IpWhois(BaseModel):
 
 class IpWhoisMap(RootModel):
     root: Dict[str, IpWhois]
+
+    @classmethod
+    def empty(cls) -> IpWhoisMap:
+        return cls.model_validate({})
