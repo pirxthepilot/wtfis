@@ -24,7 +24,7 @@ class ShodanClient:
             if str(e) == "Invalid API key":
                 raise APIError("Invalid Shodan API key")
             else:
-                return None
+                raise
 
     def bulk_get_ip(
         self,

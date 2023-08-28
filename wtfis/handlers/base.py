@@ -1,7 +1,12 @@
 import abc
 
 from pydantic import ValidationError
-from requests.exceptions import HTTPError, JSONDecodeError
+from requests.exceptions import (
+    ConnectionError,
+    HTTPError,
+    JSONDecodeError,
+    Timeout,
+)
 from rich.console import Console
 from rich.progress import Progress
 from shodan.exception import APIError
@@ -28,7 +33,7 @@ def common_exception_handler(func: Callable) -> Callable:
         progress: Progress = args[0].progress  # args[0] is the method's self input
         try:
             func(*args, **kwargs)
-        except (HTTPError, JSONDecodeError, APIError) as e:
+        except (APIError, ConnectionError, HTTPError, JSONDecodeError, Timeout) as e:
             progress.stop()
             error_and_exit(f"Error fetching data: {e}")
         except ValidationError as e:

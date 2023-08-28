@@ -1,5 +1,6 @@
 import json
 import pytest
+from requests.exceptions import ConnectionError
 from rich.console import Console
 from unittest.mock import MagicMock, patch
 
@@ -161,14 +162,12 @@ class TestDomainHandler:
         mock_resp.status_code = 500
         mock_requests_get.return_value = mock_resp
 
-        with pytest.raises(SystemExit) as e:
-            handler._fetch_ip_enrichments()
+        handler._fetch_ip_enrichments()
+        assert handler.warnings[0].startswith("Could not fetch IPWhois: 500 Server Error:")
 
+        handler.print_warnings()
         capture = capsys.readouterr()
-
-        assert capture.err == "Error fetching data: 500 Server Error: None for url: None\n"
-        assert e.type == SystemExit
-        assert e.value.code == 1
+        assert capture.out.startswith("WARN: Could not fetch IPWhois: 500 Server Error:")
 
     @patch.object(requests.Session, "get")
     def test_whois_http_error(self, mock_requests_get, domain_handler, capsys):
@@ -274,14 +273,29 @@ class TestDomainHandler:
         mock_resp.status_code = 403
         mock_requests_get.return_value = mock_resp
 
-        with pytest.raises(SystemExit) as e:
-            handler._fetch_greynoise()
+        handler._fetch_greynoise()
+        assert handler.warnings[0].startswith("Could not fetch Greynoise: 403 Client Error:")
 
+        handler.print_warnings()
         capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch Greynoise: 403 Client Error:")
 
-        assert capture.err == "Error fetching data: 403 Client Error: None for url: None\n"
-        assert e.type == SystemExit
-        assert e.value.code == 1
+    @patch.object(requests.Session, "get")
+    def test_greynoise_connection_error(self, mock_requests_get, domain_handler, test_data, capsys):
+        """
+        Test exception behavior of Greynoise with non-HTTPError requests exception
+        """
+        handler = domain_handler(3)
+        mock_requests_get.side_effect = ConnectionError("Foo bar message")
+
+        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+
+        handler._fetch_greynoise()
+        assert handler.warnings[0] == "Could not fetch Greynoise: Foo bar message"
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch Greynoise: Foo bar message")
 
 
 class TestIpAddressHandler:
@@ -344,7 +358,7 @@ class TestIpAddressHandler:
             assert e.value.code == 1
 
     @patch.object(requests.Session, "get")
-    def test_ipwhois_http_error(self, mock_requests_get, ip_handler, capsys, test_data):
+    def test_ipwhois_http_error(self, mock_requests_get, ip_handler, capsys):
         handler = ip_handler()
 
         mock_resp = requests.models.Response()
@@ -352,14 +366,12 @@ class TestIpAddressHandler:
         mock_resp.status_code = 502
         mock_requests_get.return_value = mock_resp
 
-        with pytest.raises(SystemExit) as e:
-            handler._fetch_ip_enrichments()
+        handler._fetch_ip_enrichments()
+        assert handler.warnings[0].startswith("Could not fetch IPWhois: 502 Server Error:")
 
+        handler.print_warnings()
         capture = capsys.readouterr()
-
-        assert capture.err == "Error fetching data: 502 Server Error: None for url: None\n"
-        assert e.type == SystemExit
-        assert e.value.code == 1
+        assert capture.out.startswith("WARN: Could not fetch IPWhois: 502 Server Error:")
 
     @patch.object(requests.Session, "get")
     def test_whois_http_error(self, mock_requests_get, ip_handler, capsys):
@@ -442,11 +454,24 @@ class TestIpAddressHandler:
         mock_resp.status_code = 403
         mock_requests_get.return_value = mock_resp
 
-        with pytest.raises(SystemExit) as e:
-            handler._fetch_greynoise()
+        handler._fetch_greynoise()
+        assert handler.warnings[0].startswith("Could not fetch Greynoise: 403 Client Error:")
 
+        handler.print_warnings()
         capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch Greynoise: 403 Client Error:")
 
-        assert capture.err == "Error fetching data: 403 Client Error: None for url: None\n"
-        assert e.type == SystemExit
-        assert e.value.code == 1
+    @patch.object(requests.Session, "get")
+    def test_greynoise_connection_error(self, mock_requests_get, ip_handler, capsys):
+        """
+        Test exception behavior of Greynoise with non-HTTPError requests exception
+        """
+        handler = ip_handler()
+        mock_requests_get.side_effect = ConnectionError("Foo bar message")
+
+        handler._fetch_greynoise()
+        assert handler.warnings[0] == "Could not fetch Greynoise: Foo bar message"
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch Greynoise: Foo bar message")

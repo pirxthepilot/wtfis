@@ -145,9 +145,11 @@ class TestShodanClient:
         """ Test other invalid API key APIError """
         mock_shodan_host.side_effect = APIError("Some other error")
 
-        resp = shodan_client.get_ip("thisdoesntmatter")
+        with pytest.raises(APIError) as e:
+            shodan_client.get_ip("thisdoesntmatter")
 
-        assert resp is None
+        assert e.type == APIError
+        assert str(e.value) == "Some other error"
 
 
 class TestVirustotalClient:

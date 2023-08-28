@@ -1,10 +1,10 @@
 """
 Logic handler for IP address inputs
 """
-from requests.exceptions import HTTPError
+from requests.exceptions import RequestException
+from shodan.exception import APIError
 
 from wtfis.handlers.base import BaseHandler, common_exception_handler
-from wtfis.models.greynoise import GreynoiseIpMap
 
 
 class IpAddressHandler(BaseHandler):
@@ -14,24 +14,22 @@ class IpAddressHandler(BaseHandler):
 
     @common_exception_handler
     def _fetch_ip_enrichments(self) -> None:
-        self.ip_enrich = self._enricher.single_get_ip(self.entity)
+        # Let continue on any error
+        try:
+            self.ip_enrich = self._enricher.single_get_ip(self.entity)
+        except (APIError, RequestException) as e:  # Covers both ipwhois and Shodan exceptions
+            # With warning message
+            self.warnings.append(f"Could not fetch {self._enricher.name}: {e}")
 
     @common_exception_handler
     def _fetch_greynoise(self) -> None:
-        # Let continue on certain HTTP errors
+        # Let continue on any error
         try:
             if self._greynoise:
                 self.greynoise = self._greynoise.single_get_ip(self.entity)
-        except HTTPError as e:
+        except RequestException as e:  # All requests errors
             # With warning message
-            if e.response.status_code in (400, 429, 500):
-                self.greynoise = GreynoiseIpMap.empty()
-                self.warnings.append(f"Could not fetch Greynoise: {e}")
-            # No warning message
-            elif e.response.status_code == 404:
-                self.greynoise = GreynoiseIpMap.empty()
-            else:
-                raise
+            self.warnings.append(f"Could not fetch Greynoise: {e}")
 
     def fetch_data(self):
         task_v = self.progress.add_task("Fetching data from Virustotal")
