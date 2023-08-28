@@ -1,7 +1,7 @@
 """
 Logic handler for IP address inputs
 """
-from requests.exceptions import HTTPError, RequestException
+from requests.exceptions import RequestException
 from shodan.exception import APIError
 
 from wtfis.handlers.base import BaseHandler, common_exception_handler
@@ -27,11 +27,7 @@ class IpAddressHandler(BaseHandler):
         try:
             if self._greynoise:
                 self.greynoise = self._greynoise.single_get_ip(self.entity)
-        except HTTPError as e:
-            # Warning message on any HTTPError except 404 (no result)
-            if e.response.status_code != 404:
-                self.warnings.append(f"Could not fetch Greynoise: {e}")
-        except RequestException as e:  # All other errors
+        except RequestException as e:  # All requests errors
             # With warning message
             self.warnings.append(f"Could not fetch Greynoise: {e}")
 

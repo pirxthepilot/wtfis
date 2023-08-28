@@ -66,10 +66,6 @@ class DomainHandler(BaseHandler):
         try:
             if self._greynoise:
                 self.greynoise = self._greynoise.bulk_get_ip(self.resolutions, self.max_resolutions)
-        except HTTPError as e:
-            # Warning message on any HTTPError except 404 (no result)
-            if e.response.status_code != 404:
-                self.warnings.append(f"Could not fetch Greynoise: {e}")
         except RequestException as e:  # All other errors
             # With warning message
             self.warnings.append(f"Could not fetch Greynoise: {e}")

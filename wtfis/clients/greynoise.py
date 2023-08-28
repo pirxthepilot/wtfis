@@ -1,3 +1,6 @@
+from requests.exceptions import HTTPError
+from typing import Optional
+
 from wtfis.clients.base import BaseClient
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
 from wtfis.models.virustotal import Resolutions
@@ -17,10 +20,16 @@ class GreynoiseClient(BaseClient):
     def name(self) -> str:
         return "Greynoise"
 
-    def get_ip(self, ip: str) -> GreynoiseIp:
-        return GreynoiseIp.model_validate(
-            self._get(f"/{ip}", headers={"key": self.api_key})
-        )
+    def get_ip(self, ip: str) -> Optional[GreynoiseIp]:
+        # Let a 404 or invalid IP pass
+        try:
+            return GreynoiseIp.model_validate(
+                self._get(f"/{ip}", headers={"key": self.api_key})
+            )
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                return None
+            raise
 
     def bulk_get_ip(
         self,
