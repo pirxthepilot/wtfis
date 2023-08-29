@@ -1,11 +1,11 @@
 from requests.exceptions import HTTPError
 
-from wtfis.clients.base import BaseClient
+from wtfis.clients.base import BaseRequestsClient, BaseWhoisClient
 from wtfis.models.ip2whois import Whois
 from wtfis.utils import refang
 
 
-class Ip2WhoisClient(BaseClient):
+class Ip2WhoisClient(BaseRequestsClient, BaseWhoisClient):
     """
     IP2WHOIS client
     """

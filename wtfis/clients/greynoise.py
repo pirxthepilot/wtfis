@@ -1,12 +1,11 @@
 from requests.exceptions import HTTPError
 from typing import Optional
 
-from wtfis.clients.base import BaseClient
+from wtfis.clients.base import BaseIpEnricherClient, BaseRequestsClient
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
-from wtfis.models.virustotal import Resolutions
 
 
-class GreynoiseClient(BaseClient):
+class GreynoiseClient(BaseRequestsClient, BaseIpEnricherClient):
     """
     Greynoise client
     """
@@ -20,7 +19,7 @@ class GreynoiseClient(BaseClient):
     def name(self) -> str:
         return "Greynoise"
 
-    def get_ip(self, ip: str) -> Optional[GreynoiseIp]:
+    def _get_ip(self, ip: str) -> Optional[GreynoiseIp]:
         # Let a 404 or invalid IP pass
         try:
             return GreynoiseIp.model_validate(
@@ -31,23 +30,10 @@ class GreynoiseClient(BaseClient):
                 return None
             raise
 
-    def bulk_get_ip(
-        self,
-        resolutions: Resolutions,
-        max_ips_to_enrich: int
-    ) -> GreynoiseIpMap:
+    def enrich_ips(self, *ips: str) -> GreynoiseIpMap:
         greynoise_map = {}
-        for idx, ip in enumerate(resolutions.data):
-            if idx == max_ips_to_enrich:
-                break
-            ip_data = self.get_ip(ip.attributes.ip_address)
+        for ip in ips:
+            ip_data = self._get_ip(ip)
             if ip_data:
                 greynoise_map[ip_data.ip] = ip_data
-        return GreynoiseIpMap.model_validate(greynoise_map)
-
-    def single_get_ip(self, ip: str) -> GreynoiseIpMap:
-        greynoise_map = {}
-        ip_data = self.get_ip(ip)
-        if ip_data:
-            greynoise_map[ip] = ip_data
         return GreynoiseIpMap.model_validate(greynoise_map)

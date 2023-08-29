@@ -114,6 +114,17 @@ class Resolutions(BaseModel):
     meta: Meta
     data: List[ResolutionData]
 
+    def ip_list(self, limit: int) -> List[str]:
+        """
+        IP list from the first n resolutions
+        where n is defined by the limit
+        """
+        ips = []
+        for idx, resolution in enumerate(self.data):
+            if idx < limit:
+                ips.append(resolution.attributes.ip_address)
+        return ips
+
 
 class Whois(WhoisBase):
     source: str = "virustotal"
