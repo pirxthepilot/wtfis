@@ -1,9 +1,9 @@
-from wtfis.clients.base import BaseClient
+from wtfis.clients.base import BaseRequestsClient, BaseWhoisClient
 from wtfis.models.passivetotal import Whois
 from wtfis.utils import refang
 
 
-class PTClient(BaseClient):
+class PTClient(BaseRequestsClient, BaseWhoisClient):
     """
     Passivetotal client
     """

@@ -1,41 +1,27 @@
-from wtfis.clients.base import BaseClient
+from wtfis.clients.base import BaseIpEnricherClient, BaseRequestsClient
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
-from wtfis.models.virustotal import Resolutions
 
 from typing import Optional
 
 
-class IpWhoisClient(BaseClient):
+class IpWhoisClient(BaseRequestsClient, BaseIpEnricherClient):
     """
     IPWhois client
     """
     baseurl = "https://ipwho.is"
 
-    def get_ipwhois(self, ip: str) -> Optional[IpWhois]:
-        result = self._get(f"/{ip}")
-        return IpWhois.model_validate(result) if result.get("success") is True else None
-
     @property
     def name(self) -> str:
         return "IPWhois"
 
-    def bulk_get_ip(
-        self,
-        resolutions: Resolutions,
-        max_ips_to_enrich: int
-    ) -> IpWhoisMap:
+    def _get_ipwhois(self, ip: str) -> Optional[IpWhois]:
+        result = self._get(f"/{ip}")
+        return IpWhois.model_validate(result) if result.get("success") is True else None
+
+    def enrich_ips(self, *ips: str) -> IpWhoisMap:
         ipwhois_map = {}
-        for idx, ip in enumerate(resolutions.data):
-            if idx == max_ips_to_enrich:
-                break
-            ipwhois = self.get_ipwhois(ip.attributes.ip_address)
+        for ip in ips:
+            ipwhois = self._get_ipwhois(ip)
             if ipwhois:
                 ipwhois_map[ipwhois.ip] = ipwhois
-        return IpWhoisMap.model_validate(ipwhois_map)
-
-    def single_get_ip(self, ip: str) -> IpWhoisMap:
-        ipwhois_map = {}
-        ipwhois = self.get_ipwhois(ip)
-        if ipwhois:
-            ipwhois_map[ip] = ipwhois
         return IpWhoisMap.model_validate(ipwhois_map)

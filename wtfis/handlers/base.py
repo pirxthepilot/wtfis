@@ -5,6 +5,7 @@ from requests.exceptions import (
     ConnectionError,
     HTTPError,
     JSONDecodeError,
+    RequestException,
     Timeout,
 )
 from rich.console import Console
@@ -77,6 +78,25 @@ class BaseHandler(abc.ABC):
     def fetch_data(self) -> None:
         """ Main method that controls what get fetched """
         return NotImplemented  # type: ignore  # pragma: no coverage
+
+    @common_exception_handler
+    def _fetch_ip_enrichments(self, *ips: str) -> None:
+        # Let continue on any error
+        try:
+            self.ip_enrich = self._enricher.enrich_ips(*ips)
+        except (APIError, RequestException) as e:
+            # With warning message
+            self.warnings.append(f"Could not fetch {self._enricher.name}: {e}")
+
+    @common_exception_handler
+    def _fetch_greynoise(self, *ips: str) -> None:
+        # Let continue on any error
+        try:
+            if self._greynoise:
+                self.greynoise = self._greynoise.enrich_ips(*ips)
+        except RequestException as e:  # All other errors
+            # With warning message
+            self.warnings.append(f"Could not fetch Greynoise: {e}")
 
     @common_exception_handler
     def _fetch_whois(self) -> None:

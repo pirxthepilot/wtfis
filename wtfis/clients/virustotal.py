@@ -1,4 +1,4 @@
-from wtfis.clients.base import BaseClient
+from wtfis.clients.base import BaseRequestsClient, BaseWhoisClient
 from wtfis.models.virustotal import (
     Domain,
     IpAddress,
@@ -8,7 +8,7 @@ from wtfis.models.virustotal import (
 from wtfis.utils import is_ip
 
 
-class VTClient(BaseClient):
+class VTClient(BaseRequestsClient, BaseWhoisClient):
     """
     Virustotal client
     """

@@ -9,6 +9,7 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import APIError, Shodan, ShodanClient
 from wtfis.clients.virustotal import VTClient
+from wtfis.models.ipwhois import IpWhoisMap
 
 
 @pytest.fixture()
@@ -100,9 +101,9 @@ class TestIpWhoisClient:
         mock_resp.json.return_value = json.loads(test_data("ipwhois_raw_10.0.0.1.json"))
         mock_requests_get.return_value = mock_resp
 
-        whois = ipwhois_client.get_ipwhois("thisdoesntmatter")
+        whois = ipwhois_client.enrich_ips("thisdoesntmatter")
 
-        assert whois is None
+        assert whois == IpWhoisMap.model_validate({})
 
 
 class TestPassivetotalClient:
@@ -135,7 +136,7 @@ class TestShodanClient:
         mock_shodan_host.side_effect = APIError("Invalid API key")
 
         with pytest.raises(APIError) as e:
-            shodan_client.get_ip("thisdoesntmatter")
+            shodan_client.enrich_ips("thisdoesntmatter")
 
         assert e.type == APIError
         assert str(e.value) == "Invalid Shodan API key"
@@ -146,7 +147,7 @@ class TestShodanClient:
         mock_shodan_host.side_effect = APIError("Some other error")
 
         with pytest.raises(APIError) as e:
-            shodan_client.get_ip("thisdoesntmatter")
+            shodan_client.enrich_ips("thisdoesntmatter")
 
         assert e.type == APIError
         assert str(e.value) == "Some other error"
