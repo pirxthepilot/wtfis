@@ -88,7 +88,7 @@ class TestDomainHandler:
         handler._fetch_vt_resolutions.assert_not_called()
         handler._fetch_ip_enrichments.assert_not_called()
         handler._fetch_whois.assert_called_once()
-        handler._fetch_greynoise.assert_called_once()
+        handler._fetch_greynoise.assert_not_called()
 
         assert handler.ip_enrich == IpWhoisMap.model_validate({})
         assert handler.ip_enrich.root == {}
@@ -162,7 +162,7 @@ class TestDomainHandler:
         mock_resp.status_code = 500
         mock_requests_get.return_value = mock_resp
 
-        handler._fetch_ip_enrichments()
+        handler._fetch_ip_enrichments(*["1.2.3.4", "1.2.3.5"])
         assert handler.warnings[0].startswith("Could not fetch IPWhois: 500 Server Error:")
 
         handler.print_warnings()
@@ -236,7 +236,7 @@ class TestDomainHandler:
 
         handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
-        handler._fetch_greynoise()
+        handler._fetch_greynoise(*["1.2.3.4", "1.2.3.5"])
         assert handler.warnings[0].startswith("Could not fetch Greynoise: 429 Client Error:")
 
         handler.print_warnings()
@@ -256,7 +256,7 @@ class TestDomainHandler:
         mock_resp.status_code = 404
         mock_requests_get.return_value = mock_resp
 
-        handler._fetch_greynoise()
+        handler._fetch_greynoise(*["1.2.3.4", "1.2.3.5"])
         assert len(handler.warnings) == 0
         assert handler.greynoise == GreynoiseIpMap.model_validate({})
 
@@ -273,7 +273,7 @@ class TestDomainHandler:
         mock_resp.status_code = 403
         mock_requests_get.return_value = mock_resp
 
-        handler._fetch_greynoise()
+        handler._fetch_greynoise(*["1.2.3.4", "1.2.3.5"])
         assert handler.warnings[0].startswith("Could not fetch Greynoise: 403 Client Error:")
 
         handler.print_warnings()
@@ -290,7 +290,7 @@ class TestDomainHandler:
 
         handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
-        handler._fetch_greynoise()
+        handler._fetch_greynoise(*["1.2.3.4", "1.2.3.5"])
         assert handler.warnings[0] == "Could not fetch Greynoise: Foo bar message"
 
         handler.print_warnings()
@@ -366,7 +366,7 @@ class TestIpAddressHandler:
         mock_resp.status_code = 502
         mock_requests_get.return_value = mock_resp
 
-        handler._fetch_ip_enrichments()
+        handler._fetch_ip_enrichments("1.2.3.4")
         assert handler.warnings[0].startswith("Could not fetch IPWhois: 502 Server Error:")
 
         handler.print_warnings()
@@ -421,7 +421,7 @@ class TestIpAddressHandler:
         mock_resp.status_code = 429
         mock_requests_get.return_value = mock_resp
 
-        handler._fetch_greynoise()
+        handler._fetch_greynoise("1.2.3.4")
         assert handler.warnings[0].startswith("Could not fetch Greynoise: 429 Client Error:")
 
         handler.print_warnings()
@@ -454,7 +454,7 @@ class TestIpAddressHandler:
         mock_resp.status_code = 403
         mock_requests_get.return_value = mock_resp
 
-        handler._fetch_greynoise()
+        handler._fetch_greynoise("1.2.3.4")
         assert handler.warnings[0].startswith("Could not fetch Greynoise: 403 Client Error:")
 
         handler.print_warnings()
@@ -469,7 +469,7 @@ class TestIpAddressHandler:
         handler = ip_handler()
         mock_requests_get.side_effect = ConnectionError("Foo bar message")
 
-        handler._fetch_greynoise()
+        handler._fetch_greynoise("1.2.3.4")
         assert handler.warnings[0] == "Could not fetch Greynoise: Foo bar message"
 
         handler.print_warnings()

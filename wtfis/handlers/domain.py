@@ -65,11 +65,11 @@ class DomainHandler(BaseHandler):
             self._fetch_ip_enrichments(*self.resolutions.ip_list(self.max_resolutions))
             self.progress.update(task_r, completed=100)
 
-        if self._greynoise:
-            task_g = self.progress.add_task(f"Fetching IP enrichments from {self._greynoise.name}")
-            self.progress.update(task_g, advance=50)
-            self._fetch_greynoise(*self.resolutions.ip_list(self.max_resolutions))
-            self.progress.update(task_g, completed=100)
+            if self._greynoise:
+                task_g = self.progress.add_task(f"Fetching IP enrichments from {self._greynoise.name}")
+                self.progress.update(task_g, advance=50)
+                self._fetch_greynoise(*self.resolutions.ip_list(self.max_resolutions))
+                self.progress.update(task_g, completed=100)
 
         task_w = self.progress.add_task(f"Fetching domain whois from {self._whois.name}")
         self.progress.update(task_w, advance=50)

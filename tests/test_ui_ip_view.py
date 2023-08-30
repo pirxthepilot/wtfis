@@ -26,13 +26,13 @@ def view01(test_data, mock_ipwhois_get, mock_greynoise_get):
     ip = "1.1.1.1"
     ipwhois_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
     ipwhois_client = IpWhoisClient()
-    ipwhois_client.get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
-    ip_enrich = ipwhois_client.single_get_ip(ip)
+    ipwhois_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
+    ip_enrich = ipwhois_client.enrich_ips(ip)
 
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
-    greynoise_enrich = greynoise_client.single_get_ip(ip)
+    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.enrich_ips(ip)
 
     return IpAddressView(
         console=Console(),
@@ -49,13 +49,13 @@ def view02(test_data, mock_shodan_get_ip, mock_greynoise_get):
     ip = "1.1.1.1"
     shodan_pool = json.loads(test_data("shodan_1.1.1.1.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.single_get_ip(ip)
+    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.enrich_ips(ip)
 
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
-    greynoise_enrich = greynoise_client.single_get_ip(ip)
+    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.enrich_ips(ip)
 
     return IpAddressView(
         console=Console(),
@@ -99,8 +99,8 @@ def view05(test_data, mock_greynoise_get):
     ip = "1.1.1.1"
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1_malicious.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
-    greynoise_enrich = greynoise_client.single_get_ip(ip)
+    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.enrich_ips(ip)
 
     return IpAddressView(
         console=Console(),
@@ -117,8 +117,8 @@ def view06(test_data, mock_greynoise_get):
     ip = "1.1.1.1"
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1_unknown.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
-    greynoise_enrich = greynoise_client.single_get_ip(ip)
+    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.enrich_ips(ip)
 
     return IpAddressView(
         console=Console(),

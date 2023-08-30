@@ -29,8 +29,8 @@ def view01(test_data, mock_ipwhois_get):
 
     ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
     ipwhois_client = IpWhoisClient()
-    ipwhois_client.get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
-    ip_enrich = ipwhois_client.bulk_get_ip(resolutions, 3)
+    ipwhois_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
+    ip_enrich = ipwhois_client.enrich_ips(*resolutions.ip_list(3))
 
     return DomainView(
         console=Console(),
@@ -121,8 +121,8 @@ def view07(test_data, mock_shodan_get_ip):
 
     shodan_pool = json.loads(test_data("shodan_gist.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.bulk_get_ip(resolutions, 3)
+    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.enrich_ips(*resolutions.ip_list(3))
 
     return DomainView(
         console=Console(),
@@ -141,8 +141,8 @@ def view08(test_data, mock_shodan_get_ip):
 
     shodan_pool = json.loads(test_data("shodan_wired.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.bulk_get_ip(resolutions, 1)
+    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.enrich_ips(*resolutions.ip_list(1))
 
     return DomainView(
         console=Console(),
@@ -162,13 +162,13 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
 
     shodan_pool = json.loads(test_data("shodan_one.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.bulk_get_ip(resolutions, 1)
+    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.enrich_ips(*resolutions.ip_list(1))
 
     greynoise_pool = json.loads(test_data("greynoise_one.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client.get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
-    greynoise_enrich = greynoise_client.bulk_get_ip(resolutions, 1)
+    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_enrich = greynoise_client.enrich_ips(*resolutions.ip_list(1))
 
     return DomainView(
         console=Console(),
@@ -201,8 +201,8 @@ def view11(test_data, mock_shodan_get_ip):
 
     shodan_pool = json.loads(test_data("shodan_gist_2.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client.get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.bulk_get_ip(resolutions, 3)
+    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    ip_enrich = shodan_client.enrich_ips(*resolutions.ip_list(3))
 
     return DomainView(
         console=Console(),

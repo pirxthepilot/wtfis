@@ -50,7 +50,7 @@ class BaseWhoisClient(abc.ABC):
     Client used for whois lookups
     """
     @abc.abstractmethod
-    def get_whois(self, entity: str) -> WhoisBase:
+    def get_whois(self, entity: str) -> WhoisBase:  # pragma: no coverage
         return NotImplemented
 
 
@@ -59,5 +59,5 @@ class BaseIpEnricherClient(abc.ABC):
     Client used for IP enrichments
     """
     @abc.abstractmethod
-    def enrich_ips(self, *ips: str) -> IpEnrichmentType:
+    def enrich_ips(self, *ips: str) -> IpEnrichmentType:  # pragma: no coverage
         return NotImplemented
