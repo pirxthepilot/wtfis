@@ -43,6 +43,21 @@ def common_exception_handler(func: Callable) -> Callable:
     return inner
 
 
+def failopen_exception_handler(client_attr_name: str) -> Callable:
+    """ Decorator for handling calls that can fail open """
+    def inner(func):
+        def wrapper(*args, **kwargs) -> None:
+            client = getattr(args[0], client_attr_name)  # Client obj who made the call
+            warnings: List[str] = args[0].warnings
+            try:
+                func(*args, **kwargs)
+            except (APIError, RequestException) as e:
+                # Add warning
+                warnings.append(f"Could not fetch {client.name}: {e}")
+        return wrapper
+    return inner
+
+
 class BaseHandler(abc.ABC):
     def __init__(
         self,
@@ -80,23 +95,15 @@ class BaseHandler(abc.ABC):
         return NotImplemented  # type: ignore  # pragma: no coverage
 
     @common_exception_handler
+    @failopen_exception_handler("_enricher")
     def _fetch_ip_enrichments(self, *ips: str) -> None:
-        # Let continue on any error
-        try:
-            self.ip_enrich = self._enricher.enrich_ips(*ips)
-        except (APIError, RequestException) as e:
-            # With warning message
-            self.warnings.append(f"Could not fetch {self._enricher.name}: {e}")
+        self.ip_enrich = self._enricher.enrich_ips(*ips)
 
     @common_exception_handler
+    @failopen_exception_handler("_greynoise")
     def _fetch_greynoise(self, *ips: str) -> None:
-        # Let continue on any error
-        try:
-            if self._greynoise:
-                self.greynoise = self._greynoise.enrich_ips(*ips)
-        except RequestException as e:  # All other errors
-            # With warning message
-            self.warnings.append(f"Could not fetch Greynoise: {e}")
+        if self._greynoise:
+            self.greynoise = self._greynoise.enrich_ips(*ips)
 
     @common_exception_handler
     def _fetch_whois(self) -> None:

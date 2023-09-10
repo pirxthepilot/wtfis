@@ -170,6 +170,27 @@ class TestDomainHandler:
         assert capture.out.startswith("WARN: Could not fetch IPWhois: 500 Server Error:")
 
     @patch.object(requests.Session, "get")
+    def test_ipwhois_validation_error(self, mock_requests_get, domain_handler, capsys):
+        handler = domain_handler()
+        mock_resp = requests.models.Response()
+
+        with patch.object(mock_resp, "json") as mock_resp_json:
+            mock_resp.status_code = 200
+            mock_resp_json.return_value = {"success": True, "intentionally": "wrong data"}
+            mock_requests_get.return_value = mock_resp
+
+            with pytest.raises(SystemExit) as e:
+                handler._fetch_ip_enrichments("1.2.3.4")
+
+            capture = capsys.readouterr()
+
+            assert capture.err.startswith(
+                "Data model validation error: 16 validation errors for IpWhois\n"
+            )
+            assert e.type == SystemExit
+            assert e.value.code == 1
+
+    @patch.object(requests.Session, "get")
     def test_whois_http_error(self, mock_requests_get, domain_handler, capsys):
         handler = domain_handler()
         mock_resp = requests.models.Response()
@@ -297,6 +318,27 @@ class TestDomainHandler:
         capture = capsys.readouterr()
         assert capture.out.startswith("WARN: Could not fetch Greynoise: Foo bar message")
 
+    @patch.object(requests.Session, "get")
+    def test_greynoise_validation_error(self, mock_requests_get, domain_handler, capsys):
+        handler = domain_handler()
+        mock_resp = requests.models.Response()
+
+        with patch.object(mock_resp, "json") as mock_resp_json:
+            mock_resp.status_code = 200
+            mock_resp_json.return_value = {"intentionally": "wrong data"}
+            mock_requests_get.return_value = mock_resp
+
+            with pytest.raises(SystemExit) as e:
+                handler._fetch_greynoise("1.2.3.4")
+
+            capture = capsys.readouterr()
+
+            assert capture.err.startswith(
+                "Data model validation error: 5 validation errors for GreynoiseIp\n"
+            )
+            assert e.type == SystemExit
+            assert e.value.code == 1
+
 
 class TestIpAddressHandler:
     def test_entity_refang(self, ip_handler):
@@ -391,6 +433,27 @@ class TestIpAddressHandler:
         assert e.value.code == 1
 
     @patch.object(requests.Session, "get")
+    def test_ipwhois_validation_error(self, mock_requests_get, ip_handler, capsys):
+        handler = ip_handler()
+        mock_resp = requests.models.Response()
+
+        with patch.object(mock_resp, "json") as mock_resp_json:
+            mock_resp.status_code = 200
+            mock_resp_json.return_value = {"success": True, "intentionally": "wrong data"}
+            mock_requests_get.return_value = mock_resp
+
+            with pytest.raises(SystemExit) as e:
+                handler._fetch_ip_enrichments("1.2.3.4")
+
+            capture = capsys.readouterr()
+
+            assert capture.err.startswith(
+                "Data model validation error: 16 validation errors for IpWhois\n"
+            )
+            assert e.type == SystemExit
+            assert e.value.code == 1
+
+    @patch.object(requests.Session, "get")
     def test_greynoise_http_error(self, mock_requests_get, ip_handler, capsys):
         """
         Test Greynoise HTTP error that results in a SystemExit
@@ -475,3 +538,24 @@ class TestIpAddressHandler:
         handler.print_warnings()
         capture = capsys.readouterr()
         assert capture.out.startswith("WARN: Could not fetch Greynoise: Foo bar message")
+
+    @patch.object(requests.Session, "get")
+    def test_greynoise_validation_error(self, mock_requests_get, ip_handler, capsys):
+        handler = ip_handler()
+        mock_resp = requests.models.Response()
+
+        with patch.object(mock_resp, "json") as mock_resp_json:
+            mock_resp.status_code = 200
+            mock_resp_json.return_value = {"intentionally": "wrong data"}
+            mock_requests_get.return_value = mock_resp
+
+            with pytest.raises(SystemExit) as e:
+                handler._fetch_greynoise("1.2.3.4")
+
+            capture = capsys.readouterr()
+
+            assert capture.err.startswith(
+                "Data model validation error: 5 validation errors for GreynoiseIp\n"
+            )
+            assert e.type == SystemExit
+            assert e.value.code == 1
