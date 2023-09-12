@@ -13,6 +13,7 @@ from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
+from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import (
     Domain,
     IpAddress,
@@ -34,18 +35,21 @@ class DomainView(BaseView):
         whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
+        urlhaus: UrlHausMap,
         max_resolutions: int = 3,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich, greynoise)
+        super().__init__(console, entity, whois, ip_enrich, greynoise, urlhaus)
         self.resolutions = resolutions
         self.max_resolutions = max_resolutions
 
     def domain_panel(self) -> Panel:
-        # Virustotal section
-        vt_section = self._gen_vt_section()
-
-        # Altogether now
-        content = [vt_section]
+        content = [self._gen_vt_section()]  # VT section
+        for section in (
+            self._gen_urlhaus_section(),    # URLhaus section
+        ):
+            if section is not None:
+                content.append("")
+                content.append(section)
 
         return self._gen_panel(self._gen_group(content), self.entity.data.id_, main_panel=True)
 
@@ -179,22 +183,17 @@ class IpAddressView(BaseView):
         whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
+        urlhaus: UrlHausMap,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich, greynoise)
+        super().__init__(console, entity, whois, ip_enrich, greynoise, urlhaus)
 
     def ip_panel(self) -> Panel:
-        # Virustotal section
-        vt_section = self._gen_vt_section()
-
-        # IP Enrichment section
-        ip_enrich_section = self._gen_ip_enrich_section()
-
-        # Other section
-        other_section = self._gen_ip_other_section()
-
-        # Altogether now
-        content = [vt_section]
-        for section in (ip_enrich_section, other_section):
+        content = [self._gen_vt_section()]  # VT section
+        for section in (
+            self._gen_ip_enrich_section(),  # IP enrich section
+            self._gen_urlhaus_section(),    # URLhaus section
+            self._gen_ip_other_section(),   # Other section
+        ):
             if section is not None:
                 content.append("")
                 content.append(section)

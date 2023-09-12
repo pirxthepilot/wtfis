@@ -19,6 +19,7 @@ from wtfis.models.virustotal import (
     LastAnalysisStats,
     PopularityRanks,
 )
+from wtfis.models.urlhaus import UrlHaus, UrlHausMap
 from wtfis.ui.theme import Theme
 from wtfis.utils import Timestamp, is_ip, smart_join
 
@@ -39,12 +40,14 @@ class BaseView(abc.ABC):
         whois: Optional[WhoisBase],
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
+        urlhaus: UrlHausMap,
     ) -> None:
         self.console = console
         self.entity = entity
         self.whois = whois
         self.ip_enrich = ip_enrich
         self.greynoise = greynoise
+        self.urlhaus = urlhaus
         self.theme = Theme()
 
     def _vendors_who_flagged_malicious(self) -> List[str]:
@@ -272,6 +275,9 @@ class BaseView(abc.ABC):
     def _get_greynoise_enrichment(self, ip: str) -> Optional[GreynoiseIp]:
         return self.greynoise.root[ip] if ip in self.greynoise.root.keys() else None
 
+    def _get_urlhaus_enrichment(self, entity: str) -> Optional[UrlHaus]:
+        return self.urlhaus.root[entity] if entity in self.urlhaus.root.keys() else None
+
     def _gen_vt_section(self) -> RenderableType:
         """ Virustotal section. Applies to both domain and IP views """
         attributes = self.entity.data.attributes
@@ -364,6 +370,31 @@ class BaseView(abc.ABC):
             return self._gen_section(
                 self._gen_table(*data),
                 self._gen_heading_text(section_title)
+            )
+
+        return None  # No enrichment data
+
+    def _gen_urlhaus_section(self) -> Optional[RenderableType]:
+        """ URLhaus """
+        enrich = self._get_urlhaus_enrichment(self.entity.data.id_)
+
+        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
+
+        if enrich:
+            online_url_count = (str(enrich.online_url_count)
+                                if enrich.url_count <= 100 else f"{enrich.online_url_count}+")
+            tags = smart_join(*enrich.online_tags, style=self.theme.tags) if enrich.online_tags else None
+
+            data += [
+                ("Malware URLs:", f"{online_url_count} online ({str(enrich.url_count)} total)"),
+                ("Spamhaus DBL:", enrich.blacklists.spamhaus_dbl),
+                ("SURBL:", enrich.blacklists.surbl),
+                ("Tags:", tags),
+            ]
+
+            return self._gen_section(
+                self._gen_table(*data),
+                self._gen_heading_text("URLhaus")
             )
 
         return None  # No enrichment data

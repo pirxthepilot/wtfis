@@ -20,6 +20,12 @@ class IpAddressHandler(BaseHandler):
         self._fetch_ip_enrichments(self.entity)
         self.progress.update(task_i, completed=100)
 
+        if self._urlhaus:
+            task_u = self.progress.add_task(f"Fetching IP enrichments from {self._urlhaus.name}")
+            self.progress.update(task_u, advance=50)
+            self._fetch_urlhaus()
+            self.progress.update(task_u, completed=100)
+
         if self._greynoise:
             task_g = self.progress.add_task(f"Fetching IP enrichments from {self._greynoise.name}")
             self.progress.update(task_g, advance=50)

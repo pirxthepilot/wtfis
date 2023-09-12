@@ -13,6 +13,7 @@ from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.base import BaseHandler
 from wtfis.handlers.domain import DomainHandler
@@ -55,6 +56,7 @@ def parse_args() -> Namespace:
     )
     parser.add_argument("-s", "--use-shodan", help="Use Shodan to enrich IPs", action="store_true")
     parser.add_argument("-g", "--use-greynoise", help="Enable Greynoise for IPs", action="store_true")
+    parser.add_argument("-u", "--use-urlhaus", help="Enable URLhaus for IPs and domains", action="store_true")
     parser.add_argument("-n", "--no-color", help="Show output without colors", action="store_true")
     parser.add_argument("-1", "--one-column", help="Display results in one column", action="store_true")
     parser.add_argument(
@@ -72,6 +74,8 @@ def parse_args() -> Namespace:
             parsed.use_shodan = not parsed.use_shodan
         elif option in ("-g", "--use-greynoise"):
             parsed.use_greynoise = not parsed.use_greynoise
+        elif option in ("-g", "--use-greynoise"):
+            parsed.use_urlhaus = not parsed.use_urlhaus
         elif option in ("-n", "--no-color"):
             parsed.no_color = not parsed.no_color
         elif option in ("-1", "--one-column"):
@@ -126,6 +130,13 @@ def generate_entity_handler(
         else None
     )
 
+    # URLhaus client (optional)
+    urlhaus_client = (
+        UrlHausClient()
+        if args.use_urlhaus
+        else None
+    )
+
     # Domain / FQDN handler
     if not is_ip(args.entity):
         entity: BaseHandler = DomainHandler(
@@ -136,6 +147,7 @@ def generate_entity_handler(
             ip_enricher_client=enricher_client,
             whois_client=whois_client,
             greynoise_client=greynoise_client,
+            urlhaus_client=urlhaus_client,
             max_resolutions=args.max_resolutions,
         )
     # IP address handler
@@ -148,6 +160,7 @@ def generate_entity_handler(
             ip_enricher_client=enricher_client,
             whois_client=whois_client,
             greynoise_client=greynoise_client,
+            urlhaus_client=urlhaus_client,
         )
 
     return entity
@@ -167,6 +180,7 @@ def generate_view(
             entity.whois,
             entity.ip_enrich,
             entity.greynoise,
+            entity.urlhaus,
             max_resolutions=args.max_resolutions,
         )
     elif isinstance(entity, IpAddressHandler) and isinstance(entity.vt_info, IpAddress):
@@ -176,6 +190,7 @@ def generate_view(
             entity.whois,
             entity.ip_enrich,
             entity.greynoise,
+            entity.urlhaus,
         )
     else:
         raise Exception("Unsupported entity!")
