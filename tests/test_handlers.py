@@ -8,6 +8,7 @@ from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
+from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
@@ -25,6 +26,7 @@ def generate_domain_handler(max_resolutions=3):
         ip_enricher_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
+        urlhaus_client=UrlHausClient(),
         max_resolutions=max_resolutions,
     )
 
@@ -38,6 +40,7 @@ def generate_ip_handler():
         ip_enricher_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
+        urlhaus_client=UrlHausClient(),
     )
 
 

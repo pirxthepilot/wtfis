@@ -39,6 +39,7 @@ def view01(test_data, mock_ipwhois_get):
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        urlhaus=MagicMock(),
     )
 
 
@@ -55,6 +56,7 @@ def view02(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_gist.json"))),
         ip_enrich=IpWhoisMap.model_validate({}),
         greynoise=GreynoiseIpMap.model_validate({}),
+        urlhaus=MagicMock(),
         max_resolutions=1,
     )
 
@@ -69,6 +71,7 @@ def view03(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_bbc.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -85,6 +88,7 @@ def view04(test_data):
         whois=MagicMock(),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -98,6 +102,7 @@ def view05(test_data):
         whois=MagicMock(),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -111,6 +116,7 @@ def view06(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_example_2.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -131,6 +137,7 @@ def view07(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        urlhaus=MagicMock(),
     )
 
 
@@ -151,6 +158,7 @@ def view08(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        urlhaus=MagicMock(),
         max_resolutions=1,
     )
 
@@ -177,6 +185,7 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=greynoise_enrich,
+        urlhaus=MagicMock(),
         max_resolutions=1,
     )
 
@@ -191,6 +200,7 @@ def view10(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_foo.json"))),
         ip_enrich=MagicMock(),
         greynoise=GreynoiseIpMap.model_validate({}),
+        urlhaus=MagicMock(),
     )
 
 
@@ -211,6 +221,7 @@ def view11(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        urlhaus=MagicMock(),
     )
 
 
@@ -224,6 +235,7 @@ def view12(test_data):
         whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_hotmail.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -237,6 +249,7 @@ def view13(test_data):
         whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_bbc.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -273,7 +286,7 @@ class TestView01:
             "Updated:",
             "Last Seen:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
@@ -342,7 +355,7 @@ class TestView01:
             "ISP:",
             "Location:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
@@ -386,7 +399,7 @@ class TestView01:
             "ISP:",
             "Location:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious"),
@@ -433,7 +446,7 @@ class TestView01:
             "ISP:",
             "Location:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
@@ -499,7 +512,7 @@ class TestView01:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             "MarkMonitor Inc.",
@@ -587,7 +600,7 @@ class TestView02:
             ),
             "Resolved:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
@@ -630,7 +643,7 @@ class TestView02:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
             "MarkMonitor Inc.",
@@ -670,7 +683,7 @@ class TestView03:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [
             "dns1.bbc.com",
@@ -712,7 +725,7 @@ class TestView04:
             "Updated:",
             "Last Seen:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text(
@@ -792,7 +805,7 @@ class TestView05:
             "Updated:",
             "Last Seen:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text(
@@ -892,7 +905,7 @@ class TestView07:
             "Tags:",
             "Last Scan:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
@@ -963,7 +976,7 @@ class TestView07:
             ),
             "Last Scan:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious"),
@@ -1032,7 +1045,7 @@ class TestView07:
             "Tags:",
             "Last Scan:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
@@ -1124,7 +1137,7 @@ class TestView08:
             "Tags:",
             "Last Scan:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/93 malicious"),
@@ -1219,7 +1232,7 @@ class TestView09:
                 spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.0.0.1")]
             ),
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("2/94 malicious"),
@@ -1362,7 +1375,7 @@ class TestView11:
             "Tags:",
             "Last Scan:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
@@ -1429,7 +1442,7 @@ class TestView12:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
             "MarkMonitor, Inc.",
@@ -1475,7 +1488,7 @@ class TestView13:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
             "1996-08-01T00:00:00Z",

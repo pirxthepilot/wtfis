@@ -16,6 +16,7 @@ class TestTheme:
     heading_h1 = "bold bright_green on dark_green"
     heading_h2 = "bold yellow"
     table_field = "bold bright_magenta"
+    table_value = "not bold default"
     nameserver_list = "bright_blue"
     timestamp_date = "not bold default"
     timestamp_t = "dim bright_white"

@@ -443,6 +443,7 @@ class TestGenView:
             ip_enricher_client=MagicMock(),
             whois_client=MagicMock(),
             greynoise_client=MagicMock(),
+            urlhaus_client=MagicMock(),
         )
         entity.vt_info = Domain.model_validate(json.loads(test_data("vt_domain_gist.json")))
         entity.whois = MagicMock()
@@ -461,6 +462,7 @@ class TestGenView:
             ip_enricher_client=MagicMock(),
             whois_client=MagicMock(),
             greynoise_client=MagicMock(),
+            urlhaus_client=MagicMock(),
         )
         entity.vt_info = IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json")))
         entity.whois = MagicMock()
