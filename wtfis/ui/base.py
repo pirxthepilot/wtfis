@@ -395,19 +395,19 @@ class BaseView(abc.ABC):
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
         if enrich:
-            malware_urls_field = self._gen_linked_field_name(
+            malware_urls_field: Union[Text, str] = self._gen_linked_field_name(
                 "Malware URLs",
                 hyperlink=enrich.urlhaus_reference,
             ) if enrich.urlhaus_reference else "Malware URLs:"
 
-            online_url_count_text = Text(
+            malware_urls_value = Text(
                 (str(enrich.online_url_count)
                  if enrich.url_count and enrich.url_count <= 100
                  else f"{enrich.online_url_count}+") + " online",
                 style=self.theme.error if enrich.online_url_count > 0 else self.theme.info,
             )
 
-            total_url_count_text = Text(
+            malware_urls_value.append(
                 f" ({enrich.url_count} total)",
                 style=self.theme.table_value,
             )
@@ -415,7 +415,7 @@ class BaseView(abc.ABC):
             tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
 
             data += [
-                (malware_urls_field, online_url_count_text + total_url_count_text),
+                (malware_urls_field, malware_urls_value),
                 (
                     "Blocklists:",
                     (bl_text("spamhaus", enrich.blacklists.spamhaus_dbl if enrich.blacklists else "") + "\n" +
