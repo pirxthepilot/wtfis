@@ -1,5 +1,3 @@
-from typing import Optional
-
 from wtfis.clients.base import (
     BaseDomainEnricherClient,
     BaseIpEnricherClient,
@@ -18,10 +16,8 @@ class UrlHausClient(BaseRequestsClient, BaseDomainEnricherClient, BaseIpEnricher
     def name(self) -> str:
         return "URLhaus"
 
-    def _get_host(self, host: str) -> Optional[UrlHaus]:
-        # return UrlHaus.model_validate(self._post("/host", {"host": host}))
-        res = self._post("/host", {"host": host})
-        return UrlHaus.model_validate(res)
+    def _get_host(self, host: str) -> UrlHaus:
+        return UrlHaus.model_validate(self._post("/host", {"host": host}))
 
     def _enrich_domains_or_ips(self, *entities: str) -> UrlHausMap:
         """ Method is the same whether input is a domain or IP """

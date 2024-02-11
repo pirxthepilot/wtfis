@@ -42,9 +42,9 @@ class UrlHaus(BaseModel):
     firstseen: Optional[str] = None
     url_count: Optional[int] = None
     blacklists: Optional[Blacklists] = None
-    urls: Optional[List[Url]] = None
+    urls: List[Url] = []
     _online_url_count: Optional[int] = None
-    _online_tags: Optional[Set[str]] = None
+    _online_tags: Set[str] = set()
 
     # Extracted fields
 
@@ -66,17 +66,16 @@ class UrlHaus(BaseModel):
     @property
     def online_tags(self) -> Set[str]:
         if not self._online_tags:
-            tags = set()
             for url in self.urls:
                 if url.url_status == "online":
                     for tag in url.tags:
-                        tags.add(tag)
-        return tags
+                        self._online_tags.add(tag)
+        return self._online_tags
 
 
 class UrlHausMap(RootModel):
     root: Dict[str, UrlHaus]
 
     @classmethod
-    def empty(cls) -> UrlHaus:
+    def empty(cls) -> UrlHausMap:
         return cls.model_validate({})
