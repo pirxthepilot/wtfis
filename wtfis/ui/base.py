@@ -376,19 +376,45 @@ class BaseView(abc.ABC):
 
     def _gen_urlhaus_section(self) -> Optional[RenderableType]:
         """ URLhaus """
+        def bl_text(blocklist: str, status: str) -> RenderableType:
+            # https://urlhaus-api.abuse.ch/#hostinfo
+            text = Text()
+            if status == "not listed":
+                text.append(status, self.theme.urlhaus_bl_low)
+            elif status.startswith("abused_"):
+                text.append(status, self.theme.urlhaus_bl_med)
+            elif status.endswith("_domain") or status == "listed":
+                text.append(status, self.theme.urlhaus_bl_high)
+            else:
+                raise Exception(f"Invalid URLhaus BL status: {status}")
+            text.append(" in ").append(blocklist, style=self.theme.urlhaus_bl_name)
+            return text
+
         enrich = self._get_urlhaus_enrichment(self.entity.data.id_)
 
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
         if enrich:
-            online_url_count = (str(enrich.online_url_count)
-                                if enrich.url_count <= 100 else f"{enrich.online_url_count}+")
+            online_url_count_text = Text(
+                (str(enrich.online_url_count)
+                 if enrich.url_count <= 100
+                 else f"{enrich.online_url_count}+") + " online",
+                style=self.theme.error if enrich.online_url_count > 0 else self.theme.info,
+            )
+
+            total_url_count_text = Text(
+                f" ({enrich.url_count} total)",
+                style=self.theme.table_value,
+            )
+
             tags = smart_join(*enrich.online_tags, style=self.theme.tags) if enrich.online_tags else None
 
             data += [
-                ("Malware URLs:", f"{online_url_count} online ({str(enrich.url_count)} total)"),
-                ("Spamhaus DBL:", enrich.blacklists.spamhaus_dbl),
-                ("SURBL:", enrich.blacklists.surbl),
+                ("Malware URLs:", online_url_count_text + total_url_count_text),
+                ("Blocklists:", (bl_text("spamhaus", enrich.blacklists.spamhaus_dbl) + "\n" +
+                                 bl_text("surbl", enrich.blacklists.surbl))),
+                # ("Spamhaus DBL:", dbl_text(enrich.blacklists.spamhaus_dbl)),
+                # ("SURBL:", dbl_text(enrich.blacklists.surbl)),
                 ("Tags:", tags),
             ]
 
