@@ -44,7 +44,7 @@ class UrlHaus(BaseModel):
     blacklists: Optional[Blacklists] = None
     urls: List[Url] = []
     _online_url_count: Optional[int] = None
-    _online_tags: Set[str] = set()
+    _tags: Set[str] = set()
 
     # Extracted fields
 
@@ -64,13 +64,12 @@ class UrlHaus(BaseModel):
         return self._online_url_count
 
     @property
-    def online_tags(self) -> Set[str]:
-        if not self._online_tags:
+    def tags(self) -> Set[str]:
+        if not self._tags:
             for url in self.urls:
-                if url.url_status == "online":
-                    for tag in url.tags:
-                        self._online_tags.add(tag)
-        return self._online_tags
+                for tag in url.tags:
+                    self._tags.add(tag)
+        return self._tags
 
 
 class UrlHausMap(RootModel):
