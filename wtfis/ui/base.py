@@ -404,7 +404,7 @@ class BaseView(abc.ABC):
                 (str(enrich.online_url_count)
                  if enrich.url_count and enrich.url_count <= 100
                  else f"{enrich.online_url_count}+") + " online",
-                style=self.theme.error if enrich.online_url_count > 0 else self.theme.info,
+                style=self.theme.error if enrich.online_url_count > 0 else self.theme.warn,
             )
 
             malware_urls_value.append(

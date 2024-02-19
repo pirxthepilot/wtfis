@@ -26,7 +26,7 @@ class Theme:
     timestamp_z = "dim bright_white"
     asn_org = "bright_white"
     whois_org = "bright_cyan"
-    urlhaus_bl_name = "bold bright_cyan"
+    urlhaus_bl_name = "bright_cyan"
     urlhaus_bl_low = "bright_white on green"
     urlhaus_bl_med = "black on yellow"
     urlhaus_bl_high = "bright_white on red"

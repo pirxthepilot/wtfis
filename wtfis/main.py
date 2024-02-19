@@ -74,7 +74,7 @@ def parse_args() -> Namespace:
             parsed.use_shodan = not parsed.use_shodan
         elif option in ("-g", "--use-greynoise"):
             parsed.use_greynoise = not parsed.use_greynoise
-        elif option in ("-g", "--use-greynoise"):
+        elif option in ("-u", "--use-urlhaus"):
             parsed.use_urlhaus = not parsed.use_urlhaus
         elif option in ("-n", "--no-color"):
             parsed.no_color = not parsed.no_color

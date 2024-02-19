@@ -111,18 +111,6 @@ class BaseHandler(abc.ABC):
             self.greynoise = self._greynoise.enrich_ips(*ips)
 
     @common_exception_handler
-    def _fetch_urlhaus(self) -> None:
-        # Let continue on any error
-        try:
-            if self._urlhaus:
-                # Arbitrary method call - either enrich_domains() or
-                # enrich_ips() will work
-                self.urlhaus = self._urlhaus.enrich_ips(self.entity)
-        except RequestException as e:  # All other errors
-            # With warning message
-            self.warnings.append(f"Could not fetch URLhaus: {e}")
-
-    @common_exception_handler
     def _fetch_whois(self) -> None:
         # Let continue if rate limited
         try:
@@ -130,7 +118,7 @@ class BaseHandler(abc.ABC):
         except HTTPError as e:
             if e.response.status_code == 429:
                 self.warnings.append(f"Could not fetch Whois: {e}")
-            else:
+            else:  # pragma: no coverage
                 raise
 
     def print_warnings(self):

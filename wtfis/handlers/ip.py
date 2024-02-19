@@ -1,13 +1,23 @@
 """
 Logic handler for IP address inputs
 """
-from wtfis.handlers.base import BaseHandler, common_exception_handler
+from wtfis.handlers.base import (
+    BaseHandler,
+    common_exception_handler,
+    failopen_exception_handler,
+)
 
 
 class IpAddressHandler(BaseHandler):
     @common_exception_handler
     def _fetch_vt_ip_address(self) -> None:
         self.vt_info = self._vt.get_ip_address(self.entity)
+
+    @common_exception_handler
+    @failopen_exception_handler("_urlhaus")
+    def _fetch_urlhaus(self) -> None:
+        if self._urlhaus:
+            self.urlhaus = self._urlhaus.enrich_ips(self.entity)
 
     def fetch_data(self):
         task_v = self.progress.add_task("Fetching data from Virustotal")

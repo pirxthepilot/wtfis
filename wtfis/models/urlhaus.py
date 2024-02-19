@@ -64,12 +64,12 @@ class UrlHaus(BaseModel):
         return self._online_url_count
 
     @property
-    def tags(self) -> Set[str]:
+    def tags(self) -> List[str]:
         if not self._tags:
             for url in self.urls:
                 for tag in url.tags:
                     self._tags.add(tag)
-        return self._tags
+        return sorted(self._tags)
 
 
 class UrlHausMap(RootModel):

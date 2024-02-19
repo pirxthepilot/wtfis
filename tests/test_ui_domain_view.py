@@ -10,10 +10,12 @@ from unittest.mock import MagicMock
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ip2whois import Whois as Ip2Whois
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.passivetotal import Whois as PTWhois
+from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import (
     Domain,
     Resolutions,
@@ -39,7 +41,7 @@ def view01(test_data, mock_ipwhois_get):
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
-        urlhaus=MagicMock(),
+        urlhaus=UrlHausMap.model_validate({}),
     )
 
 
@@ -165,7 +167,7 @@ def view08(test_data, mock_shodan_get_ip):
 
 @pytest.fixture()
 def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
-    """ one.one.one.one with Shodan. Only test resolution and IP enrich. """
+    """ one.one.one.one with Shodan and Greynoise. Only test resolution and IP enrich. """
     resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_one.json")))
 
     shodan_pool = json.loads(test_data("shodan_one.json"))
@@ -250,6 +252,32 @@ def view13(test_data):
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
         urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
+    """ Same as view01() but with Urlhaus enrichment. Test URLhaus only. """
+    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+
+    ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
+    ipwhois_client = IpWhoisClient()
+    ipwhois_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
+    ip_enrich = ipwhois_client.enrich_ips(*resolutions.ip_list(3))
+
+    urlhaus_pool = json.loads(test_data("urlhaus_gist.json"))
+    urlhaus_client = UrlHausClient()
+    urlhaus_client._get_host = MagicMock(side_effect=lambda domain: mock_urlhaus_get(domain, urlhaus_pool))
+    urlhaus_enrich = urlhaus_client.enrich_domains("gist.github.com")
+
+    return DomainView(
+        console=Console(),
+        entity=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
+        resolutions=resolutions,
+        whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
+        ip_enrich=ip_enrich,
+        greynoise=GreynoiseIpMap.model_validate({}),
+        urlhaus=urlhaus_enrich,
     )
 
 
@@ -1494,4 +1522,58 @@ class TestView13:
             "1996-08-01T00:00:00Z",
             "2020-12-10T00:00:00Z",
             "2025-12-13T00:00:00Z",
+        ]
+
+
+class TestView14:
+    def test_domain_panel_urlhaus(self, view14, theme):
+        domain = view14.domain_panel()
+        urlhaus_section = domain.renderable.renderables[2]
+
+        # Heading
+        assert urlhaus_section.renderables[0] == Text("URLhaus")
+        assert urlhaus_section.renderables[0].style == theme.heading_h1
+
+        # Table
+        table = urlhaus_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == theme.table_field
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            Text(
+                "Malware URLs:",
+                spans=[Span(0, 12, "link https://urlhaus.abuse.ch/host/gist.github.com/")],
+            ),
+            "Blocklists:",
+            "Tags:",
+        ]
+        assert table.columns[1].style == theme.table_value
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text(
+                "1+ online (3248 total)",
+                spans=[Span(9, 22, theme.table_value)],
+            ),
+            Text(
+                "abused_legit_malware in spamhaus\nlisted in surbl",
+                spans=[
+                    Span(0, 20, theme.urlhaus_bl_med),
+                    Span(24, 32, theme.urlhaus_bl_name),
+                    Span(33, 48, ""),
+                    Span(33, 39, theme.urlhaus_bl_high),
+                    Span(43, 48, theme.urlhaus_bl_name),
+                ]
+            ),
+            Text(
+                "Pikabot, TA577, foo, zip",
+                spans=[
+                    Span(0, 7, theme.tags),
+                    Span(7, 9, "default"),
+                    Span(9, 14, theme.tags),
+                    Span(14, 16, "default"),
+                    Span(16, 19, theme.tags),
+                    Span(19, 21, "default"),
+                    Span(21, 24, theme.tags),
+                ]
+            ),
         ]

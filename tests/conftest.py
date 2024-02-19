@@ -8,6 +8,7 @@ from rich.text import Span, Text
 from wtfis.models.greynoise import GreynoiseIp
 from wtfis.models.ipwhois import IpWhois
 from wtfis.models.shodan import ShodanIp
+from wtfis.models.urlhaus import UrlHaus
 
 
 class TestTheme:
@@ -32,6 +33,10 @@ class TestTheme:
     info = "bold green"
     warn = "bold yellow"
     error = "bold red"
+    urlhaus_bl_name = "bright_cyan"
+    urlhaus_bl_low = "bright_white on green"
+    urlhaus_bl_med = "black on yellow"
+    urlhaus_bl_high = "bright_white on red"
 
 
 def open_test_data(fname: str) -> str:
@@ -53,6 +58,11 @@ def ipwhois_get(ip, pool) -> IpWhois:
 def shodan_get_ip(ip, pool) -> ShodanIp:
     """ Mock replacement for ShodanClient().get_ip() """
     return ShodanIp.model_validate(pool[ip])
+
+
+def urlhaus_get_host(entity, pool) -> ShodanIp:
+    """ Mock replacement for Urlhaus()._get_host() """
+    return UrlHaus.model_validate(pool[entity])
 
 
 def timestamp_text(ts) -> Optional[RenderableType]:
@@ -91,6 +101,11 @@ def mock_ipwhois_get():
 @pytest.fixture(scope="module")
 def mock_shodan_get_ip():
     return shodan_get_ip
+
+
+@pytest.fixture(scope="module")
+def mock_urlhaus_get():
+    return urlhaus_get_host
 
 
 @pytest.fixture(scope="module")
