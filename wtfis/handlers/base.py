@@ -18,11 +18,13 @@ from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
+from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.theme import Theme
 from wtfis.utils import error_and_exit, refang
@@ -68,6 +70,7 @@ class BaseHandler(abc.ABC):
         ip_enricher_client: Union[IpWhoisClient, ShodanClient],
         whois_client: Union[Ip2WhoisClient, PTClient, VTClient],
         greynoise_client: Optional[GreynoiseClient],
+        urlhaus_client: Optional[UrlHausClient],
     ):
         # Process-specific
         self.entity = refang(entity)
@@ -79,12 +82,14 @@ class BaseHandler(abc.ABC):
         self._enricher = ip_enricher_client
         self._whois = whois_client
         self._greynoise = greynoise_client
+        self._urlhaus = urlhaus_client
 
         # Dataset containers
         self.vt_info:   Union[Domain, IpAddress]
         self.ip_enrich: Union[IpWhoisMap, ShodanIpMap] = IpWhoisMap.empty()
         self.whois:     WhoisBase
         self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()
+        self.urlhaus:  UrlHausMap = UrlHausMap.empty()
 
         # Warning messages container
         self.warnings: List[str] = []
@@ -113,7 +118,7 @@ class BaseHandler(abc.ABC):
         except HTTPError as e:
             if e.response.status_code == 429:
                 self.warnings.append(f"Could not fetch Whois: {e}")
-            else:
+            else:  # pragma: no coverage
                 raise
 
     def print_warnings(self):

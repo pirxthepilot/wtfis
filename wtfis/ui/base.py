@@ -19,6 +19,7 @@ from wtfis.models.virustotal import (
     LastAnalysisStats,
     PopularityRanks,
 )
+from wtfis.models.urlhaus import UrlHaus, UrlHausMap
 from wtfis.ui.theme import Theme
 from wtfis.utils import Timestamp, is_ip, smart_join
 
@@ -39,12 +40,14 @@ class BaseView(abc.ABC):
         whois: Optional[WhoisBase],
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
+        urlhaus: UrlHausMap,
     ) -> None:
         self.console = console
         self.entity = entity
         self.whois = whois
         self.ip_enrich = ip_enrich
         self.greynoise = greynoise
+        self.urlhaus = urlhaus
         self.theme = Theme()
 
     def _vendors_who_flagged_malicious(self) -> List[str]:
@@ -272,6 +275,9 @@ class BaseView(abc.ABC):
     def _get_greynoise_enrichment(self, ip: str) -> Optional[GreynoiseIp]:
         return self.greynoise.root[ip] if ip in self.greynoise.root.keys() else None
 
+    def _get_urlhaus_enrichment(self, entity: str) -> Optional[UrlHaus]:
+        return self.urlhaus.root[entity] if entity in self.urlhaus.root.keys() else None
+
     def _gen_vt_section(self) -> RenderableType:
         """ Virustotal section. Applies to both domain and IP views """
         attributes = self.entity.data.attributes
@@ -364,6 +370,63 @@ class BaseView(abc.ABC):
             return self._gen_section(
                 self._gen_table(*data),
                 self._gen_heading_text(section_title)
+            )
+
+        return None  # No enrichment data
+
+    def _gen_urlhaus_section(self) -> Optional[RenderableType]:
+        """ URLhaus """
+        def bl_text(blocklist: str, status: str) -> Text:
+            # https://urlhaus-api.abuse.ch/#hostinfo
+            text = Text()
+            if status == "not listed":
+                text.append(status, self.theme.urlhaus_bl_low)
+            elif status.startswith("abused_"):
+                text.append(status, self.theme.urlhaus_bl_med)
+            elif status.endswith("_domain") or status == "listed":
+                text.append(status, self.theme.urlhaus_bl_high)
+            else:
+                raise Exception(f"Invalid URLhaus BL status: {status}")
+            text.append(" in ").append(blocklist, style=self.theme.urlhaus_bl_name)
+            return text
+
+        enrich = self._get_urlhaus_enrichment(self.entity.data.id_)
+
+        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
+
+        if enrich:
+            malware_urls_field: Union[Text, str] = self._gen_linked_field_name(
+                "Malware URLs",
+                hyperlink=enrich.urlhaus_reference,
+            ) if enrich.urlhaus_reference else "Malware URLs:"
+
+            malware_urls_value = Text(
+                (str(enrich.online_url_count)
+                 if enrich.url_count and enrich.url_count <= 100
+                 else f"{enrich.online_url_count}+") + " online",
+                style=self.theme.error if enrich.online_url_count > 0 else self.theme.warn,
+            )
+
+            malware_urls_value.append(
+                f" ({enrich.url_count} total)",
+                style=self.theme.table_value,
+            )
+
+            tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+
+            data += [
+                (malware_urls_field, malware_urls_value),
+                (
+                    "Blocklists:",
+                    (bl_text("spamhaus", enrich.blacklists.spamhaus_dbl if enrich.blacklists else "") + "\n" +
+                     bl_text("surbl", enrich.blacklists.surbl if enrich.blacklists else ""))
+                ),
+                ("Tags:", tags),
+            ]
+
+            return self._gen_section(
+                self._gen_table(*data),
+                self._gen_heading_text("URLhaus")
             )
 
         return None  # No enrichment data
