@@ -286,7 +286,7 @@ class TestView01:
         domain = view01.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("gist.github.com")
-        assert domain.title.style == theme.panel_title_main
+        assert domain.title.style == theme.panel_title
 
         #
         # VT section
@@ -1552,7 +1552,10 @@ class TestView14:
         assert table.columns[1]._cells == [
             Text(
                 "1+ online (3248 total)",
-                spans=[Span(9, 22, theme.table_value)],
+                spans=[
+                    Span(0, 9, theme.error),
+                    Span(9, 22, theme.table_value),
+                ],
             ),
             Text(
                 "abused_legit_malware in spamhaus\nlisted in surbl",

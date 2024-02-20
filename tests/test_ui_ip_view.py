@@ -147,7 +147,7 @@ class TestView01:
         ip = view01.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("1.1.1.1")
-        assert ip.title.style == theme.panel_title_main
+        assert ip.title.style == theme.panel_title
 
         # Sections
         vt_section = ip.renderable.renderables[0]
@@ -264,6 +264,7 @@ class TestView01:
             Text(
                 "10 online (10 total)",
                 spans=[
+                    Span(0, 9, theme.error),
                     Span(9, 20, theme.table_value),
                 ]
             ),

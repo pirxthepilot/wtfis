@@ -51,7 +51,7 @@ class DomainView(BaseView):
                 content.append("")
                 content.append(section)
 
-        return self._gen_panel(self._gen_group(content), self.entity.data.id_, main_panel=True)
+        return self._gen_panel(self._gen_group(content), self.entity.data.id_)
 
     def resolutions_panel(self) -> Optional[Panel]:
         # Skip if no resolutions data
@@ -198,7 +198,7 @@ class IpAddressView(BaseView):
                 content.append("")
                 content.append(section)
 
-        return self._gen_panel(self._gen_group(content), self.entity.data.id_, main_panel=True)
+        return self._gen_panel(self._gen_group(content), self.entity.data.id_)
 
     def print(self, one_column: bool = False) -> None:
         renderables = [i for i in (

@@ -13,7 +13,7 @@ from wtfis.models.urlhaus import UrlHaus
 
 class TestTheme:
     """ Expected theme values for the tests """
-    panel_title_main = "bold yellow"
+    panel_title = "bold yellow"
     heading_h1 = "bold bright_green on dark_green"
     heading_h2 = "bold yellow"
     table_field = "bold bright_magenta"
