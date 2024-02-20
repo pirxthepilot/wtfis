@@ -29,6 +29,7 @@ The project name is a play on "whois".
 | [IPWhois](https://ipwhois.io) | IP address | No | Yes (no signup) |
 | [Shodan](https://shodan.io) | IP address | No | [No](https://account.shodan.io/billing) |
 | [Greynoise](https://greynoise.io) | IP address | No | [Yes](https://www.greynoise.io/plans/community)
+| [URLhaus](https://urlhaus.abuse.ch/) | All | No | Yes (no signup)
 
 ### Virustotal
 
@@ -96,6 +97,14 @@ More information about the datasets [here](https://docs.greynoise.io/docs/unders
 
 In addition, the API also returns Greynoise's [classification](https://docs.greynoise.io/docs/understanding-greynoise-classifications) of an IP (if available). Possible values are **benign**, **malicious**, and **unknown**.
 
+### URLhaus
+
+[URLhaus](https://urlhaus.abuse.ch/) is a crowd-sourced database of reported malicious URLs. This enrichment provides insight on whether the queried hostname or IP is being or was used for malware distribution via HTTP or HTTPS. Data that is provided include:
+
+* Count of currently online and total malware URLs
+* Whether the hostname or IP is currently in the [DNSBL](https://www.dnsbl.info/) and [SURBL](https://www.surbl.org/) public blocklists
+* All tags that have been assigned to the URL throughout its history in the URLhaus database
+
 
 ## Install
 
@@ -130,17 +139,18 @@ Alternatively, create a file in your home directory `~/.env.wtfis` with the abov
 ## Usage
 
 ```
-usage: wtfis [-h] [-m N] [-s] [-g] [-n] [-1] [-V] entity
+usage: wtfis [-h] [-m N] [-s] [-g] [-u] [-n] [-1] [-V] entity
 
 positional arguments:
   entity                Hostname, domain or IP
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -m N, --max-resolutions N
                         Maximum number of resolutions to show (default: 3)
   -s, --use-shodan      Use Shodan to enrich IPs
   -g, --use-greynoise   Enable Greynoise for IPs
+  -u, --use-urlhaus     Enable URLhaus for IPs and domains
   -n, --no-color        Show output without colors
   -1, --one-column      Display results in one column
   -V, --version         Print version number
@@ -174,6 +184,13 @@ To enable Greynoise, invoke with the `-g` or `--use-greynoise` flag. Because the
 
 The `GreyNoise` field name is also a hyperlink (if terminal-supported) that points to the IP entry in the Greynoise web interface, where more context is shown.
 
+### URLhaus enrichment
+
+Use the `-u` or `--use-urlhaus` flag to enable URLhaus enrichment for hostnames, domains and IPs.
+
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-urlhaus.png?raw=true)
+
+The `Malware URLs` field name is a hyperlink (if terminal-supported) that takes you to the specific URLhaus database page for your query.
 
 ### Display options
 
