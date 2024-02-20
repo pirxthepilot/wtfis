@@ -69,7 +69,7 @@ class BaseView(abc.ABC):
         elif type == "h2":
             text = Text(justify="center")
             return text.append(heading, style=f"{self.theme.heading_h2}{link_style}")
-        else:
+        else:  # pragma: no cover
             raise Exception(f"Invalid heading type \"{type}\"")
 
     def _gen_linked_field_name(self, name: str, hyperlink: str) -> Text:
@@ -111,14 +111,9 @@ class BaseView(abc.ABC):
         self,
         renderable: RenderableType,
         title: Optional[str] = None,
-        main_panel: bool = False
     ) -> Panel:
         if title is not None:
-            if main_panel is True:
-                title_style = self.theme.panel_title_main
-            else:  # Note to future self: we might not need two panel title styles anymore
-                title_style = self.theme.panel_title_default
-            panel_title = Text(title, style=title_style)
+            panel_title = Text(title, style=self.theme.panel_title)
             return Panel(renderable, title=panel_title, expand=False)
         return Panel(renderable, expand=False)
 
@@ -261,12 +256,14 @@ class BaseView(abc.ABC):
         asn: Optional[str],
         org: Optional[RenderableType],
     ) -> Optional[RenderableType]:
-        if not asn:
+        if asn == "0" or not asn:
             return None
 
-        text = Text(f"{asn.replace('AS', '')} (")
-        text.append(str(org), style=self.theme.asn_org)
-        text.append(")")
+        text = Text()
+        (text
+         .append(f"{asn.replace('AS', '')} (")
+         .append(str(org), style=self.theme.asn_org)
+         .append(")"))
         return text
 
     def _get_ip_enrichment(self, ip: str) -> Optional[Union[IpWhois, ShodanIp]]:
@@ -385,7 +382,7 @@ class BaseView(abc.ABC):
                 text.append(status, self.theme.urlhaus_bl_med)
             elif status.endswith("_domain") or status == "listed":
                 text.append(status, self.theme.urlhaus_bl_high)
-            else:
+            else:  # pragma: no cover
                 raise Exception(f"Invalid URLhaus BL status: {status}")
             text.append(" in ").append(blocklist, style=self.theme.urlhaus_bl_name)
             return text
@@ -400,17 +397,18 @@ class BaseView(abc.ABC):
                 hyperlink=enrich.urlhaus_reference,
             ) if enrich.urlhaus_reference else "Malware URLs:"
 
-            malware_urls_value = Text(
+            malware_urls_value = Text()
+            (malware_urls_value
+             .append(
                 (str(enrich.online_url_count)
-                 if enrich.url_count and enrich.url_count <= 100
-                 else f"{enrich.online_url_count}+") + " online",
+                    if enrich.url_count and enrich.url_count <= 100
+                    else f"{enrich.online_url_count}+") + " online",
                 style=self.theme.error if enrich.online_url_count > 0 else self.theme.warn,
-            )
-
-            malware_urls_value.append(
+             )
+             .append(
                 f" ({enrich.url_count} total)",
                 style=self.theme.table_value,
-            )
+             ))
 
             tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
 
