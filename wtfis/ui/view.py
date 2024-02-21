@@ -8,11 +8,13 @@ from rich.padding import Padding
 from rich.panel import Panel
 from rich.text import Text
 from typing import List, Optional, Tuple, Union
+from wtfis.models.abuseipdb import abuseIPDBIpMap
 
 from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
+from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import (
     Domain,
     IpAddress,
@@ -26,6 +28,7 @@ class DomainView(BaseView):
     """
     Handler for FQDN and domain lookup output
     """
+
     def __init__(
         self,
         console: Console,
@@ -34,20 +37,25 @@ class DomainView(BaseView):
         whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
+        abuseipdb: abuseIPDBIpMap,
+        urlhaus: UrlHausMap,
         max_resolutions: int = 3,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich, greynoise)
+        super().__init__(console, entity, whois, ip_enrich, greynoise, abuseipdb, urlhaus)
+
         self.resolutions = resolutions
         self.max_resolutions = max_resolutions
 
     def domain_panel(self) -> Panel:
-        # Virustotal section
-        vt_section = self._gen_vt_section()
+        content = [self._gen_vt_section()]  # VT section
+        for section in (
+            self._gen_urlhaus_section(),    # URLhaus section
+        ):
+            if section is not None:
+                content.append("")
+                content.append(section)
 
-        # Altogether now
-        content = [vt_section]
-
-        return self._gen_panel(self._gen_group(content), self.entity.data.id_, main_panel=True)
+        return self._gen_panel(self._gen_group(content), self.entity.data.id_)
 
     def resolutions_panel(self) -> Optional[Panel]:
         # Skip if no resolutions data
@@ -116,6 +124,11 @@ class DomainView(BaseView):
             if greynoise:
                 data += [self._gen_greynoise_tuple(greynoise)]
 
+            # abuseIPDB
+            abuseipdb = self._get_abuseipdb_enrichment(attributes.ip_address)
+            if abuseipdb:
+                data += [self._gen_abuseipdb_tuple(abuseipdb)]
+
             # Include a disclaimer if last seen is older than 1 year
             # Note: Disabled for now because I originally understood that the resolution date was the last time
             # the domain was resolved, but it may actually be he first time the IP itself was seen with the domain.
@@ -172,6 +185,7 @@ class IpAddressView(BaseView):
     """
     Handler for IP Address lookup output
     """
+
     def __init__(
         self,
         console: Console,
@@ -179,27 +193,24 @@ class IpAddressView(BaseView):
         whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
+        abuseipdb: abuseIPDBIpMap,
+        urlhaus: UrlHausMap,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich, greynoise)
+        super().__init__(console, entity, whois, ip_enrich, greynoise, abuseipdb, urlhaus)
+
 
     def ip_panel(self) -> Panel:
-        # Virustotal section
-        vt_section = self._gen_vt_section()
-
-        # IP Enrichment section
-        ip_enrich_section = self._gen_ip_enrich_section()
-
-        # Other section
-        other_section = self._gen_ip_other_section()
-
-        # Altogether now
-        content = [vt_section]
-        for section in (ip_enrich_section, other_section):
+        content = [self._gen_vt_section()]  # VT section
+        for section in (
+            self._gen_ip_enrich_section(),  # IP enrich section
+            self._gen_urlhaus_section(),    # URLhaus section
+            self._gen_ip_other_section(),   # Other section
+        ):
             if section is not None:
                 content.append("")
                 content.append(section)
 
-        return self._gen_panel(self._gen_group(content), self.entity.data.id_, main_panel=True)
+        return self._gen_panel(self._gen_group(content), self.entity.data.id_)
 
     def print(self, one_column: bool = False) -> None:
         renderables = [i for i in (

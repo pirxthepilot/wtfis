@@ -1,6 +1,7 @@
 import json
 import pytest
 from unittest.mock import MagicMock, patch
+from wtfis.clients.abuseipdb import abuseIPDBClient
 
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
@@ -8,8 +9,14 @@ from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import APIError, Shodan, ShodanClient
+from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.models.ipwhois import IpWhoisMap
+
+
+@pytest.fixture()
+def abuseipdb_client():
+    return abuseIPDBClient("dummykey")
 
 
 @pytest.fixture()
@@ -35,6 +42,11 @@ def passivetotal_client():
 @pytest.fixture()
 def shodan_client():
     return ShodanClient("dummykey")
+
+
+@pytest.fixture()
+def urlhaus_client():
+    return UrlHausClient()
 
 
 @pytest.fixture()
@@ -84,10 +96,16 @@ class TestIp2WhoisClient:
             assert err.value.response.json()["error"]["error_code"] == 10008
 
 
-class TesGreynoiseClient:
+class TestGreynoiseClient:
     def test_init(self, greynoise_client):
         assert greynoise_client.name == "Greynoise"
         assert greynoise_client.api_key == "dummykey"
+
+
+class TestAbuseIPDBClient:
+    def test_init(self, abuseipdb_client):
+        assert abuseipdb_client.name == "abuseIPDB"
+        assert abuseipdb_client.api_key == "dummykey"
 
 
 class TestIpWhoisClient:
@@ -151,6 +169,24 @@ class TestShodanClient:
 
         assert e.type == APIError
         assert str(e.value) == "Some other error"
+
+
+class TestUrlhausClient:
+    def test_init(self, urlhaus_client):
+        assert urlhaus_client.name == "URLhaus"
+
+    @patch.object(requests.Session, "post")
+    def test_enrich_ips(self, mock_requests_post, test_data, urlhaus_client):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(test_data("urlhaus_1.1.1.1.json"))["1.1.1.1"]
+        mock_requests_post.return_value = mock_resp
+
+        urlhaus = urlhaus_client.enrich_ips("thisdoesntmatter").root["1.1.1.1"]
+
+        assert urlhaus.host == "1.1.1.1"
+        assert urlhaus.url_count == 10
+        assert urlhaus.urlhaus_reference == "https://urlhaus.abuse.ch/host/1.1.1.1/"
 
 
 class TestVirustotalClient:

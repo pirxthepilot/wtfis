@@ -1,13 +1,16 @@
 import json
+from unittest.mock import MagicMock, patch
+
 import pytest
 from requests.exceptions import ConnectionError
 from rich.console import Console
-from unittest.mock import MagicMock, patch
 
+from wtfis.clients.abuseipdb import abuseIPDBClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
+from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
@@ -25,6 +28,8 @@ def generate_domain_handler(max_resolutions=3):
         ip_enricher_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
+        abuseipdb_client=abuseIPDBClient("dummykey"),
+        urlhaus_client=UrlHausClient(),
         max_resolutions=max_resolutions,
     )
 
@@ -38,6 +43,8 @@ def generate_ip_handler():
         ip_enricher_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
+        abuseipdb_client=abuseIPDBClient("dummykey"),
+        urlhaus_client=UrlHausClient(),
     )
 
 
@@ -66,6 +73,7 @@ class TestDomainHandler:
         handler._fetch_ip_enrichments = MagicMock()
         handler._fetch_whois = MagicMock()
         handler._fetch_greynoise = MagicMock()
+        handler._fetch_urlhaus = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_domain.assert_called_once()
@@ -73,6 +81,7 @@ class TestDomainHandler:
         handler._fetch_ip_enrichments.assert_called_once()
         handler._fetch_whois.assert_called_once()
         handler._fetch_greynoise.assert_called_once()
+        handler._fetch_urlhaus.assert_called_once()
 
     def test_fetch_data_2(self, domain_handler):
         """ Test with max_resolutions = 0 """
@@ -82,6 +91,7 @@ class TestDomainHandler:
         handler._fetch_ip_enrichments = MagicMock()
         handler._fetch_whois = MagicMock()
         handler._fetch_greynoise = MagicMock()
+        handler._fetch_urlhaus = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_domain.assert_called_once()
@@ -89,6 +99,7 @@ class TestDomainHandler:
         handler._fetch_ip_enrichments.assert_not_called()
         handler._fetch_whois.assert_called_once()
         handler._fetch_greynoise.assert_not_called()
+        handler._fetch_urlhaus.assert_called_once()
 
         assert handler.ip_enrich == IpWhoisMap.model_validate({})
         assert handler.ip_enrich.root == {}
@@ -339,6 +350,21 @@ class TestDomainHandler:
             assert e.type == SystemExit
             assert e.value.code == 1
 
+    @patch.object(requests.Session, "post")
+    def test_urlhaus_http_error(self, mock_requests_post, domain_handler, capsys):
+        """
+        Test exception behavior of URLhaus with non-HTTPError requests exception
+        """
+        handler = domain_handler()
+        mock_requests_post.side_effect = ConnectionError("Foo bar message")
+
+        handler._fetch_urlhaus()
+        assert handler.warnings[0] == "Could not fetch URLhaus: Foo bar message"
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch URLhaus: Foo bar message")
+
 
 class TestIpAddressHandler:
     def test_entity_refang(self, ip_handler):
@@ -351,12 +377,14 @@ class TestIpAddressHandler:
         handler._fetch_ip_enrichments = MagicMock()
         handler._fetch_whois = MagicMock()
         handler._fetch_greynoise = MagicMock()
+        handler._fetch_urlhaus = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_ip_address.assert_called_once()
         handler._fetch_ip_enrichments.assert_called_once()
         handler._fetch_whois.assert_called_once()
         handler._fetch_greynoise.assert_called_once()
+        handler._fetch_urlhaus.assert_called_once()
 
     @patch.object(requests.Session, "get")
     def test_vt_http_error(self, mock_requests_get, ip_handler, capsys):
@@ -559,3 +587,18 @@ class TestIpAddressHandler:
             )
             assert e.type == SystemExit
             assert e.value.code == 1
+
+    @patch.object(requests.Session, "post")
+    def test_urlhaus_http_error(self, mock_requests_post, ip_handler, capsys):
+        """
+        Test exception behavior of URLhaus with non-HTTPError requests exception
+        """
+        handler = ip_handler()
+        mock_requests_post.side_effect = ConnectionError("Foo bar message")
+
+        handler._fetch_urlhaus()
+        assert handler.warnings[0] == "Could not fetch URLhaus: Foo bar message"
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch URLhaus: Foo bar message")

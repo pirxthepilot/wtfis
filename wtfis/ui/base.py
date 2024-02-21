@@ -10,6 +10,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from typing import Any, Generator, List, Optional, Tuple, Union
+from wtfis.models.abuseipdb import abuseIPDBIp, abuseIPDBIpMap
 
 from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
@@ -19,6 +20,7 @@ from wtfis.models.virustotal import (
     LastAnalysisStats,
     PopularityRanks,
 )
+from wtfis.models.urlhaus import UrlHaus, UrlHausMap
 from wtfis.ui.theme import Theme
 from wtfis.utils import Timestamp, is_ip, smart_join
 
@@ -39,12 +41,16 @@ class BaseView(abc.ABC):
         whois: Optional[WhoisBase],
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
+        abuseipdb: abuseIPDBIpMap,
+        urlhaus: UrlHausMap,
     ) -> None:
         self.console = console
         self.entity = entity
         self.whois = whois
         self.ip_enrich = ip_enrich
         self.greynoise = greynoise
+        self.abuseipdb = abuseipdb
+        self.urlhaus = urlhaus
         self.theme = Theme()
 
     def _vendors_who_flagged_malicious(self) -> List[str]:
@@ -66,7 +72,7 @@ class BaseView(abc.ABC):
         elif type == "h2":
             text = Text(justify="center")
             return text.append(heading, style=f"{self.theme.heading_h2}{link_style}")
-        else:
+        else:  # pragma: no cover
             raise Exception(f"Invalid heading type \"{type}\"")
 
     def _gen_linked_field_name(self, name: str, hyperlink: str) -> Text:
@@ -108,14 +114,9 @@ class BaseView(abc.ABC):
         self,
         renderable: RenderableType,
         title: Optional[str] = None,
-        main_panel: bool = False
     ) -> Panel:
         if title is not None:
-            if main_panel is True:
-                title_style = self.theme.panel_title_main
-            else:  # Note to future self: we might not need two panel title styles anymore
-                title_style = self.theme.panel_title_default
-            panel_title = Text(title, style=title_style)
+            panel_title = Text(title, style=self.theme.panel_title)
             return Panel(renderable, title=panel_title, expand=False)
         return Panel(renderable, expand=False)
 
@@ -253,17 +254,44 @@ class BaseView(abc.ABC):
 
         return title, text
 
+    def _gen_abuseipdb_tuple(self, ip: abuseIPDBIp) -> Tuple[Text, Text]:
+        #
+        # Title
+        #
+        title = self._gen_linked_field_name("abuseIPDB", hyperlink=f"https://www.abuseipdb.com/check/{ip.ipAddress}")
+
+        #
+        # Content
+        #
+
+        text = Text()
+
+        score_message = f"{str(ip.abuseConfidenceScore)} abuse confidence score"
+        abuseipdb_text: Text
+        if ip.abuseConfidenceScore == 0:
+            abuseipdb_text = Text(score_message, style=self.theme.info)
+        elif ip.abuseConfidenceScore <= 30:
+            abuseipdb_text = Text(score_message, style=self.theme.warn)
+        else:
+            abuseipdb_text = Text(score_message, style=self.theme.error)
+
+        text.append(abuseipdb_text)
+
+        return title, text
+
     def _gen_asn_text(
         self,
         asn: Optional[str],
         org: Optional[RenderableType],
     ) -> Optional[RenderableType]:
-        if not asn:
+        if asn == "0" or not asn:
             return None
 
-        text = Text(f"{asn.replace('AS', '')} (")
-        text.append(str(org), style=self.theme.asn_org)
-        text.append(")")
+        text = Text()
+        (text
+         .append(f"{asn.replace('AS', '')} (")
+         .append(str(org), style=self.theme.asn_org)
+         .append(")"))
         return text
 
     def _get_ip_enrichment(self, ip: str) -> Optional[Union[IpWhois, ShodanIp]]:
@@ -271,6 +299,12 @@ class BaseView(abc.ABC):
 
     def _get_greynoise_enrichment(self, ip: str) -> Optional[GreynoiseIp]:
         return self.greynoise.root[ip] if ip in self.greynoise.root.keys() else None
+
+    def _get_abuseipdb_enrichment(self, ip: str) -> Optional[abuseIPDBIp]:
+        return self.abuseipdb.root[ip] if ip in self.abuseipdb.root.keys() else None
+
+    def _get_urlhaus_enrichment(self, entity: str) -> Optional[UrlHaus]:
+        return self.urlhaus.root[entity] if entity in self.urlhaus.root.keys() else None
 
     def _gen_vt_section(self) -> RenderableType:
         """ Virustotal section. Applies to both domain and IP views """
@@ -368,6 +402,64 @@ class BaseView(abc.ABC):
 
         return None  # No enrichment data
 
+    def _gen_urlhaus_section(self) -> Optional[RenderableType]:
+        """ URLhaus """
+        def bl_text(blocklist: str, status: str) -> Text:
+            # https://urlhaus-api.abuse.ch/#hostinfo
+            text = Text()
+            if status == "not listed":
+                text.append(status, self.theme.urlhaus_bl_low)
+            elif status.startswith("abused_"):
+                text.append(status, self.theme.urlhaus_bl_med)
+            elif status.endswith("_domain") or status == "listed":
+                text.append(status, self.theme.urlhaus_bl_high)
+            else:  # pragma: no cover
+                raise Exception(f"Invalid URLhaus BL status: {status}")
+            text.append(" in ").append(blocklist, style=self.theme.urlhaus_bl_name)
+            return text
+
+        enrich = self._get_urlhaus_enrichment(self.entity.data.id_)
+
+        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
+
+        if enrich:
+            malware_urls_field: Union[Text, str] = self._gen_linked_field_name(
+                "Malware URLs",
+                hyperlink=enrich.urlhaus_reference,
+            ) if enrich.urlhaus_reference else "Malware URLs:"
+
+            malware_urls_value = Text()
+            (malware_urls_value
+             .append(
+                (str(enrich.online_url_count)
+                    if enrich.url_count and enrich.url_count <= 100
+                    else f"{enrich.online_url_count}+") + " online",
+                style=self.theme.error if enrich.online_url_count > 0 else self.theme.warn,
+             )
+             .append(
+                f" ({enrich.url_count} total)",
+                style=self.theme.table_value,
+             ))
+
+            tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+
+            data += [
+                (malware_urls_field, malware_urls_value),
+                (
+                    "Blocklists:",
+                    (bl_text("spamhaus", enrich.blacklists.spamhaus_dbl if enrich.blacklists else "") + "\n" +
+                     bl_text("surbl", enrich.blacklists.surbl if enrich.blacklists else ""))
+                ),
+                ("Tags:", tags),
+            ]
+
+            return self._gen_section(
+                self._gen_table(*data),
+                self._gen_heading_text("URLhaus")
+            )
+
+        return None  # No enrichment data
+
     def _gen_ip_other_section(self) -> Optional[RenderableType]:
         """ Other section for IP views """
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
@@ -376,6 +468,11 @@ class BaseView(abc.ABC):
         greynoise = self._get_greynoise_enrichment(self.entity.data.id_)
         if greynoise:
             data.append(self._gen_greynoise_tuple(greynoise))
+
+        # abuseIPDB
+        abuseipdb = self._get_abuseipdb_enrichment(ip=self.entity.data.id_)
+        if abuseipdb:
+            data.append(self._gen_abuseipdb_tuple(abuseipdb))
 
         if data:
             return self._gen_section(

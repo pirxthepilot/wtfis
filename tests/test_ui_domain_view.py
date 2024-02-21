@@ -1,19 +1,22 @@
-import pytest
 import json
+from unittest.mock import MagicMock
 
+import pytest
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Span, Text
-from unittest.mock import MagicMock
 
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.models.abuseipdb import abuseIPDBIpMap
+from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ip2whois import Whois as Ip2Whois
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.passivetotal import Whois as PTWhois
+from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import (
     Domain,
     Resolutions,
@@ -39,6 +42,8 @@ def view01(test_data, mock_ipwhois_get):
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=abuseIPDBIpMap.model_validate({}),
+        urlhaus=UrlHausMap.model_validate({}),
     )
 
 
@@ -55,6 +60,8 @@ def view02(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_gist.json"))),
         ip_enrich=IpWhoisMap.model_validate({}),
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=abuseIPDBIpMap.model_validate({}),
+        urlhaus=MagicMock(),
         max_resolutions=1,
     )
 
@@ -69,6 +76,8 @@ def view03(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_bbc.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -85,6 +94,8 @@ def view04(test_data):
         whois=MagicMock(),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -98,6 +109,8 @@ def view05(test_data):
         whois=MagicMock(),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -111,6 +124,8 @@ def view06(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_example_2.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -131,6 +146,8 @@ def view07(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=abuseIPDBIpMap.model_validate({}),
+        urlhaus=MagicMock(),
     )
 
 
@@ -151,13 +168,15 @@ def view08(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=abuseIPDBIpMap.model_validate({}),
+        urlhaus=MagicMock(),
         max_resolutions=1,
     )
 
 
 @pytest.fixture()
 def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
-    """ one.one.one.one with Shodan. Only test resolution and IP enrich. """
+    """ one.one.one.one with Shodan and Greynoise. Only test resolution and IP enrich. """
     resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_one.json")))
 
     shodan_pool = json.loads(test_data("shodan_one.json"))
@@ -177,6 +196,8 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=greynoise_enrich,
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
         max_resolutions=1,
     )
 
@@ -191,6 +212,8 @@ def view10(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_foo.json"))),
         ip_enrich=MagicMock(),
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=abuseIPDBIpMap.model_validate({}),
+        urlhaus=MagicMock(),
     )
 
 
@@ -211,6 +234,8 @@ def view11(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=abuseIPDBIpMap.model_validate({}),
+        urlhaus=MagicMock(),
     )
 
 
@@ -224,6 +249,8 @@ def view12(test_data):
         whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_hotmail.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -237,6 +264,35 @@ def view13(test_data):
         whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_bbc.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
+    """ Same as view01() but with Urlhaus enrichment. Test URLhaus only. """
+    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+
+    ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
+    ipwhois_client = IpWhoisClient()
+    ipwhois_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
+    ip_enrich = ipwhois_client.enrich_ips(*resolutions.ip_list(3))
+
+    urlhaus_pool = json.loads(test_data("urlhaus_gist.json"))
+    urlhaus_client = UrlHausClient()
+    urlhaus_client._get_host = MagicMock(side_effect=lambda domain: mock_urlhaus_get(domain, urlhaus_pool))
+    urlhaus_enrich = urlhaus_client.enrich_domains("gist.github.com")
+
+    return DomainView(
+        console=Console(),
+        entity=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
+        resolutions=resolutions,
+        whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
+        ip_enrich=ip_enrich,
+        greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=abuseIPDBIpMap.model_validate({}),
+        urlhaus=urlhaus_enrich,
     )
 
 
@@ -245,7 +301,7 @@ class TestView01:
         domain = view01.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("gist.github.com")
-        assert domain.title.style == theme.panel_title_main
+        assert domain.title.style == theme.panel_title
 
         #
         # VT section
@@ -273,7 +329,7 @@ class TestView01:
             "Updated:",
             "Last Seen:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
@@ -342,7 +398,7 @@ class TestView01:
             "ISP:",
             "Location:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
@@ -386,7 +442,7 @@ class TestView01:
             "ISP:",
             "Location:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious"),
@@ -433,7 +489,7 @@ class TestView01:
             "ISP:",
             "Location:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
@@ -499,7 +555,7 @@ class TestView01:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             "MarkMonitor Inc.",
@@ -587,7 +643,7 @@ class TestView02:
             ),
             "Resolved:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
@@ -630,7 +686,7 @@ class TestView02:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
             "MarkMonitor Inc.",
@@ -670,7 +726,7 @@ class TestView03:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [
             "dns1.bbc.com",
@@ -712,7 +768,7 @@ class TestView04:
             "Updated:",
             "Last Seen:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text(
@@ -792,7 +848,7 @@ class TestView05:
             "Updated:",
             "Last Seen:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text(
@@ -892,7 +948,7 @@ class TestView07:
             "Tags:",
             "Last Scan:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
@@ -963,7 +1019,7 @@ class TestView07:
             ),
             "Last Scan:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious"),
@@ -1032,7 +1088,7 @@ class TestView07:
             "Tags:",
             "Last Scan:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("0/94 malicious"),
@@ -1124,7 +1180,7 @@ class TestView08:
             "Tags:",
             "Last Scan:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/93 malicious"),
@@ -1219,7 +1275,7 @@ class TestView09:
                 spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.0.0.1")]
             ),
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("2/94 malicious"),
@@ -1362,7 +1418,7 @@ class TestView11:
             "Tags:",
             "Last Scan:",
         ]
-        assert group[1].columns[1].style == "none"
+        assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious"),
@@ -1429,7 +1485,7 @@ class TestView12:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
             "MarkMonitor, Inc.",
@@ -1475,10 +1531,67 @@ class TestView13:
             "Updated:",
             "Expires:",
         ]
-        assert table.columns[1].style == "none"
+        assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
             "1996-08-01T00:00:00Z",
             "2020-12-10T00:00:00Z",
             "2025-12-13T00:00:00Z",
+        ]
+
+
+class TestView14:
+    def test_domain_panel_urlhaus(self, view14, theme):
+        domain = view14.domain_panel()
+        urlhaus_section = domain.renderable.renderables[2]
+
+        # Heading
+        assert urlhaus_section.renderables[0] == Text("URLhaus")
+        assert urlhaus_section.renderables[0].style == theme.heading_h1
+
+        # Table
+        table = urlhaus_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == theme.table_field
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            Text(
+                "Malware URLs:",
+                spans=[Span(0, 12, "link https://urlhaus.abuse.ch/host/gist.github.com/")],
+            ),
+            "Blocklists:",
+            "Tags:",
+        ]
+        assert table.columns[1].style == theme.table_value
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text(
+                "1+ online (3248 total)",
+                spans=[
+                    Span(0, 9, theme.error),
+                    Span(9, 22, theme.table_value),
+                ],
+            ),
+            Text(
+                "abused_legit_malware in spamhaus\nlisted in surbl",
+                spans=[
+                    Span(0, 20, theme.urlhaus_bl_med),
+                    Span(24, 32, theme.urlhaus_bl_name),
+                    Span(33, 48, ""),
+                    Span(33, 39, theme.urlhaus_bl_high),
+                    Span(43, 48, theme.urlhaus_bl_name),
+                ]
+            ),
+            Text(
+                "Pikabot, TA577, foo, zip",
+                spans=[
+                    Span(0, 7, theme.tags),
+                    Span(7, 9, "default"),
+                    Span(9, 14, theme.tags),
+                    Span(14, 16, "default"),
+                    Span(16, 19, theme.tags),
+                    Span(19, 21, "default"),
+                    Span(21, 24, theme.tags),
+                ]
+            ),
         ]

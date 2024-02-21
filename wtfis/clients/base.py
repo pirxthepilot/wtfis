@@ -5,7 +5,7 @@ import requests
 from typing import Optional, Union
 
 from wtfis.models.common import WhoisBase
-from wtfis.types import IpEnrichmentType
+from wtfis.types import DomainEnrichmentType, IpEnrichmentType
 
 
 class AbstractAttribute:
@@ -44,6 +44,17 @@ class BaseRequestsClient(BaseClient):
 
         return json.loads(json.dumps((resp.json())))
 
+    def _post(
+        self,
+        request: str,
+        data: Optional[dict] = None,
+        headers: Optional[dict] = None,
+    ) -> dict:
+        resp = self.s.post(self.baseurl + request, data=data, headers=headers)
+        resp.raise_for_status()
+
+        return json.loads(json.dumps((resp.json())))
+
 
 class BaseWhoisClient(abc.ABC):
     """
@@ -51,6 +62,15 @@ class BaseWhoisClient(abc.ABC):
     """
     @abc.abstractmethod
     def get_whois(self, entity: str) -> WhoisBase:  # pragma: no coverage
+        return NotImplemented
+
+
+class BaseDomainEnricherClient(abc.ABC):
+    """
+    Client used for domain/FQDN enrichments
+    """
+    @abc.abstractmethod
+    def enrich_domains(self, *domains: str) -> DomainEnrichmentType:  # pragma: no coverage
         return NotImplemented
 
 

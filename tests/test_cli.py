@@ -1,37 +1,27 @@
 import json
 import os
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 import pytest
 from dotenv import load_dotenv
-from pathlib import Path
 from rich.console import Console
-from rich.progress import (
-    BarColumn,
-    Progress,
-    SpinnerColumn,
-    TaskProgressColumn,
-    TimeElapsedColumn,
-    TextColumn,
-)
-from unittest.mock import patch, MagicMock
+from rich.progress import (BarColumn, Progress, SpinnerColumn,
+                           TaskProgressColumn, TextColumn, TimeElapsedColumn)
 
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
-from wtfis.main import (
-    generate_entity_handler,
-    generate_view,
-    main,
-    parse_args,
-    parse_env,
-)
+from wtfis.main import (generate_entity_handler, generate_view, main,
+                        parse_args, parse_env)
 from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.view import DomainView, IpAddressView
-
 
 POSSIBLE_ENV_VARS = [
     "VT_API_KEY",
@@ -40,6 +30,7 @@ POSSIBLE_ENV_VARS = [
     "IP2WHOIS_API_KEY",
     "SHODAN_API_KEY",
     "GREYNOISE_API_KEY",
+    "ABUSEIPDB_API_KEY"
     "WTFIS_DEFAULTS",
 ]
 
@@ -83,6 +74,7 @@ def fake_load_dotenv_1(tmp_path):
         "IP2WHOIS_API_KEY": "alice",
         "SHODAN_API_KEY": "hunter2",
         "GREYNOISE_API_KEY": "upupdowndown",
+        "ABUSEIPDB_API_KEY": "dummy"
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -111,7 +103,7 @@ def fake_load_dotenv_4(tmp_path):
     fake_env_vars = {
         "VT_API_KEY": "foo",
         "GREYNOISE_API_KEY": "bar",
-        "WTFIS_DEFAULTS": "-g",
+        "WTFIS_DEFAULTS": "-g -u",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -145,6 +137,8 @@ class TestArgs:
             assert args.no_color is False
             assert args.one_column is False
             assert args.use_shodan is False
+            assert args.use_greynoise is False
+            assert args.use_urlhaus is False
 
     def test_display(self):
         with patch("sys.argv", [
@@ -251,6 +245,15 @@ class TestArgs:
         assert e.type == SystemExit
         assert e.value.code == 2
 
+    def test_urlhaus(self):
+        with patch("sys.argv", [
+            "main",
+            "www.example.com",
+            "-u",
+        ]):
+            args = parse_args()
+            assert args.use_urlhaus is True
+
 
 class TestEnvs:
     def test_env_file(self, fake_load_dotenv_1):
@@ -262,6 +265,7 @@ class TestEnvs:
             assert os.environ["IP2WHOIS_API_KEY"] == "alice"
             assert os.environ["SHODAN_API_KEY"] == "hunter2"
             assert os.environ["GREYNOISE_API_KEY"] == "upupdowndown"
+            assert os.environ["ABUSEIPDB_API_KEY"] == "dummy"
         unset_env_vars()
 
     @patch("wtfis.main.load_dotenv", MagicMock())
@@ -303,6 +307,7 @@ class TestDefaults:
                 assert args.one_column is True
                 assert args.use_shodan is True
                 assert args.use_greynoise is False
+                assert args.use_urlhaus is False
         unset_env_vars()
 
     def test_defaults_2(self, fake_load_dotenv_2):
@@ -320,6 +325,7 @@ class TestDefaults:
                 assert args.one_column is True
                 assert args.use_shodan is False
                 assert args.use_greynoise is False
+                assert args.use_urlhaus is False
         unset_env_vars()
 
     def test_defaults_3(self, fake_load_dotenv_3):
@@ -336,6 +342,7 @@ class TestDefaults:
                 assert args.one_column is False
                 assert args.use_shodan is False
                 assert args.use_greynoise is False
+                assert args.use_urlhaus is False
         unset_env_vars()
 
     def test_defaults_4(self, fake_load_dotenv_4):
@@ -343,6 +350,7 @@ class TestDefaults:
             with patch("sys.argv", [
                 "main",
                 "1.1.1.1",
+                "-u",
             ]):
                 parse_env()
                 args = parse_args()
@@ -351,6 +359,7 @@ class TestDefaults:
                 assert args.one_column is False
                 assert args.use_shodan is False
                 assert args.use_greynoise is True
+                assert args.use_urlhaus is False
         unset_env_vars()
 
 
@@ -363,7 +372,7 @@ class TestGenEntityHandler:
             parse_env()
             console = Console()
             progress = simulate_progress(console),
-            entity = generate_entity_handler(parse_args(), console, progress)
+            entity = generate_entity_handler(parse_args(), console, progress)  # type: ignore
         assert isinstance(entity, DomainHandler)
         assert entity.entity == "www.example.com"
         assert entity.max_resolutions == 3
@@ -373,9 +382,10 @@ class TestGenEntityHandler:
         assert isinstance(entity._enricher, IpWhoisClient)
         assert isinstance(entity._whois, PTClient)
         assert entity._greynoise is None
+        assert entity._urlhaus is None
         unset_env_vars()
 
-    @patch("sys.argv", ["main", "www.example[.]com", "-s", "-g", "-m", "5"])
+    @patch("sys.argv", ["main", "www.example[.]com", "-s", "-g", "-u", "-m", "5"])
     def test_handler_domain_2(self, fake_load_dotenv_1):
         """ Domain with Shodan and Greynoise and non-default max_resolutions """
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
@@ -387,6 +397,7 @@ class TestGenEntityHandler:
         assert isinstance(entity._enricher, ShodanClient)
         assert isinstance(entity._whois, PTClient)
         assert isinstance(entity._greynoise, GreynoiseClient)
+        assert isinstance(entity._urlhaus, UrlHausClient)
         unset_env_vars()
 
     @patch("sys.argv", ["main", "www.example[.]com"])
@@ -427,6 +438,7 @@ class TestGenEntityHandler:
         assert isinstance(entity._enricher, IpWhoisClient)
         assert isinstance(entity._whois, PTClient)
         assert entity._greynoise is None
+        assert entity._urlhaus is None
         unset_env_vars()
 
 
@@ -443,6 +455,8 @@ class TestGenView:
             ip_enricher_client=MagicMock(),
             whois_client=MagicMock(),
             greynoise_client=MagicMock(),
+            abuseipdb_client=MagicMock(),
+            urlhaus_client=MagicMock(),
         )
         entity.vt_info = Domain.model_validate(json.loads(test_data("vt_domain_gist.json")))
         entity.whois = MagicMock()
@@ -461,6 +475,8 @@ class TestGenView:
             ip_enricher_client=MagicMock(),
             whois_client=MagicMock(),
             greynoise_client=MagicMock(),
+            abuseipdb_client=MagicMock(),
+            urlhaus_client=MagicMock(),
         )
         entity.vt_info = IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json")))
         entity.whois = MagicMock()
@@ -471,7 +487,7 @@ class TestGenView:
     def test_view_error(self):
         """ IP address view with default params """
         with pytest.raises(Exception):
-            generate_view(MagicMock(), MagicMock(), "foobar")
+            generate_view(MagicMock(), MagicMock(), "foobar")  # type: ignore
 
 
 class TestMain:
