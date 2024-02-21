@@ -149,6 +149,13 @@ def generate_entity_handler(
         else None
     )
 
+    # URLhaus client (optional)
+    urlhaus_client = (
+        UrlHausClient()
+        if args.use_urlhaus
+        else None
+    )
+
     # Domain / FQDN handler
     if not is_ip(args.entity):
         entity: BaseHandler = DomainHandler(

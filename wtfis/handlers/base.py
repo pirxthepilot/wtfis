@@ -90,7 +90,7 @@ class BaseHandler(abc.ABC):
         self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()
         self.abuseipdb: abuseIPDBIpMap = abuseIPDBIpMap.empty()
         self.urlhaus: UrlHausMap = UrlHausMap.empty()
-
+        
         # Warning messages container
         self.warnings: List[str] = []
 

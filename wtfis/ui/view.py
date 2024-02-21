@@ -198,7 +198,6 @@ class IpAddressView(BaseView):
     ) -> None:
         super().__init__(console, entity, whois, ip_enrich, greynoise, abuseipdb, urlhaus)
 
-
     def ip_panel(self) -> Panel:
         content = [self._gen_vt_section()]  # VT section
         for section in (

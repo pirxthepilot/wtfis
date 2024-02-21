@@ -42,7 +42,6 @@ class DomainHandler(BaseHandler):
         super().__init__(entity, console, progress, vt_client, ip_enricher_client,
                          whois_client, greynoise_client, abuseipdb_client, urlhaus_client)
 
-
         # Extended attributes
         self.max_resolutions = max_resolutions
         self.resolutions: Optional[Resolutions] = None
