@@ -60,7 +60,7 @@ def shodan_get_ip(ip, pool) -> ShodanIp:
     return ShodanIp.model_validate(pool[ip])
 
 
-def urlhaus_get_host(entity, pool) -> ShodanIp:
+def urlhaus_get_host(entity, pool) -> UrlHaus:
     """ Mock replacement for Urlhaus()._get_host() """
     return UrlHaus.model_validate(pool[entity])
 
