@@ -6,7 +6,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Span, Text
 from unittest.mock import MagicMock
-from wtfis.clients.abuseipdb import abuseIPDBClient
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient

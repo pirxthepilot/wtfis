@@ -10,7 +10,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from typing import Any, Generator, List, Optional, Tuple, Union
-from wtfis.models.abuseipdb import abuseIPDBIp, abuseIPDBIpMap
+from wtfis.models.abuseipdb import AbuseIpDb, AbuseIpDbMap
 
 from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
@@ -41,7 +41,7 @@ class BaseView(abc.ABC):
         whois: Optional[WhoisBase],
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
-        abuseipdb: abuseIPDBIpMap,
+        abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
     ) -> None:
         self.console = console
@@ -254,11 +254,12 @@ class BaseView(abc.ABC):
 
         return title, text
 
-    def _gen_abuseipdb_tuple(self, ip: abuseIPDBIp) -> Tuple[Text, Text]:
+    def _gen_abuseipdb_tuple(self, ip: AbuseIpDb) -> Tuple[Text, Text]:
+
         #
         # Title
         #
-        title = self._gen_linked_field_name("abuseIPDB", hyperlink=f"https://www.abuseipdb.com/check/{ip.ipAddress}")
+        title = self._gen_linked_field_name("AbuseIPDB", hyperlink=f"https://www.abuseipdb.com/check/{ip.ip_address}")
 
         #
         # Content
@@ -266,11 +267,11 @@ class BaseView(abc.ABC):
 
         text = Text()
 
-        score_message = f"{str(ip.abuseConfidenceScore)} abuse confidence score"
+        score_message = f"{str(ip.abuse_confidence_score)} abuse confidence score"
         abuseipdb_text: Text
-        if ip.abuseConfidenceScore == 0:
+        if ip.abuse_confidence_score == 0:
             abuseipdb_text = Text(score_message, style=self.theme.info)
-        elif ip.abuseConfidenceScore <= 30:
+        elif ip.abuse_confidence_score <= 30:
             abuseipdb_text = Text(score_message, style=self.theme.warn)
         else:
             abuseipdb_text = Text(score_message, style=self.theme.error)
@@ -300,7 +301,7 @@ class BaseView(abc.ABC):
     def _get_greynoise_enrichment(self, ip: str) -> Optional[GreynoiseIp]:
         return self.greynoise.root[ip] if ip in self.greynoise.root.keys() else None
 
-    def _get_abuseipdb_enrichment(self, ip: str) -> Optional[abuseIPDBIp]:
+    def _get_abuseipdb_enrichment(self, ip: str) -> Optional[AbuseIpDb]:
         return self.abuseipdb.root[ip] if ip in self.abuseipdb.root.keys() else None
 
     def _get_urlhaus_enrichment(self, entity: str) -> Optional[UrlHaus]:

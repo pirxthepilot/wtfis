@@ -7,7 +7,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.progress import Progress
 from typing import Union
-from wtfis.clients.abuseipdb import abuseIPDBClient
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
@@ -57,7 +57,7 @@ def parse_args() -> Namespace:
     )
     parser.add_argument("-s", "--use-shodan", help="Use Shodan to enrich IPs", action="store_true")
     parser.add_argument("-g", "--use-greynoise", help="Enable Greynoise for IPs", action="store_true")
-    parser.add_argument("-a", "--use-abuseipdb", help="Enable abuseIPDB for IPs", action="store_true")
+    parser.add_argument("-a", "--use-abuseipdb", help="Enable AbuseIPDB for IPs", action="store_true")
     parser.add_argument("-u", "--use-urlhaus", help="Enable URLhaus for IPs and domains", action="store_true")
     parser.add_argument("-n", "--no-color", help="Show output without colors", action="store_true")
     parser.add_argument("-1", "--one-column", help="Display results in one column", action="store_true")
@@ -135,18 +135,11 @@ def generate_entity_handler(
         if args.use_greynoise
         else None
     )
-    
-    # abuseIPDB client (optional)
-    abuseipdb_client = (
-        abuseIPDBClient(os.environ["ABUSEIPDB_API_KEY"])
-        if args.use_abuseipdb else None
-    )
 
-    # URLhaus client (optional)
-    urlhaus_client = (
-        UrlHausClient()
-        if args.use_urlhaus
-        else None
+    # AbuseIPDB client (optional)
+    abuseipdb_client = (
+        AbuseIpDbClient(os.environ["ABUSEIPDB_API_KEY"])
+        if args.use_abuseipdb else None
     )
 
     # URLhaus client (optional)

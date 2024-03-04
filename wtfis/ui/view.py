@@ -8,7 +8,7 @@ from rich.padding import Padding
 from rich.panel import Panel
 from rich.text import Text
 from typing import List, Optional, Tuple, Union
-from wtfis.models.abuseipdb import abuseIPDBIpMap
+from wtfis.models.abuseipdb import AbuseIpDbMap
 
 from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
@@ -37,7 +37,7 @@ class DomainView(BaseView):
         whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
-        abuseipdb: abuseIPDBIpMap,
+        abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
         max_resolutions: int = 3,
     ) -> None:
@@ -193,7 +193,7 @@ class IpAddressView(BaseView):
         whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
-        abuseipdb: abuseIPDBIpMap,
+        abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
     ) -> None:
         super().__init__(console, entity, whois, ip_enrich, greynoise, abuseipdb, urlhaus)

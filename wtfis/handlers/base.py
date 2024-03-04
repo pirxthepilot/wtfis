@@ -1,14 +1,19 @@
 import abc
-from typing import Callable, List, Optional, Union
 
 from pydantic import ValidationError
-from requests.exceptions import (ConnectionError, HTTPError, JSONDecodeError,
-                                 RequestException, Timeout)
+from requests.exceptions import (
+    ConnectionError,
+    HTTPError,
+    JSONDecodeError,
+    RequestException,
+    Timeout,
+)
 from rich.console import Console
 from rich.progress import Progress
 from shodan.exception import APIError
+from typing import Callable, List, Optional, Union
 
-from wtfis.clients.abuseipdb import abuseIPDBClient
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
@@ -16,7 +21,7 @@ from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
-from wtfis.models.abuseipdb import abuseIPDBIpMap
+from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
@@ -67,7 +72,7 @@ class BaseHandler(abc.ABC):
         ip_enricher_client: Union[IpWhoisClient, ShodanClient],
         whois_client: Union[Ip2WhoisClient, PTClient, VTClient],
         greynoise_client: Optional[GreynoiseClient],
-        abuseipdb_client: Optional[abuseIPDBClient],
+        abuseipdb_client: Optional[AbuseIpDbClient],
         urlhaus_client: Optional[UrlHausClient],
     ):
         # Process-specific
@@ -88,9 +93,9 @@ class BaseHandler(abc.ABC):
         self.ip_enrich: Union[IpWhoisMap, ShodanIpMap] = IpWhoisMap.empty()
         self.whois: WhoisBase
         self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()
-        self.abuseipdb: abuseIPDBIpMap = abuseIPDBIpMap.empty()
+        self.abuseipdb: AbuseIpDbMap = AbuseIpDbMap.empty()
         self.urlhaus: UrlHausMap = UrlHausMap.empty()
-        
+
         # Warning messages container
         self.warnings: List[str] = []
 

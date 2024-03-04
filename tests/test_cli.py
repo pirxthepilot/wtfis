@@ -30,7 +30,7 @@ POSSIBLE_ENV_VARS = [
     "IP2WHOIS_API_KEY",
     "SHODAN_API_KEY",
     "GREYNOISE_API_KEY",
-    "ABUSEIPDB_API_KEY"
+    "ABUSEIPDB_API_KEY",
     "WTFIS_DEFAULTS",
 ]
 
@@ -74,7 +74,7 @@ def fake_load_dotenv_1(tmp_path):
         "IP2WHOIS_API_KEY": "alice",
         "SHODAN_API_KEY": "hunter2",
         "GREYNOISE_API_KEY": "upupdowndown",
-        "ABUSEIPDB_API_KEY": "dummy"
+        "ABUSEIPDB_API_KEY": "dummy",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -372,7 +372,7 @@ class TestGenEntityHandler:
             parse_env()
             console = Console()
             progress = simulate_progress(console),
-            entity = generate_entity_handler(parse_args(), console, progress)  # type: ignore
+            entity = generate_entity_handler(parse_args(), console, progress)
         assert isinstance(entity, DomainHandler)
         assert entity.entity == "www.example.com"
         assert entity.max_resolutions == 3
@@ -487,7 +487,7 @@ class TestGenView:
     def test_view_error(self):
         """ IP address view with default params """
         with pytest.raises(Exception):
-            generate_view(MagicMock(), MagicMock(), "foobar")  # type: ignore
+            generate_view(MagicMock(), MagicMock(), "foobar")
 
 
 class TestMain:

@@ -7,7 +7,7 @@ from requests.exceptions import HTTPError
 from rich.console import Console
 from rich.progress import Progress
 
-from wtfis.clients.abuseipdb import abuseIPDBClient
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
@@ -35,7 +35,7 @@ class DomainHandler(BaseHandler):
         ip_enricher_client: Union[IpWhoisClient, ShodanClient],
         whois_client: Union[Ip2WhoisClient, PTClient, VTClient],
         greynoise_client: Optional[GreynoiseClient],
-        abuseipdb_client: Optional[abuseIPDBClient],
+        abuseipdb_client: Optional[AbuseIpDbClient],
         urlhaus_client: Optional[UrlHausClient],
         max_resolutions: int = 0,
     ):

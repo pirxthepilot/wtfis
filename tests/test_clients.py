@@ -1,7 +1,7 @@
 import json
 import pytest
 from unittest.mock import MagicMock, patch
-from wtfis.clients.abuseipdb import abuseIPDBClient
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
@@ -16,7 +16,7 @@ from wtfis.models.ipwhois import IpWhoisMap
 
 @pytest.fixture()
 def abuseipdb_client():
-    return abuseIPDBClient("dummykey")
+    return AbuseIpDbClient("dummykey")
 
 
 @pytest.fixture()
@@ -104,7 +104,7 @@ class TestGreynoiseClient:
 
 class TestAbuseIPDBClient:
     def test_init(self, abuseipdb_client):
-        assert abuseipdb_client.name == "abuseIPDB"
+        assert abuseipdb_client.name == "AbuseIPDB"
         assert abuseipdb_client.api_key == "dummykey"
 
 
