@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from pydantic import BaseModel, Field, RootModel
 
@@ -21,11 +21,10 @@ class AbuseIpDb(BaseModel):
     total_reports: Optional[int] = Field(None, alias="totalReports")
     num_distinct_users: Optional[int] = Field(None, alias="numDistinctUsers")
     last_reported_at: Optional[str] = Field(None, alias="lastReportedAt")
-    reports: Optional[List] = None
 
 
 class AbuseIpDbMap(RootModel):
-    root: dict[str, AbuseIpDb]
+    root: Dict[str, AbuseIpDb]
 
     @classmethod
     def empty(cls) -> AbuseIpDbMap:
