@@ -1,15 +1,16 @@
-import pytest
 import json
+from unittest.mock import MagicMock
 
+import pytest
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Span, Text
-from unittest.mock import MagicMock
 
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ip2whois import Whois as Ip2Whois
@@ -41,6 +42,7 @@ def view01(test_data, mock_ipwhois_get):
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=UrlHausMap.model_validate({}),
     )
 
@@ -58,6 +60,7 @@ def view02(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_gist.json"))),
         ip_enrich=IpWhoisMap.model_validate({}),
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
         max_resolutions=1,
     )
@@ -73,6 +76,7 @@ def view03(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_bbc.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
     )
 
@@ -90,6 +94,7 @@ def view04(test_data):
         whois=MagicMock(),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
     )
 
@@ -104,6 +109,7 @@ def view05(test_data):
         whois=MagicMock(),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
     )
 
@@ -118,6 +124,7 @@ def view06(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_example_2.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
     )
 
@@ -139,6 +146,7 @@ def view07(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
     )
 
@@ -160,6 +168,7 @@ def view08(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
         max_resolutions=1,
     )
@@ -187,6 +196,7 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=greynoise_enrich,
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
         max_resolutions=1,
     )
@@ -202,6 +212,7 @@ def view10(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_foo.json"))),
         ip_enrich=MagicMock(),
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
     )
 
@@ -223,6 +234,7 @@ def view11(test_data, mock_shodan_get_ip):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
     )
 
@@ -237,6 +249,7 @@ def view12(test_data):
         whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_hotmail.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
     )
 
@@ -251,6 +264,7 @@ def view13(test_data):
         whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_bbc.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
     )
 
@@ -277,6 +291,7 @@ def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
         ip_enrich=ip_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=urlhaus_enrich,
     )
 

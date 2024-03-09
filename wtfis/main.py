@@ -7,6 +7,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.progress import Progress
 from typing import Union
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
@@ -56,6 +57,7 @@ def parse_args() -> Namespace:
     )
     parser.add_argument("-s", "--use-shodan", help="Use Shodan to enrich IPs", action="store_true")
     parser.add_argument("-g", "--use-greynoise", help="Enable Greynoise for IPs", action="store_true")
+    parser.add_argument("-a", "--use-abuseipdb", help="Enable AbuseIPDB for IPs", action="store_true")
     parser.add_argument("-u", "--use-urlhaus", help="Enable URLhaus for IPs and domains", action="store_true")
     parser.add_argument("-n", "--no-color", help="Show output without colors", action="store_true")
     parser.add_argument("-1", "--one-column", help="Display results in one column", action="store_true")
@@ -74,6 +76,8 @@ def parse_args() -> Namespace:
             parsed.use_shodan = not parsed.use_shodan
         elif option in ("-g", "--use-greynoise"):
             parsed.use_greynoise = not parsed.use_greynoise
+        elif option in ("-a", "--use-abuseipdb"):
+            parsed.use_abuseipdb = not parsed.use_abuseipdb
         elif option in ("-u", "--use-urlhaus"):
             parsed.use_urlhaus = not parsed.use_urlhaus
         elif option in ("-n", "--no-color"):
@@ -88,6 +92,8 @@ def parse_args() -> Namespace:
         argparse.ArgumentParser().error("SHODAN_API_KEY is not set")
     if parsed.use_greynoise and not os.environ.get("GREYNOISE_API_KEY"):
         argparse.ArgumentParser().error("GREYNOISE_API_KEY is not set")
+    if parsed.use_abuseipdb and not os.environ.get("ABUSEIPDB_API_KEY"):
+        argparse.ArgumentParser().error("ABUSEIPDB_API_KEY is not set")
     if is_ip(parsed.entity) and parsed.max_resolutions != DEFAULT_MAX_RESOLUTIONS:
         argparse.ArgumentParser().error("--max-resolutions is not applicable to IPs")
 
@@ -130,6 +136,12 @@ def generate_entity_handler(
         else None
     )
 
+    # AbuseIPDB client (optional)
+    abuseipdb_client = (
+        AbuseIpDbClient(os.environ["ABUSEIPDB_API_KEY"])
+        if args.use_abuseipdb else None
+    )
+
     # URLhaus client (optional)
     urlhaus_client = (
         UrlHausClient()
@@ -147,6 +159,7 @@ def generate_entity_handler(
             ip_enricher_client=enricher_client,
             whois_client=whois_client,
             greynoise_client=greynoise_client,
+            abuseipdb_client=abuseipdb_client,
             urlhaus_client=urlhaus_client,
             max_resolutions=args.max_resolutions,
         )
@@ -160,6 +173,7 @@ def generate_entity_handler(
             ip_enricher_client=enricher_client,
             whois_client=whois_client,
             greynoise_client=greynoise_client,
+            abuseipdb_client=abuseipdb_client,
             urlhaus_client=urlhaus_client,
         )
 
@@ -180,6 +194,7 @@ def generate_view(
             entity.whois,
             entity.ip_enrich,
             entity.greynoise,
+            entity.abuseipdb,
             entity.urlhaus,
             max_resolutions=args.max_resolutions,
         )
@@ -190,6 +205,7 @@ def generate_view(
             entity.whois,
             entity.ip_enrich,
             entity.greynoise,
+            entity.abuseipdb,
             entity.urlhaus,
         )
     else:

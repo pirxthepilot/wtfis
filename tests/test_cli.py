@@ -1,18 +1,13 @@
 import json
 import os
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 import pytest
 from dotenv import load_dotenv
-from pathlib import Path
 from rich.console import Console
-from rich.progress import (
-    BarColumn,
-    Progress,
-    SpinnerColumn,
-    TaskProgressColumn,
-    TimeElapsedColumn,
-    TextColumn,
-)
-from unittest.mock import patch, MagicMock
+from rich.progress import (BarColumn, Progress, SpinnerColumn,
+                           TaskProgressColumn, TextColumn, TimeElapsedColumn)
 
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
@@ -23,16 +18,10 @@ from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
-from wtfis.main import (
-    generate_entity_handler,
-    generate_view,
-    main,
-    parse_args,
-    parse_env,
-)
+from wtfis.main import (generate_entity_handler, generate_view, main,
+                        parse_args, parse_env)
 from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.view import DomainView, IpAddressView
-
 
 POSSIBLE_ENV_VARS = [
     "VT_API_KEY",
@@ -41,6 +30,7 @@ POSSIBLE_ENV_VARS = [
     "IP2WHOIS_API_KEY",
     "SHODAN_API_KEY",
     "GREYNOISE_API_KEY",
+    "ABUSEIPDB_API_KEY",
     "WTFIS_DEFAULTS",
 ]
 
@@ -84,6 +74,7 @@ def fake_load_dotenv_1(tmp_path):
         "IP2WHOIS_API_KEY": "alice",
         "SHODAN_API_KEY": "hunter2",
         "GREYNOISE_API_KEY": "upupdowndown",
+        "ABUSEIPDB_API_KEY": "dummy",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -274,6 +265,7 @@ class TestEnvs:
             assert os.environ["IP2WHOIS_API_KEY"] == "alice"
             assert os.environ["SHODAN_API_KEY"] == "hunter2"
             assert os.environ["GREYNOISE_API_KEY"] == "upupdowndown"
+            assert os.environ["ABUSEIPDB_API_KEY"] == "dummy"
         unset_env_vars()
 
     @patch("wtfis.main.load_dotenv", MagicMock())
@@ -463,6 +455,7 @@ class TestGenView:
             ip_enricher_client=MagicMock(),
             whois_client=MagicMock(),
             greynoise_client=MagicMock(),
+            abuseipdb_client=MagicMock(),
             urlhaus_client=MagicMock(),
         )
         entity.vt_info = Domain.model_validate(json.loads(test_data("vt_domain_gist.json")))
@@ -482,6 +475,7 @@ class TestGenView:
             ip_enricher_client=MagicMock(),
             whois_client=MagicMock(),
             greynoise_client=MagicMock(),
+            abuseipdb_client=MagicMock(),
             urlhaus_client=MagicMock(),
         )
         entity.vt_info = IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json")))

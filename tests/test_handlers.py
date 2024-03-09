@@ -1,9 +1,11 @@
 import json
+from unittest.mock import MagicMock, patch
+
 import pytest
 from requests.exceptions import ConnectionError
 from rich.console import Console
-from unittest.mock import MagicMock, patch
 
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
@@ -26,6 +28,7 @@ def generate_domain_handler(max_resolutions=3):
         ip_enricher_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
+        abuseipdb_client=AbuseIpDbClient("dummykey"),
         urlhaus_client=UrlHausClient(),
         max_resolutions=max_resolutions,
     )
@@ -40,6 +43,7 @@ def generate_ip_handler():
         ip_enricher_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
+        abuseipdb_client=AbuseIpDbClient("dummykey"),
         urlhaus_client=UrlHausClient(),
     )
 

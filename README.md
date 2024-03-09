@@ -192,6 +192,14 @@ Use the `-u` or `--use-urlhaus` flag to enable URLhaus enrichment for hostnames,
 
 The `Malware URLs` field name is a hyperlink (if terminal-supported) that takes you to the specific URLhaus database page for your query.
 
+### AbuseIPDB enrichment
+
+Use the `-a` or `--use-abuseipdb` flag to enable AbuseIPDB enrichment for hostnames, domains and IPs.
+
+![image](https://github.com/zbalkan/wtfis/assets/39981909/0d48cfe4-7a99-47ae-980f-47839f4f0a96)
+
+The `AbuseIPDB` field name is a hyperlink (if terminal-supported) that takes you to the specific AbuseIPDB database page for your query.
+
 ### Display options
 
 For FQDN and domain lookups, you can increase or decrease the maximum number of displayed IP resolutions with `-m NUMBER` or `--max-resolutions=NUMBER`. The upper limit is 10. If you don't need resolutions at all, set the number to `0`.

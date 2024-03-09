@@ -6,6 +6,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Span, Text
 from unittest.mock import MagicMock
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
@@ -47,6 +48,7 @@ def view01(test_data, mock_ipwhois_get, mock_greynoise_get, mock_urlhaus_get):
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_1.1.1.1.json"))),
         ip_enrich=ip_enrich,
         greynoise=greynoise_enrich,
+        abuseipdb=MagicMock(),
         urlhaus=urlhaus_enrich,
     )
 
@@ -71,6 +73,7 @@ def view02(test_data, mock_shodan_get_ip, mock_greynoise_get):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=greynoise_enrich,
+        abuseipdb=MagicMock(),
         urlhaus=UrlHausMap.model_validate({}),
     )
 
@@ -84,6 +87,7 @@ def view03(test_data):
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_1.1.1.1.json"))),
         ip_enrich=MagicMock(),
         greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
     )
 
@@ -100,6 +104,7 @@ def view04(test_data):
         whois=MagicMock(),
         ip_enrich=IpWhoisMap.model_validate({}),
         greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=MagicMock(),
         urlhaus=UrlHausMap.model_validate({}),
     )
 
@@ -119,6 +124,7 @@ def view05(test_data, mock_greynoise_get):
         whois=MagicMock(),
         ip_enrich=IpWhoisMap.model_validate({}),
         greynoise=greynoise_enrich,
+        abuseipdb=MagicMock(),
         urlhaus=UrlHausMap.model_validate({}),
     )
 
@@ -138,6 +144,7 @@ def view06(test_data, mock_greynoise_get):
         whois=MagicMock(),
         ip_enrich=IpWhoisMap.model_validate({}),
         greynoise=greynoise_enrich,
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
     )
 

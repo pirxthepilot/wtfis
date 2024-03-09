@@ -8,6 +8,7 @@ from rich.padding import Padding
 from rich.panel import Panel
 from rich.text import Text
 from typing import List, Optional, Tuple, Union
+from wtfis.models.abuseipdb import AbuseIpDbMap
 
 from wtfis.models.common import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
@@ -27,6 +28,7 @@ class DomainView(BaseView):
     """
     Handler for FQDN and domain lookup output
     """
+
     def __init__(
         self,
         console: Console,
@@ -35,10 +37,12 @@ class DomainView(BaseView):
         whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
+        abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
         max_resolutions: int = 3,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich, greynoise, urlhaus)
+        super().__init__(console, entity, whois, ip_enrich, greynoise, abuseipdb, urlhaus)
+
         self.resolutions = resolutions
         self.max_resolutions = max_resolutions
 
@@ -120,6 +124,11 @@ class DomainView(BaseView):
             if greynoise:
                 data += [self._gen_greynoise_tuple(greynoise)]
 
+            # abuseIPDB
+            abuseipdb = self._get_abuseipdb_enrichment(attributes.ip_address)
+            if abuseipdb:
+                data += [self._gen_abuseipdb_tuple(abuseipdb)]
+
             # Include a disclaimer if last seen is older than 1 year
             # Note: Disabled for now because I originally understood that the resolution date was the last time
             # the domain was resolved, but it may actually be he first time the IP itself was seen with the domain.
@@ -176,6 +185,7 @@ class IpAddressView(BaseView):
     """
     Handler for IP Address lookup output
     """
+
     def __init__(
         self,
         console: Console,
@@ -183,9 +193,10 @@ class IpAddressView(BaseView):
         whois: WhoisBase,
         ip_enrich: Union[IpWhoisMap, ShodanIpMap],
         greynoise: GreynoiseIpMap,
+        abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich, greynoise, urlhaus)
+        super().__init__(console, entity, whois, ip_enrich, greynoise, abuseipdb, urlhaus)
 
     def ip_panel(self) -> Panel:
         content = [self._gen_vt_section()]  # VT section
