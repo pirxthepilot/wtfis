@@ -124,7 +124,7 @@ class DomainView(BaseView):
             if greynoise:
                 data += [self._gen_greynoise_tuple(greynoise)]
 
-            # abuseIPDB
+            # AbuseIPDB
             abuseipdb = self._get_abuseipdb_enrichment(attributes.ip_address)
             if abuseipdb:
                 data += [self._gen_abuseipdb_tuple(abuseipdb)]

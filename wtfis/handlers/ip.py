@@ -43,10 +43,10 @@ class IpAddressHandler(BaseHandler):
             self.progress.update(task_g, completed=100)
 
         if self._abuseipdb:
-            task_g = self.progress.add_task(f"Fetching IP enrichments from {self._abuseipdb.name}")
-            self.progress.update(task_g, advance=50)
+            task_a = self.progress.add_task(f"Fetching IP enrichments from {self._abuseipdb.name}")
+            self.progress.update(task_a, advance=50)
             self._fetch_abuseipdb(self.entity)
-            self.progress.update(task_g, completed=100)
+            self.progress.update(task_a, completed=100)
 
         task_w = self.progress.add_task(f"Fetching IP whois from {self._whois.name}")
         self.progress.update(task_w, advance=50)

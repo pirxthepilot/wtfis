@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.progress import (BarColumn, Progress, SpinnerColumn,
                            TaskProgressColumn, TextColumn, TimeElapsedColumn)
 
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
@@ -103,7 +104,8 @@ def fake_load_dotenv_4(tmp_path):
     fake_env_vars = {
         "VT_API_KEY": "foo",
         "GREYNOISE_API_KEY": "bar",
-        "WTFIS_DEFAULTS": "-g -u",
+        "ABUSEIPDB_API_KEY": "dummy",
+        "WTFIS_DEFAULTS": "-g -u -a",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -254,6 +256,32 @@ class TestArgs:
             args = parse_args()
             assert args.use_urlhaus is True
 
+    def test_abuseipdb_ok(self):
+        os.environ["ABUSEIPDB_API_KEY"] = "foo"
+        with patch("sys.argv", [
+            "main",
+            "1.1.1.1",
+            "-a",
+        ]):
+            args = parse_args()
+            assert args.use_abuseipdb is True
+        del os.environ["ABUSEIPDB_API_KEY"]
+
+    def test_abuseipdb_error(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            with patch("sys.argv", [
+                "main",
+                "1.1.1.1",
+                "-a",
+            ]):
+                parse_args()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == "usage: main [-h]\nmain: error: ABUSEIPDB_API_KEY is not set\n"
+        assert e.type == SystemExit
+        assert e.value.code == 2
+
 
 class TestEnvs:
     def test_env_file(self, fake_load_dotenv_1):
@@ -360,6 +388,7 @@ class TestDefaults:
                 assert args.use_shodan is False
                 assert args.use_greynoise is True
                 assert args.use_urlhaus is False
+                assert args.use_abuseipdb is True
         unset_env_vars()
 
 
@@ -439,6 +468,21 @@ class TestGenEntityHandler:
         assert isinstance(entity._whois, PTClient)
         assert entity._greynoise is None
         assert entity._urlhaus is None
+        unset_env_vars()
+
+    @patch("sys.argv", ["main", "1[.]1[.]1[.]1", "-s", "-g", "-u", "-a"])
+    def test_handler_ip_2(self, fake_load_dotenv_1):
+        """ IP with various options """
+        with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
+            parse_env()
+            console = Console()
+            progress = simulate_progress(console),
+            entity = generate_entity_handler(parse_args(), console, progress)
+        assert isinstance(entity._enricher, ShodanClient)
+        assert isinstance(entity._whois, PTClient)
+        assert isinstance(entity._greynoise, GreynoiseClient)
+        assert isinstance(entity._urlhaus, UrlHausClient)
+        assert isinstance(entity._abuseipdb, AbuseIpDbClient)
         unset_env_vars()
 
 

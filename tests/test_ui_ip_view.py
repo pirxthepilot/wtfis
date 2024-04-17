@@ -24,9 +24,15 @@ from wtfis.ui.view import IpAddressView
 
 
 @pytest.fixture()
-def view01(test_data, mock_ipwhois_get, mock_greynoise_get, mock_urlhaus_get):
+def view01(test_data, mock_abuseipdb_get, mock_ipwhois_get, mock_greynoise_get, mock_urlhaus_get):
     """ 1.1.1.1 with PT whois. Complete test of all panels. Also test print(). """
     ip = "1.1.1.1"
+
+    abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_red.json"))
+    abuseipdb_client = AbuseIpDbClient("dummykey")
+    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
+    abuseipdb_enrich = abuseipdb_client.enrich_ips(ip)
+
     ipwhois_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
     ipwhois_client = IpWhoisClient()
     ipwhois_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
@@ -40,7 +46,7 @@ def view01(test_data, mock_ipwhois_get, mock_greynoise_get, mock_urlhaus_get):
     urlhaus_pool = json.loads(test_data("urlhaus_1.1.1.1.json"))
     urlhaus_client = UrlHausClient()
     urlhaus_client._get_host = MagicMock(side_effect=lambda ip: mock_urlhaus_get(ip, urlhaus_pool))
-    urlhaus_enrich = urlhaus_client.enrich_ips("1.1.1.1")
+    urlhaus_enrich = urlhaus_client.enrich_ips(ip)
 
     return IpAddressView(
         console=Console(),
@@ -48,7 +54,7 @@ def view01(test_data, mock_ipwhois_get, mock_greynoise_get, mock_urlhaus_get):
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_1.1.1.1.json"))),
         ip_enrich=ip_enrich,
         greynoise=greynoise_enrich,
-        abuseipdb=MagicMock(),
+        abuseipdb=abuseipdb_enrich,
         urlhaus=urlhaus_enrich,
     )
 
@@ -145,6 +151,46 @@ def view06(test_data, mock_greynoise_get):
         ip_enrich=IpWhoisMap.model_validate({}),
         greynoise=greynoise_enrich,
         abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view07(test_data, mock_abuseipdb_get):
+    """ 1.1.1.1 with green AbuseIPDB score. Test AbuseIPDB only. """
+    ip = "1.1.1.1"
+    abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_green.json"))
+    abuseipdb_client = AbuseIpDbClient("dummykey")
+    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
+    abuseipdb_enrich = abuseipdb_client.enrich_ips(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        whois=MagicMock(),
+        ip_enrich=IpWhoisMap.model_validate({}),
+        greynoise=MagicMock(),
+        abuseipdb=abuseipdb_enrich,
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view08(test_data, mock_abuseipdb_get):
+    """ 1.1.1.1 with yellow AbuseIPDB score. Test AbuseIPDB only. """
+    ip = "1.1.1.1"
+    abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_yellow.json"))
+    abuseipdb_client = AbuseIpDbClient("dummykey")
+    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
+    abuseipdb_enrich = abuseipdb_client.enrich_ips(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        whois=MagicMock(),
+        ip_enrich=IpWhoisMap.model_validate({}),
+        greynoise=MagicMock(),
+        abuseipdb=abuseipdb_enrich,
         urlhaus=MagicMock(),
     )
 
@@ -313,6 +359,10 @@ class TestView01:
                 "GreyNoise:",
                 spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
             ),
+            Text(
+                "AbuseIPDB:",
+                spans=[Span(0, 9, "link https://www.abuseipdb.com/check/1.1.1.1")]
+            )
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
@@ -326,6 +376,14 @@ class TestView01:
                     Span(10, 15, theme.tags),
                     Span(17, 18, theme.info),
                     Span(19, 25, theme.tags_green),
+                ]
+            ),
+            Text(
+                "100 confidence score (567 reports)",
+                spans=[
+                    Span(0, 3, theme.error),
+                    Span(3, 20, "red"),
+                    Span(20, 34, theme.table_value),
                 ]
             ),
         ]
@@ -732,5 +790,38 @@ class TestView06:
                 Span(8, 9, theme.warn),
                 Span(10, 15, theme.tags),
                 Span(19, 26, theme.tags),
+            ]
+        )
+
+
+class TestAbuseIpDbOnly:
+    def test_abuseipdb_green(self, view07, theme):
+        ip = view07.ip_panel()
+
+        other_section = ip.renderable.renderables[2]
+
+        # Table
+        table = other_section.renderables[1]
+        assert table.columns[1]._cells[-1] == Text(
+            "0 confidence score",
+            spans=[
+                Span(0, 1, theme.info),
+                Span(1, 18, "green"),
+            ]
+        )
+
+    def test_abuseipdb_yellow(self, view08, theme):
+        ip = view08.ip_panel()
+
+        other_section = ip.renderable.renderables[2]
+
+        # Table
+        table = other_section.renderables[1]
+        assert table.columns[1]._cells[-1] == Text(
+            "30 confidence score (567 reports)",
+            spans=[
+                Span(0, 2, theme.warn),
+                Span(2, 19, "yellow"),
+                Span(19, 33, theme.table_value),
             ]
         )

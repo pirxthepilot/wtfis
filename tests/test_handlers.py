@@ -378,6 +378,7 @@ class TestIpAddressHandler:
         handler._fetch_whois = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
+        handler._fetch_abuseipdb = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_ip_address.assert_called_once()
@@ -385,6 +386,7 @@ class TestIpAddressHandler:
         handler._fetch_whois.assert_called_once()
         handler._fetch_greynoise.assert_called_once()
         handler._fetch_urlhaus.assert_called_once()
+        handler._fetch_abuseipdb.assert_called_once()
 
     @patch.object(requests.Session, "get")
     def test_vt_http_error(self, mock_requests_get, ip_handler, capsys):
@@ -602,3 +604,21 @@ class TestIpAddressHandler:
         handler.print_warnings()
         capture = capsys.readouterr()
         assert capture.out.startswith("WARN: Could not fetch URLhaus: Foo bar message")
+
+    @patch.object(requests.Session, "get")
+    def test_abuseipdb_429_error(self, mock_requests_get, ip_handler, capsys):
+        """
+        Test fail open behavior of AbuseIPDB when rate limited
+        """
+        handler = ip_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 429
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_abuseipdb("1.2.3.4")
+        assert handler.warnings[0].startswith("Could not fetch AbuseIPDB: 429 Client Error:")
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch AbuseIPDB: 429 Client Error:")

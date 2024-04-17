@@ -265,18 +265,20 @@ class BaseView(abc.ABC):
         # Content
         #
 
-        text = Text()
-
-        score_message = f"{str(ip.abuse_confidence_score)} abuse confidence score"
-        abuseipdb_text: Text
         if ip.abuse_confidence_score == 0:
-            abuseipdb_text = Text(score_message, style=self.theme.info)
+            style = self.theme.info
         elif ip.abuse_confidence_score <= 30:
-            abuseipdb_text = Text(score_message, style=self.theme.warn)
+            style = self.theme.warn
         else:
-            abuseipdb_text = Text(score_message, style=self.theme.error)
+            style = self.theme.error
 
-        text.append(abuseipdb_text)
+        text = Text()
+        (text
+         .append(Text(str(ip.abuse_confidence_score), style=style))
+         .append(" confidence score", style=style.replace("bold ", "")))
+
+        if ip.abuse_confidence_score > 0:
+            text.append(f" ({ip.total_reports} reports)", style=self.theme.table_value)
 
         return title, text
 
