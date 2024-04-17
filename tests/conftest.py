@@ -5,6 +5,7 @@ from typing import Optional
 from rich.console import RenderableType
 from rich.text import Span, Text
 
+from wtfis.models.abuseipdb import AbuseIpDb
 from wtfis.models.greynoise import GreynoiseIp
 from wtfis.models.ipwhois import IpWhois
 from wtfis.models.shodan import ShodanIp
@@ -45,6 +46,11 @@ def open_test_data(fname: str) -> str:
         return f.read()
 
 
+def abuseipdb_get_ip(ip, pool) -> AbuseIpDb:
+    """ Mock replacement for AbuseIpDbClient()._get_ip() """
+    return AbuseIpDb.model_validate(pool[ip])
+
+
 def greynoise_get(ip, pool) -> GreynoiseIp:
     """ Mock replacement for GreynoiseClient().get_ip() """
     return GreynoiseIp.model_validate(pool[ip])
@@ -61,7 +67,7 @@ def shodan_get_ip(ip, pool) -> ShodanIp:
 
 
 def urlhaus_get_host(entity, pool) -> UrlHaus:
-    """ Mock replacement for Urlhaus()._get_host() """
+    """ Mock replacement for UrlHausClient()._get_host() """
     return UrlHaus.model_validate(pool[entity])
 
 
@@ -86,6 +92,11 @@ def test_data():
 @pytest.fixture(scope="module")
 def theme():
     return TestTheme()
+
+
+@pytest.fixture(scope="module")
+def mock_abuseipdb_get():
+    return abuseipdb_get_ip
 
 
 @pytest.fixture(scope="module")

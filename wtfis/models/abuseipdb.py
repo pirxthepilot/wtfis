@@ -8,11 +8,10 @@ from pydantic import BaseModel, Field, RootModel
 class AbuseIpDb(BaseModel):
     ip_address: str = Field(alias="ipAddress")
     is_public: Optional[bool] = Field(None, alias="isPublic")
-    ip_version: Optional[int] = Field(None, alias="numDistinctUsers")
-    is_whitelisted: Optional[bool] = Field(None, alias="ipVersion")
+    ip_version: Optional[int] = Field(None, alias="ipVersion")
+    is_whitelisted: Optional[bool] = Field(None, alias="isWhitelisted")
     abuse_confidence_score: int = Field(alias="abuseConfidenceScore")
     country_code: Optional[str] = Field(None, alias="countryCode")
-    country_name: Optional[str] = Field(None, alias="countryName")
     usage_type: Optional[str] = Field(None, alias="usageType")
     isp: str
     domain: Optional[str] = None

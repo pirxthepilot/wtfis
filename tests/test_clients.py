@@ -1,8 +1,8 @@
 import json
 import pytest
 from unittest.mock import MagicMock, patch
-from wtfis.clients.abuseipdb import AbuseIpDbClient
 
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
@@ -54,6 +54,27 @@ def virustotal_client():
     return VTClient("dummykey")
 
 
+class TestAbuseIpDbClient:
+    def test_init(self, abuseipdb_client):
+        assert abuseipdb_client.name == "AbuseIPDB"
+        assert abuseipdb_client.api_key == "dummykey"
+
+    @patch.object(requests.Session, "get")
+    def test_enrich_ips(self, mock_requests_get, test_data, abuseipdb_client):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(test_data("abuseipdb_1.1.1.1_raw.json"))
+        mock_requests_get.return_value = mock_resp
+
+        abuseipdb = abuseipdb_client.enrich_ips("thisdoesntmatter").root["1.1.1.1"]
+
+        assert abuseipdb.ip_address == "1.1.1.1"
+        assert abuseipdb.abuse_confidence_score == 100
+        assert abuseipdb.usage_type == "Data Center/Web Hosting/Transit"
+        assert abuseipdb.total_reports == 567
+        assert abuseipdb.num_distinct_users == 123
+
+
 class TestIp2WhoisClient:
     def test_init(self, ip2whois_client):
         assert ip2whois_client.api_key == "dummykey"
@@ -100,12 +121,6 @@ class TestGreynoiseClient:
     def test_init(self, greynoise_client):
         assert greynoise_client.name == "Greynoise"
         assert greynoise_client.api_key == "dummykey"
-
-
-class TestAbuseIPDBClient:
-    def test_init(self, abuseipdb_client):
-        assert abuseipdb_client.name == "AbuseIPDB"
-        assert abuseipdb_client.api_key == "dummykey"
 
 
 class TestIpWhoisClient:

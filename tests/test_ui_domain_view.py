@@ -7,6 +7,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Span, Text
 
+from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
@@ -175,8 +176,8 @@ def view08(test_data, mock_shodan_get_ip):
 
 
 @pytest.fixture()
-def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
-    """ one.one.one.one with Shodan and Greynoise. Only test resolution and IP enrich. """
+def view09(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get):
+    """ one.one.one.one with Shodan, Greynoise and AbuseIPDB. Only test resolution and IP enrich. """
     resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_one.json")))
 
     shodan_pool = json.loads(test_data("shodan_one.json"))
@@ -189,6 +190,11 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
     greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
     greynoise_enrich = greynoise_client.enrich_ips(*resolutions.ip_list(1))
 
+    abuseipdb_pool = json.loads(test_data("abuseipdb_one.json"))
+    abuseipdb_client = AbuseIpDbClient("dummykey")
+    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
+    abuseipdb_enrich = abuseipdb_client.enrich_ips(*resolutions.ip_list(1))
+
     return DomainView(
         console=Console(),
         entity=MagicMock(),
@@ -196,7 +202,7 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get):
         whois=MagicMock(),
         ip_enrich=ip_enrich,
         greynoise=greynoise_enrich,
-        abuseipdb=MagicMock(),
+        abuseipdb=abuseipdb_enrich,
         urlhaus=MagicMock(),
         max_resolutions=1,
     )
@@ -1274,6 +1280,10 @@ class TestView09:
                 "GreyNoise:",
                 spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.0.0.1")]
             ),
+            Text(
+                "AbuseIPDB:",
+                spans=[Span(0, 9, "link https://www.abuseipdb.com/check/1.0.0.1")]
+            ),
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
@@ -1347,6 +1357,14 @@ class TestView09:
                     Span(10, 15, theme.tags),
                     Span(17, 18, theme.info),
                     Span(19, 25, theme.tags_green),
+                ]
+            ),
+            Text(
+                "100 confidence score (567 reports)",
+                spans=[
+                    Span(0, 3, theme.error),
+                    Span(3, 20, "red"),
+                    Span(20, 34, theme.table_value),
                 ]
             ),
         ]

@@ -1,7 +1,5 @@
 from typing import Optional
 
-from requests.exceptions import HTTPError
-
 from wtfis.clients.base import BaseIpEnricherClient, BaseRequestsClient
 from wtfis.models.abuseipdb import AbuseIpDb, AbuseIpDbMap
 
@@ -10,7 +8,7 @@ class AbuseIpDbClient(BaseRequestsClient, BaseIpEnricherClient):
     """
     AbuseIPDB client
     """
-    baseurl = "https://api.abuseipdb.com/api/v2/check"
+    baseurl = "https://api.abuseipdb.com/api/v2"
 
     def __init__(self, api_key: str) -> None:
         super().__init__()
@@ -21,18 +19,12 @@ class AbuseIpDbClient(BaseRequestsClient, BaseIpEnricherClient):
         return "AbuseIPDB"
 
     def _get_ip(self, ip: str) -> Optional[AbuseIpDb]:
-        # Let a 404 or invalid IP pass
-        try:
-            params = {"ipAddress": ip, "maxAgeInDays": "90"}
-            headers = {"key": self.api_key, "Accept": "application/json"}
+        params = {"ipAddress": ip, "maxAgeInDays": "90"}
+        headers = {"key": self.api_key, "Accept": "application/json"}
 
-            response = self._get(request="", headers=headers, params=params)
+        response = self._get(request="/check", headers=headers, params=params)
 
-            return AbuseIpDb.model_validate(response["data"])
-        except HTTPError as e:
-            if e.response.status_code == 404:
-                return None
-            raise
+        return AbuseIpDb.model_validate(response["data"])
 
     def enrich_ips(self, *ips: str) -> AbuseIpDbMap:
         abuseipdb_map = {}

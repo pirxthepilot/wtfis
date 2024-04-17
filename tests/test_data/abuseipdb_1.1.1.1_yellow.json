@@ -1,0 +1,1 @@
+{"1.1.1.1":{"ipAddress":"1.1.1.1","isPublic":true,"ipVersion":4,"isWhitelisted":false,"abuseConfidenceScore":30,"countryCode":"US","usageType":"Data Center/Web Hosting/Transit","isp":"Acme, Inc.","domain":"example.com","hostnames":[],"isTor":false,"totalReports":567,"numDistinctUsers":123,"lastReportedAt":"2018-12-20T20:55:14+00:00"}}
