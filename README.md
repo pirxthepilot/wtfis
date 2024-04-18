@@ -30,6 +30,7 @@ The project name is a play on "whois".
 | [Shodan](https://shodan.io) | IP address | No | [No](https://account.shodan.io/billing) |
 | [Greynoise](https://greynoise.io) | IP address | No | [Yes](https://www.greynoise.io/plans/community)
 | [URLhaus](https://urlhaus.abuse.ch/) | All | No | Yes (no signup)
+| [AbuseIPDB](https://www.abuseipdb.com/)| IP address | No | [Yes](https://www.abuseipdb.com/register?plan=free)
 
 ### Virustotal
 
@@ -71,7 +72,7 @@ As above, IP2Whois is recommended over Virustotal if a Passivetotal account cann
 
 ### IPWhois
 
-Default enrichment for IP addresses. Retrieves:
+Default Geolocation and ASN lookup source for IP addresses. Retrieves:
 
 * ASN, Org, ISP and Geolocation
 
@@ -79,7 +80,7 @@ IPWhois should not be confused with IP2Whois, which provides domain Whois data.
 
 ### Shodan
 
-Alternative IP address enrichment source. GETs data from the `/shodan/host/{ip}` endpoint (see [doc](https://developer.shodan.io/api)). For each IP, retrieves:
+GETs data from the `/shodan/host/{ip}` endpoint (see [doc](https://developer.shodan.io/api)). For each IP, retrieves:
 
 * ASN, Org, ISP and Geolocation
 * List of open ports and services
@@ -88,7 +89,7 @@ Alternative IP address enrichment source. GETs data from the `/shodan/host/{ip}`
 
 ### Greynoise
 
-Supplementary IP address enrichment source. Using its [community API](https://docs.greynoise.io/docs/using-the-greynoise-community-api), wtfis will show whether an IP is in one of Greynoise's datasets:
+Using Greynoise's [community API](https://docs.greynoise.io/docs/using-the-greynoise-community-api), wtfis will show whether an IP is in one of Greynoise's datasets:
 
 * **Noise**: IP has been seen regularly scanning the Internet
 * **RIOT**: IP belongs to a common business application (e.g. Microsoft O365, Google Workspace, Slack)
@@ -105,6 +106,13 @@ In addition, the API also returns Greynoise's [classification](https://docs.grey
 * Whether the hostname or IP is currently in the [DNSBL](https://www.dnsbl.info/) and [SURBL](https://www.surbl.org/) public blocklists
 * All tags that have been assigned to the URL throughout its history in the URLhaus database
 
+### AbuseIPDB
+
+[AbuseIPDB](https://www.abuseipdb.com/) is a crowd-sourced database of reported malicious IP addresses. Through its API wtfis shows:
+
+* Abuse confidence score (0-100)
+* Number of reports
+
 
 ## Install
 
@@ -115,6 +123,7 @@ $ pip install wtfis
 To install via `conda` (from conda-forge), see [wtfis-feedstock](https://github.com/conda-forge/wtfis-feedstock).
 
 To install via [`brew`](https://brew.sh):
+
 ```
 brew install wtfis
 ```
@@ -129,6 +138,7 @@ wtfis uses these environment variables:
 * `IP2WHOIS_API_KEY` (optional) - IP2WHOIS API key
 * `SHODAN_API_KEY` (optional) - Shodan API key
 * `GREYNOISE_API_KEY` (optional) - Greynoise API key
+* `ABUSEIPDB_API_KEY` (optional) - AbuseIPDB API key
 * `WTFIS_DEFAULTS` (optional) - Default arguments
 
 Set these using your own method.
@@ -139,17 +149,18 @@ Alternatively, create a file in your home directory `~/.env.wtfis` with the abov
 ## Usage
 
 ```
-usage: wtfis [-h] [-m N] [-s] [-g] [-u] [-n] [-1] [-V] entity
+usage: wtfis [-h] [-m N] [-s] [-g] [-a] [-u] [-n] [-1] [-V] entity
 
 positional arguments:
   entity                Hostname, domain or IP
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
   -m N, --max-resolutions N
                         Maximum number of resolutions to show (default: 3)
   -s, --use-shodan      Use Shodan to enrich IPs
   -g, --use-greynoise   Enable Greynoise for IPs
+  -a, --use-abuseipdb   Enable AbuseIPDB for IPs
   -u, --use-urlhaus     Enable URLhaus for IPs and domains
   -n, --no-color        Show output without colors
   -1, --one-column      Display results in one column
@@ -168,7 +179,7 @@ Defanged input is accepted (e.g. `api[.]google[.]com`).
 
 If supported by the terminal, the `Analysis` field and (if using PT) headings in the whois panel are clickable hyperlinks that point to the appropriate pages on the VT or PT website.
 
-### Shodan enrichment
+### Shodan
 
 Shodan can be used to enrich the IP addresses (instead of IPWhois). Invoke with the `-s` or `--use-shodan` flag.
 
@@ -176,7 +187,7 @@ Shodan can be used to enrich the IP addresses (instead of IPWhois). Invoke with 
 
 If supported by the terminal, the `Services` field is a clickable hyperlink that takes you to the Shodan web interface.
 
-### Greynoise enrichment
+### Greynoise
 
 To enable Greynoise, invoke with the `-g` or `--use-greynoise` flag. Because the API quota is quite low (50 requests per week as of March 2023), this lookup is off by default.
 
@@ -184,7 +195,7 @@ To enable Greynoise, invoke with the `-g` or `--use-greynoise` flag. Because the
 
 The `GreyNoise` field name is also a hyperlink (if terminal-supported) that points to the IP entry in the Greynoise web interface, where more context is shown.
 
-### URLhaus enrichment
+### URLhaus
 
 Use the `-u` or `--use-urlhaus` flag to enable URLhaus enrichment for hostnames, domains and IPs.
 
@@ -192,11 +203,11 @@ Use the `-u` or `--use-urlhaus` flag to enable URLhaus enrichment for hostnames,
 
 The `Malware URLs` field name is a hyperlink (if terminal-supported) that takes you to the specific URLhaus database page for your query.
 
-### AbuseIPDB enrichment
+### AbuseIPDB
 
 Use the `-a` or `--use-abuseipdb` flag to enable AbuseIPDB enrichment for hostnames, domains and IPs.
 
-![image](https://github.com/zbalkan/wtfis/assets/39981909/0d48cfe4-7a99-47ae-980f-47839f4f0a96)
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-abuseipdb.png?raw=true)
 
 The `AbuseIPDB` field name is a hyperlink (if terminal-supported) that takes you to the specific AbuseIPDB database page for your query.
 
