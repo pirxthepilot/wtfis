@@ -338,7 +338,7 @@ class TestView01:
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
-            Text("0/94 malicious"),
+            Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             Text("0"),
             Text(
                 "Majestic (532)\nCisco Umbrella (39463)",
@@ -407,7 +407,7 @@ class TestView01:
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
-            Text("0/94 malicious"),
+            Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-08-06T14:56:20Z"),
             Text(
                 "16509 (Amazon Data Services India)",
@@ -451,7 +451,7 @@ class TestView01:
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
-            Text("1/94 malicious"),
+            Text("1/94 malicious", spans=[Span(0, 14, theme.error)]),
             display_timestamp("2022-06-21T18:10:54Z"),
             Text(
                 "36459 (GitHub, Inc.)",
@@ -498,7 +498,7 @@ class TestView01:
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
-            Text("0/94 malicious"),
+            Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2015-08-17T07:11:53Z"),
             Text(
                 "16509 (Amazon Data Services India)",
@@ -652,7 +652,7 @@ class TestView02:
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
-            Text("0/94 malicious"),
+            Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-08-06T14:56:20Z"),
         ]
 
@@ -780,7 +780,7 @@ class TestView04:
             Text(
                 "1/94 malicious\nCyble",
                 spans=[
-                    Span(15, 20, ""),
+                    Span(0, 14, theme.error),
                     Span(15, 20, "cyan"),
                 ]
             ),
@@ -860,7 +860,7 @@ class TestView05:
             Text(
                 "1/94 malicious\nDr.Web",
                 spans=[
-                    Span(15, 21, ""),
+                    Span(0, 14, theme.error),
                     Span(15, 21, "cyan"),
                 ]
             ),
@@ -957,7 +957,7 @@ class TestView07:
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
-            Text("0/94 malicious"),
+            Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-08-06T14:56:20Z"),
             Text(
                 "16509 (Amazon Data Services India)",
@@ -973,17 +973,14 @@ class TestView07:
             Text(
                 "22/tcp, 80/tcp, 443/tcp",
                 spans=[
-                    Span(0, 6, ""),
-                    Span(0, 2, "bright_cyan"),
-                    Span(2, 6, "cyan"),
+                    Span(0, 2, theme.port),
+                    Span(2, 6, theme.transport),
                     Span(6, 8, "default"),
-                    Span(8, 14, ""),
-                    Span(8, 10, "bright_cyan"),
-                    Span(10, 14, "cyan"),
+                    Span(8, 10, theme.port),
+                    Span(10, 14, theme.transport),
                     Span(14, 16, "default"),
-                    Span(16, 23, ""),
-                    Span(16, 19, "bright_cyan"),
-                    Span(19, 23, "cyan"),
+                    Span(16, 19, theme.port),
+                    Span(19, 23, theme.transport),
                 ]
             ),
             Text(
@@ -1028,7 +1025,7 @@ class TestView07:
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
-            Text("1/94 malicious"),
+            Text("1/94 malicious", spans=[Span(0, 14, theme.error)]),
             display_timestamp("2022-06-21T18:10:54Z"),
             Text(
                 "36459 (GitHub, Inc.)",
@@ -1044,17 +1041,14 @@ class TestView07:
             Text(
                 "22/tcp, 80/tcp, 443/tcp",
                 spans=[
-                    Span(0, 6, ""),
-                    Span(0, 2, "bright_cyan"),
-                    Span(2, 6, "cyan"),
+                    Span(0, 2, theme.port),
+                    Span(2, 6, theme.transport),
                     Span(6, 8, "default"),
-                    Span(8, 14, ""),
-                    Span(8, 10, "bright_cyan"),
-                    Span(10, 14, "cyan"),
+                    Span(8, 10, theme.port),
+                    Span(10, 14, theme.transport),
                     Span(14, 16, "default"),
-                    Span(16, 23, ""),
-                    Span(16, 19, "bright_cyan"),
-                    Span(19, 23, "cyan")
+                    Span(16, 19, theme.port),
+                    Span(19, 23, theme.transport)
                 ]
             ),
             display_timestamp("2022-08-21T22:33:53Z")
@@ -1097,7 +1091,7 @@ class TestView07:
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
-            Text("0/94 malicious"),
+            Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2015-08-17T07:11:53Z"),
             Text(
                 "16509 (Amazon Data Services India)",
@@ -1113,17 +1107,14 @@ class TestView07:
             Text(
                 "22/tcp, 80/tcp, 443/tcp",
                 spans=[
-                    Span(0, 6, ""),
-                    Span(0, 2, "bright_cyan"),
-                    Span(2, 6, "cyan"),
+                    Span(0, 2, theme.port),
+                    Span(2, 6, theme.transport),
                     Span(6, 8, "default"),
-                    Span(8, 14, ""),
-                    Span(8, 10, "bright_cyan"),
-                    Span(10, 14, "cyan"),
+                    Span(8, 10, theme.port),
+                    Span(10, 14, theme.transport),
                     Span(14, 16, "default"),
-                    Span(16, 23, ""),
-                    Span(16, 19, "bright_cyan"),
-                    Span(19, 23, "cyan"),
+                    Span(16, 19, theme.port),
+                    Span(19, 23, theme.transport),
                 ]
             ),
             Text(
@@ -1189,7 +1180,7 @@ class TestView08:
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
-            Text("0/93 malicious"),
+            Text("0/93 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-06-03T22:32:19Z"),
             Text(
                 "54113 (Fastly, Inc.)",
@@ -1205,16 +1196,12 @@ class TestView08:
             Text(
                 "Varnish HTTP Cache (80/tcp)\nOther (443/tcp)",
                 spans=[
-                    Span(0, 18, "orange_red1"),
-                    Span(20, 26, ""),
-                    Span(20, 26, ""),
-                    Span(20, 22, "bright_cyan"),
-                    Span(22, 26, "cyan"),
-                    Span(28, 33, "orange_red1"),
-                    Span(35, 42, ""),
-                    Span(35, 42, ""),
-                    Span(35, 38, "bright_cyan"),
-                    Span(38, 42, "cyan"),
+                    Span(0, 18, theme.product),
+                    Span(20, 22, theme.port),
+                    Span(22, 26, theme.transport),
+                    Span(28, 33, theme.product),
+                    Span(35, 38, theme.port),
+                    Span(38, 42, theme.transport),
                 ]
             ),
             Text(
@@ -1288,7 +1275,7 @@ class TestView09:
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
-            Text("2/94 malicious"),
+            Text("2/94 malicious", spans=[Span(0, 14, theme.error)]),
             display_timestamp("2020-08-01T22:07:20Z"),
             Text(
                 "13335 (APNIC and Cloudflare DNS Resolver project)",
@@ -1307,44 +1294,33 @@ class TestView09:
                     "2086/tcp, 2087/tcp, 8443/tcp)"
                 ),
                 spans=[
-                    Span(0, 10, "orange_red1"),
-                    Span(12, 28, ""),
-                    Span(12, 18, ""),
-                    Span(12, 14, "bright_cyan"),
-                    Span(14, 18, "cyan"),
+                    Span(0, 10, theme.product),
+                    Span(12, 14, theme.port),
+                    Span(14, 18, theme.transport),
                     Span(18, 20, "default"),
-                    Span(20, 28, ""),
-                    Span(20, 24, "bright_cyan"),
-                    Span(24, 28, "cyan"),
-                    Span(30, 35, "orange_red1"),
-                    Span(37, 100, ""),
-                    Span(37, 43, ""),
-                    Span(37, 39, "bright_cyan"),
-                    Span(39, 43, "cyan"),
+                    Span(20, 24, theme.port),
+                    Span(24, 28, theme.transport),
+                    Span(30, 35, theme.product),
+                    Span(37, 39, theme.port),
+                    Span(39, 43, theme.transport),
                     Span(43, 45, "default"),
-                    Span(45, 51, ""),
-                    Span(45, 47, "bright_cyan"),
-                    Span(47, 51, "cyan"),
+                    Span(45, 47, theme.port),
+                    Span(47, 51, theme.transport),
                     Span(51, 53, "default"),
-                    Span(53, 60, ""),
-                    Span(53, 56, "bright_cyan"),
-                    Span(56, 60, "cyan"),
+                    Span(53, 56, theme.port),
+                    Span(56, 60, theme.transport),
                     Span(60, 62, "default"),
-                    Span(62, 70, ""),
-                    Span(62, 66, "bright_cyan"),
-                    Span(66, 70, "cyan"),
+                    Span(62, 66, theme.port),
+                    Span(66, 70, theme.transport),
                     Span(70, 72, "default"),
-                    Span(72, 80, ""),
-                    Span(72, 76, "bright_cyan"),
-                    Span(76, 80, "cyan"),
+                    Span(72, 76, theme.port),
+                    Span(76, 80, theme.transport),
                     Span(80, 82, "default"),
-                    Span(82, 90, ""),
-                    Span(82, 86, "bright_cyan"),
-                    Span(86, 90, "cyan"),
+                    Span(82, 86, theme.port),
+                    Span(86, 90, theme.transport),
                     Span(90, 92, "default"),
-                    Span(92, 100, ""),
-                    Span(92, 96, "bright_cyan"),
-                    Span(96, 100, "cyan"),
+                    Span(92, 96, theme.port),
+                    Span(96, 100, theme.transport),
                 ]
             ),
             display_timestamp("2022-08-22T02:35:34Z"),
@@ -1439,7 +1415,7 @@ class TestView11:
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
-            Text("0/94 malicious"),
+            Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-08-06T14:56:20Z"),
             Text(
                 "16509 (Amazon Data Services India)",
@@ -1455,7 +1431,7 @@ class TestView11:
             Text(
                 "cloud",
                 spans=[
-                    Span(0, 5, 'bright_white on black')
+                    Span(0, 5, theme.tags)
                 ]
             ),
             display_timestamp("2022-08-21T07:21:05Z")
@@ -1595,7 +1571,6 @@ class TestView14:
                 spans=[
                     Span(0, 20, theme.urlhaus_bl_med),
                     Span(24, 32, theme.urlhaus_bl_name),
-                    Span(33, 48, ""),
                     Span(33, 39, theme.urlhaus_bl_high),
                     Span(43, 48, theme.urlhaus_bl_name),
                 ]
