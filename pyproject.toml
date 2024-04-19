@@ -29,11 +29,11 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
-    "pydantic~=2.0.3",
-    "python-dotenv~=1.0.0",
+    "pydantic~=2.7.0",
+    "python-dotenv~=1.0.1",
     "requests~=2.31.0",
-    "rich~=13.4.2",
-    "shodan~=1.29.1",
+    "rich~=13.7.1",
+    "shodan~=1.31.0",
 ]
 dynamic = ["version"]
 
@@ -60,7 +60,7 @@ disable = true
 [tool.hatch.envs.default]
 dependencies = [
     "bandit",
-    "flake8>=6.0.0",
+    "flake8>=7.0.0",
     "freezegun",
     "mypy",
     "pytest",

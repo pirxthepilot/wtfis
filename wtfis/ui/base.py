@@ -132,7 +132,8 @@ class BaseView(abc.ABC):
         total = stats.harmless + stats.malicious + stats.suspicious + stats.timeout + stats.undetected
 
         # Text
-        text = Text(f"{stats.malicious}/{total} malicious", style=stats_style)
+        text = Text()
+        text.append(Text(f"{stats.malicious}/{total} malicious", style=stats_style))
 
         # Include list of vendors that flagged malicious
         if vendors:
