@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import abc
 import sys
 
-from pydantic import BaseModel, BeforeValidator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, RootModel
 from pydantic.v1.validators import str_validator
-from typing import List, Optional
+from typing import List, Mapping, Optional
 
 if sys.version_info >= (3, 9):
     from typing import Annotated
@@ -33,3 +35,30 @@ class WhoisBase(BaseModel, abc.ABC):
     date_changed: Optional[str] = None
     date_expires: Optional[str] = None
     dnssec: Optional[str] = None
+
+
+class IpGeoAsnBase(BaseModel, abc.ABC):
+    """ Use to normalize IP geolocation and ASN fields """
+    model_config = ConfigDict(coerce_numbers_to_str=True)
+
+    ip: str
+
+    # Geolocation
+    city: Optional[str]
+    continent: Optional[str]
+    country: Optional[str]
+    region: Optional[str]
+
+    # ASN
+    asn: Optional[str]
+    org: Optional[str]
+    isp: Optional[str]
+    domain: Optional[str]
+
+
+class IpGeoAsnMapBase(RootModel, abc.ABC):
+    root: Mapping[str, IpGeoAsnBase]
+
+    @classmethod
+    def empty(cls) -> IpGeoAsnMapBase:
+        return cls.model_validate({})

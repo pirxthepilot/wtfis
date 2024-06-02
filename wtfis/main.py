@@ -8,7 +8,6 @@ from rich.console import Console
 from rich.progress import Progress
 from typing import Union
 from wtfis.clients.abuseipdb import AbuseIpDbClient
-
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
@@ -108,12 +107,9 @@ def generate_entity_handler(
     # Virustotal client
     vt_client = VTClient(os.environ["VT_API_KEY"])
 
-    # IP enrichment client selector
-    enricher_client: Union[IpWhoisClient, ShodanClient] = (
-        ShodanClient(os.environ["SHODAN_API_KEY"])
-        if args.use_shodan
-        else IpWhoisClient()
-    )
+    # IP geolocation and ASN client selector
+    # TODO: add more options
+    ip_geoasn_client = IpWhoisClient()
 
     # Whois client selector
     # Order of use based on set envvars:
@@ -128,6 +124,12 @@ def generate_entity_handler(
         whois_client = Ip2WhoisClient(os.environ["IP2WHOIS_API_KEY"])
     else:
         whois_client = vt_client
+
+    shodan_client = (
+        ShodanClient(os.environ["SHODAN_API_KEY"])
+        if args.use_shodan
+        else None
+    )
 
     # Greynoise client (optional)
     greynoise_client = (
@@ -156,8 +158,9 @@ def generate_entity_handler(
             console=console,
             progress=progress,
             vt_client=vt_client,
-            ip_enricher_client=enricher_client,
+            ip_geoasn_client=ip_geoasn_client,
             whois_client=whois_client,
+            shodan_client=shodan_client,
             greynoise_client=greynoise_client,
             abuseipdb_client=abuseipdb_client,
             urlhaus_client=urlhaus_client,
@@ -170,8 +173,9 @@ def generate_entity_handler(
             console=console,
             progress=progress,
             vt_client=vt_client,
-            ip_enricher_client=enricher_client,
+            ip_geoasn_client=ip_geoasn_client,
             whois_client=whois_client,
+            shodan_client=shodan_client,
             greynoise_client=greynoise_client,
             abuseipdb_client=abuseipdb_client,
             urlhaus_client=urlhaus_client,
@@ -191,8 +195,9 @@ def generate_view(
             console,
             entity.vt_info,
             entity.resolutions,
+            entity.geoasn,
             entity.whois,
-            entity.ip_enrich,
+            entity.shodan,
             entity.greynoise,
             entity.abuseipdb,
             entity.urlhaus,
@@ -202,8 +207,9 @@ def generate_view(
         view = IpAddressView(
             console,
             entity.vt_info,
+            entity.geoasn,
             entity.whois,
-            entity.ip_enrich,
+            entity.shodan,
             entity.greynoise,
             entity.abuseipdb,
             entity.urlhaus,

@@ -1,7 +1,7 @@
 """
 Logic handler for domain and hostname inputs
 """
-from typing import Optional, Union
+from typing import Optional
 
 from requests.exceptions import HTTPError
 from rich.console import Console
@@ -9,9 +9,6 @@ from rich.progress import Progress
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
-from wtfis.clients.ip2whois import Ip2WhoisClient
-from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -23,6 +20,7 @@ from wtfis.handlers.base import (
 )
 
 from wtfis.models.virustotal import Resolutions
+from wtfis.clients.types import IpGeoAsnClientType, IpWhoisClientType
 
 
 class DomainHandler(BaseHandler):
@@ -32,15 +30,16 @@ class DomainHandler(BaseHandler):
         console: Console,
         progress: Progress,
         vt_client: VTClient,
-        ip_enricher_client: Union[IpWhoisClient, ShodanClient],
-        whois_client: Union[Ip2WhoisClient, PTClient, VTClient],
+        ip_geoasn_client: IpGeoAsnClientType,
+        whois_client: IpWhoisClientType,
+        shodan_client: Optional[ShodanClient],
         greynoise_client: Optional[GreynoiseClient],
         abuseipdb_client: Optional[AbuseIpDbClient],
         urlhaus_client: Optional[UrlHausClient],
         max_resolutions: int = 0,
     ):
-        super().__init__(entity, console, progress, vt_client, ip_enricher_client,
-                         whois_client, greynoise_client, abuseipdb_client, urlhaus_client)
+        super().__init__(entity, console, progress, vt_client, ip_geoasn_client, whois_client,
+                         shodan_client, greynoise_client, abuseipdb_client, urlhaus_client)
 
         # Extended attributes
         self.max_resolutions = max_resolutions
@@ -77,25 +76,31 @@ class DomainHandler(BaseHandler):
         self.progress.update(task_v, completed=100)
 
         if self.resolutions and self.resolutions.data:
-            task_r = self.progress.add_task(f"Fetching IP enrichments from {self._enricher.name}")
-            self.progress.update(task_r, advance=50)
-            self._fetch_ip_enrichments(*self.resolutions.ip_list(self.max_resolutions))
-            self.progress.update(task_r, completed=100)
+            task_g = self.progress.add_task(f"Fetching IP location and ASN from {self._geoasn.name}")
+            self.progress.update(task_g, advance=50)
+            self._fetch_geoasn(*self.resolutions.ip_list(self.max_resolutions))
+            self.progress.update(task_g, completed=100)
+
+            if self._shodan:
+                task_s = self.progress.add_task(f"Fetching IP data from {self._shodan.name}")
+                self.progress.update(task_s, advance=50)
+                self._fetch_shodan(*self.resolutions.ip_list(self.max_resolutions))
+                self.progress.update(task_s, completed=100)
 
             if self._greynoise:
-                task_g = self.progress.add_task(f"Fetching IP enrichments from {self._greynoise.name}")
+                task_g = self.progress.add_task(f"Fetching IP data from {self._greynoise.name}")
                 self.progress.update(task_g, advance=50)
                 self._fetch_greynoise(*self.resolutions.ip_list(self.max_resolutions))
                 self.progress.update(task_g, completed=100)
 
             if self._abuseipdb:
-                task_g = self.progress.add_task(f"Fetching IP enrichments from {self._abuseipdb.name}")
+                task_g = self.progress.add_task(f"Fetching IP data from {self._abuseipdb.name}")
                 self.progress.update(task_g, advance=50)
                 self._fetch_abuseipdb(*self.resolutions.ip_list(self.max_resolutions))
                 self.progress.update(task_g, completed=100)
 
         if self._urlhaus:
-            task_u = self.progress.add_task(f"Fetching domain enrichments from {self._urlhaus.name}")
+            task_u = self.progress.add_task(f"Fetching domain data from {self._urlhaus.name}")
             self.progress.update(task_u, advance=50)
             self._fetch_urlhaus()
             self.progress.update(task_u, completed=100)

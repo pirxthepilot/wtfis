@@ -29,7 +29,7 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
-    "pydantic~=2.7.0",
+    "pydantic~=2.7.2",
     "python-dotenv~=1.0.1",
     "requests~=2.31.0",
     "rich~=13.7.1",

@@ -1,5 +1,6 @@
 from wtfis.clients.base import BaseIpEnricherClient, BaseRequestsClient
-from wtfis.models.ipwhois import IpWhois, IpWhoisMap
+from wtfis.models.ipwhois import IpWhoisMap
+from wtfis.models.ipwhois import IpWhois
 
 from typing import Optional
 
@@ -19,9 +20,9 @@ class IpWhoisClient(BaseRequestsClient, BaseIpEnricherClient):
         return IpWhois.model_validate(result) if result.get("success") is True else None
 
     def enrich_ips(self, *ips: str) -> IpWhoisMap:
-        ipwhois_map = {}
+        map_ = {}
         for ip in ips:
             ipwhois = self._get_ipwhois(ip)
             if ipwhois:
-                ipwhois_map[ipwhois.ip] = ipwhois
-        return IpWhoisMap.model_validate(ipwhois_map)
+                map_[ipwhois.ip] = ipwhois
+        return IpWhoisMap.model_validate(map_)

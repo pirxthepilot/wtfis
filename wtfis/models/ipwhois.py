@@ -1,45 +1,33 @@
+"""
+ipwhois datamodels
+API doc: https://ipwhois.io/documentation
+"""
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, RootModel
 from typing import Dict
 
-from wtfis.models.common import LaxStr
+from pydantic import AliasPath, Field
+
+from wtfis.models.base import IpGeoAsnBase, IpGeoAsnMapBase
 
 
-class Flag(BaseModel):
-    img: str
-    emoji: str
-    emoji_unicode: str
+class IpWhois(IpGeoAsnBase):
+    # Metadata
+    source: str = "IPWhois"
 
-
-class Connection(BaseModel):
-    asn: LaxStr
-    org: str
-    isp: str
-    domain: str
-
-
-class IpWhois(BaseModel):
+    # Results
     ip: str
-    success: bool
-    type_: str = Field(alias="type")
-    continent: str
-    continent_code: str
-    country: str
-    country_code: str
-    region: str
-    region_code: str
     city: str
-    is_eu: bool
-    postal: str
-    calling_code: str
-    capital: str
-    borders: str
-    flag: Flag
-    connection: Connection
+    region: str
+    country: str
+    continent: str
+    asn: str = Field(validation_alias=AliasPath("connection", "asn"))
+    org: str = Field(validation_alias=AliasPath("connection", "org"))
+    isp: str = Field(validation_alias=AliasPath("connection", "isp"))
+    domain: str = Field(validation_alias=AliasPath("connection", "domain"))
 
 
-class IpWhoisMap(RootModel):
+class IpWhoisMap(IpGeoAsnMapBase):
     root: Dict[str, IpWhois]
 
     @classmethod

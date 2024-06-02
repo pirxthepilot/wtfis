@@ -1,7 +1,7 @@
 from pydantic import Field, field_validator, model_validator
 from typing import List, Optional
 
-from wtfis.models.common import WhoisBase
+from wtfis.models.base import WhoisBase
 
 
 class Whois(WhoisBase):
