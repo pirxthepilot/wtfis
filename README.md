@@ -82,7 +82,6 @@ IPWhois should not be confused with IP2Whois, which provides domain Whois data.
 
 GETs data from the `/shodan/host/{ip}` endpoint (see [doc](https://developer.shodan.io/api)). For each IP, retrieves:
 
-* ASN, Org, ISP and Geolocation
 * List of open ports and services
 * Operating system (if available)
 * Tags (assigned by Shodan)
@@ -181,7 +180,7 @@ If supported by the terminal, the `Analysis` field and (if using PT) headings in
 
 ### Shodan
 
-Shodan can be used to enrich the IP addresses (instead of IPWhois). Invoke with the `-s` or `--use-shodan` flag.
+Shodan can be used to show an IP's open ports or services, and OS in some results. Invoke with the `-s` or `--use-shodan` flag.
 
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-shodan.png?raw=true)
 
