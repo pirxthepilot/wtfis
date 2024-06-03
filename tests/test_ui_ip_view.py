@@ -24,24 +24,29 @@ from wtfis.ui.view import IpAddressView
 
 
 @pytest.fixture()
-def view01(test_data, mock_abuseipdb_get, mock_ipwhois_get, mock_greynoise_get, mock_urlhaus_get):
+def view01(test_data, mock_abuseipdb_get, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get, mock_urlhaus_get):
     """ 1.1.1.1 with PT whois. Complete test of all panels. Also test print(). """
     ip = "1.1.1.1"
 
-    abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_red.json"))
-    abuseipdb_client = AbuseIpDbClient("dummykey")
-    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
-    abuseipdb_enrich = abuseipdb_client.enrich_ips(ip)
+    geoasn_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
+    geoasn_client = IpWhoisClient()
+    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_enrich = geoasn_client.enrich_ips(ip)
 
-    ipwhois_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
-    ipwhois_client = IpWhoisClient()
-    ipwhois_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
-    ip_enrich = ipwhois_client.enrich_ips(ip)
+    shodan_pool = json.loads(test_data("shodan_1.1.1.1.json"))
+    shodan_client = ShodanClient(MagicMock())
+    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    shodan_enrich = shodan_client.enrich_ips(ip)
 
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1.json"))
     greynoise_client = GreynoiseClient("dummykey")
     greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
     greynoise_enrich = greynoise_client.enrich_ips(ip)
+
+    abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_red.json"))
+    abuseipdb_client = AbuseIpDbClient("dummykey")
+    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
+    abuseipdb_enrich = abuseipdb_client.enrich_ips(ip)
 
     urlhaus_pool = json.loads(test_data("urlhaus_1.1.1.1.json"))
     urlhaus_client = UrlHausClient()
@@ -51,8 +56,9 @@ def view01(test_data, mock_abuseipdb_get, mock_ipwhois_get, mock_greynoise_get, 
     return IpAddressView(
         console=Console(),
         entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=geoasn_enrich,
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_1.1.1.1.json"))),
-        ip_enrich=ip_enrich,
+        shodan=shodan_enrich,
         greynoise=greynoise_enrich,
         abuseipdb=abuseipdb_enrich,
         urlhaus=urlhaus_enrich,
@@ -60,13 +66,18 @@ def view01(test_data, mock_abuseipdb_get, mock_ipwhois_get, mock_greynoise_get, 
 
 
 @pytest.fixture()
-def view02(test_data, mock_shodan_get_ip, mock_greynoise_get):
+def view02(test_data, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get):
     """ 1.1.1.1 with Shodan and Greynoise. Test the whole IP panel. """
     ip = "1.1.1.1"
+    geoasn_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
+    geoasn_client = IpWhoisClient()
+    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_enrich = geoasn_client.enrich_ips(ip)
+
     shodan_pool = json.loads(test_data("shodan_1.1.1.1.json"))
     shodan_client = ShodanClient(MagicMock())
     shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.enrich_ips(ip)
+    shodan_enrich = shodan_client.enrich_ips(ip)
 
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1.json"))
     greynoise_client = GreynoiseClient("dummykey")
@@ -76,8 +87,9 @@ def view02(test_data, mock_shodan_get_ip, mock_greynoise_get):
     return IpAddressView(
         console=Console(),
         entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=geoasn_enrich,
         whois=MagicMock(),
-        ip_enrich=ip_enrich,
+        shodan=shodan_enrich,
         greynoise=greynoise_enrich,
         abuseipdb=MagicMock(),
         urlhaus=UrlHausMap.model_validate({}),
@@ -90,8 +102,9 @@ def view03(test_data):
     return IpAddressView(
         console=Console(),
         entity=MagicMock(),
+        geoasn=MagicMock(),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_1.1.1.1.json"))),
-        ip_enrich=MagicMock(),
+        shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
@@ -107,8 +120,9 @@ def view04(test_data):
     return IpAddressView(
         console=Console(),
         entity=IpAddress.model_validate(json.loads(test_data("vt_ip_142.251.220.110.json"))),
+        geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
-        ip_enrich=IpWhoisMap.model_validate({}),
+        shodan=MagicMock(),
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=MagicMock(),
         urlhaus=UrlHausMap.model_validate({}),
@@ -127,8 +141,9 @@ def view05(test_data, mock_greynoise_get):
     return IpAddressView(
         console=Console(),
         entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
-        ip_enrich=IpWhoisMap.model_validate({}),
+        shodan=MagicMock(),
         greynoise=greynoise_enrich,
         abuseipdb=MagicMock(),
         urlhaus=UrlHausMap.model_validate({}),
@@ -147,8 +162,9 @@ def view06(test_data, mock_greynoise_get):
     return IpAddressView(
         console=Console(),
         entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
-        ip_enrich=IpWhoisMap.model_validate({}),
+        shodan=MagicMock(),
         greynoise=greynoise_enrich,
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
@@ -167,8 +183,9 @@ def view07(test_data, mock_abuseipdb_get):
     return IpAddressView(
         console=Console(),
         entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
-        ip_enrich=IpWhoisMap.model_validate({}),
+        shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=abuseipdb_enrich,
         urlhaus=MagicMock(),
@@ -187,8 +204,9 @@ def view08(test_data, mock_abuseipdb_get):
     return IpAddressView(
         console=Console(),
         entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
-        ip_enrich=IpWhoisMap.model_validate({}),
+        shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=abuseipdb_enrich,
         urlhaus=MagicMock(),
@@ -204,9 +222,10 @@ class TestView01:
 
         # Sections
         vt_section = ip.renderable.renderables[0]
-        enrich_section = ip.renderable.renderables[2]
-        urlhaus_section = ip.renderable.renderables[4]
-        other_section = ip.renderable.renderables[6]
+        geoasn_section = ip.renderable.renderables[2]
+        shodan_section = ip.renderable.renderables[4]
+        urlhaus_section = ip.renderable.renderables[6]
+        other_section = ip.renderable.renderables[8]
 
         # Line breaks between sections
         assert ip.renderable.renderables[1] == ""
@@ -255,15 +274,15 @@ class TestView01:
         ]
 
         #
-        # IP enrich section
+        # IP location and ASN section
         #
 
         # Heading
-        assert enrich_section.renderables[0] == Text("IPwhois")
-        assert enrich_section.renderables[0].style == theme.heading_h1
+        assert geoasn_section.renderables[0] == Text("IPWhois")
+        assert geoasn_section.renderables[0].style == theme.heading_h1
 
         # Table
-        table = enrich_section.renderables[1]
+        table = geoasn_section.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
@@ -283,10 +302,84 @@ class TestView01:
             Text(
                 "Sydney, New South Wales, Australia",
                 spans=[
-                    Span(6, 8, 'default'),
-                    Span(23, 25, 'default'),
+                    Span(6, 8, "default"),
+                    Span(23, 25, "default"),
                 ]
             ),
+        ]
+
+        #
+        # Shodan section
+        #
+
+        # Heading
+        assert shodan_section.renderables[0] == Text("Shodan")
+        assert shodan_section.renderables[0].style == theme.heading_h1
+
+        # Table
+        table = shodan_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == theme.table_field
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            Text(
+                "Services:",
+                spans=[Span(0, 8, 'link https://www.shodan.io/host/1.1.1.1')],
+            ),
+            "Last Scan:",
+        ]
+        assert table.columns[1].style == theme.table_value
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text(
+                (
+                    "Cisco router tftpd (69/udp)\nCloudFlare (80/tcp, 8080/tcp, 8880/tcp)\n"
+                    "DrayTek Vigor Router (443/tcp)\nOther (53/tcp, 53/udp, 161/udp, "
+                    "2082/tcp, 2083/tcp, 2086/tcp, 2087/tcp, 8443/tcp)"
+                ),
+                spans=[
+                    Span(0, 18, theme.product),
+                    Span(20, 22, theme.port),
+                    Span(22, 26, theme.transport),
+                    Span(28, 38, theme.product),
+                    Span(40, 42, theme.port),
+                    Span(42, 46, theme.transport),
+                    Span(46, 48, "default"),
+                    Span(48, 52, theme.port),
+                    Span(52, 56, theme.transport),
+                    Span(56, 58, "default"),
+                    Span(58, 62, theme.port),
+                    Span(62, 66, theme.transport),
+                    Span(68, 88, theme.product),
+                    Span(90, 93, theme.port),
+                    Span(93, 97, theme.transport),
+                    Span(99, 104, theme.product),
+                    Span(106, 108, theme.port),
+                    Span(108, 112, theme.transport),
+                    Span(112, 114, "default"),
+                    Span(114, 116, theme.port),
+                    Span(116, 120, theme.transport),
+                    Span(120, 122, "default"),
+                    Span(122, 125, theme.port),
+                    Span(125, 129, theme.transport),
+                    Span(129, 131, "default"),
+                    Span(131, 135, theme.port),
+                    Span(135, 139, theme.transport),
+                    Span(139, 141, "default"),
+                    Span(141, 145, theme.port),
+                    Span(145, 149, theme.transport),
+                    Span(149, 151, "default"),
+                    Span(151, 155, theme.port),
+                    Span(155, 159, theme.transport),
+                    Span(159, 161, "default"),
+                    Span(161, 165, theme.port),
+                    Span(165, 169, theme.transport),
+                    Span(169, 171, "default"),
+                    Span(171, 175, theme.port),
+                    Span(175, 179, theme.transport),
+                ]
+            ),
+            display_timestamp("2022-09-04T01:03:56Z"),
         ]
 
         #
@@ -453,8 +546,9 @@ class TestView02:
 
         # Sections
         vt_section = ip.renderable.renderables[0]
-        enrich_section = ip.renderable.renderables[2]
-        other_section = ip.renderable.renderables[4]
+        geoasn_section = ip.renderable.renderables[2]
+        shodan_section = ip.renderable.renderables[4]
+        other_section = ip.renderable.renderables[6]
 
         # Line breaks between sections
         assert ip.renderable.renderables[1] == ""
@@ -502,15 +596,15 @@ class TestView02:
         ]
 
         #
-        # IP enrich section
+        # IP location and ASN section
         #
 
         # Heading
-        assert enrich_section.renderables[0] == Text("Shodan")
-        assert enrich_section.renderables[0].style == theme.heading_h1
+        assert geoasn_section.renderables[0] == Text("IPWhois")
+        assert geoasn_section.renderables[0].style == theme.heading_h1
 
         # Table
-        table = enrich_section.renderables[1]
+        table = geoasn_section.renderables[1]
         assert type(table) is Table
         assert table.columns[0].style == theme.table_field
         assert table.columns[0].justify == "left"
@@ -518,11 +612,6 @@ class TestView02:
             "ASN:",
             "ISP:",
             "Location:",
-            Text(
-                "Services:",
-                spans=[Span(0, 8, 'link https://www.shodan.io/host/1.1.1.1')],
-            ),
-            "Last Scan:",
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
@@ -533,9 +622,37 @@ class TestView02:
             ),
             "Cloudflare, Inc.",
             Text(
-                "Los Angeles, United States",
-                spans=[Span(11, 13, "default")]
+                "Sydney, New South Wales, Australia",
+                spans=[
+                    Span(6, 8, "default"),
+                    Span(23, 25, "default")
+                ],
             ),
+        ]
+
+        #
+        # Shodan section
+        #
+
+        # Heading
+        assert shodan_section.renderables[0] == Text("Shodan")
+        assert shodan_section.renderables[0].style == theme.heading_h1
+
+        # Table
+        table = shodan_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == theme.table_field
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            Text(
+                "Services:",
+                spans=[Span(0, 8, 'link https://www.shodan.io/host/1.1.1.1')],
+            ),
+            "Last Scan:",
+        ]
+        assert table.columns[1].style == theme.table_value
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
             Text(
                 (
                     "Cisco router tftpd (69/udp)\nCloudFlare (80/tcp, 8080/tcp, 8880/tcp)\n"

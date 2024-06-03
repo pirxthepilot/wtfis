@@ -1,5 +1,4 @@
 from shodan import Shodan
-from shodan.exception import APIError
 from typing import Optional
 
 from wtfis.clients.base import BaseClient, BaseIpEnricherClient
@@ -18,13 +17,7 @@ class ShodanClient(BaseClient, BaseIpEnricherClient):
         return "Shodan"
 
     def _get_ip(self, ip: str) -> Optional[ShodanIp]:
-        try:
-            return ShodanIp.model_validate(self.s.host(ip, minify=False))
-        except APIError as e:
-            if str(e) == "Invalid API key":
-                raise APIError("Invalid Shodan API key")
-            else:
-                raise
+        return ShodanIp.model_validate(self.s.host(ip, minify=False))
 
     def enrich_ips(self, *ips: str) -> ShodanIpMap:
         shodan_map = {}

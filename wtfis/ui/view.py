@@ -10,11 +10,11 @@ from rich.text import Text
 from typing import List, Optional, Tuple, Union
 from wtfis.models.abuseipdb import AbuseIpDbMap
 
-from wtfis.models.common import WhoisBase
+from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
-from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.urlhaus import UrlHausMap
+from wtfis.models.types import IpGeoAsnMapType
 from wtfis.models.virustotal import (
     Domain,
     IpAddress,
@@ -34,14 +34,15 @@ class DomainView(BaseView):
         console: Console,
         entity: Domain,
         resolutions: Optional[Resolutions],
+        geoasn: IpGeoAsnMapType,
         whois: WhoisBase,
-        ip_enrich: Union[IpWhoisMap, ShodanIpMap],
+        shodan: ShodanIpMap,
         greynoise: GreynoiseIpMap,
         abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
         max_resolutions: int = 3,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich, greynoise, abuseipdb, urlhaus)
+        super().__init__(console, entity, geoasn, whois, shodan, greynoise, abuseipdb, urlhaus)
 
         self.resolutions = resolutions
         self.max_resolutions = max_resolutions
@@ -87,40 +88,34 @@ class DomainView(BaseView):
                 ("Resolved:", Timestamp(attributes.date).render),
             ]
 
-            # IP Enrichment
-            enrich = self._get_ip_enrichment(attributes.ip_address)
+            # IP geolocation and ASN
+            geoasn = self._get_geoasn_enrichment(attributes.ip_address)
+            if geoasn:
+                asn = self._gen_asn_text(geoasn.asn, geoasn.org)
+                data += [
+                    ("ASN:", asn),
+                    ("ISP:", geoasn.isp),
+                    ("Location:", smart_join(geoasn.city, geoasn.region, geoasn.country)),
+                ]
 
-            if enrich:
-                if isinstance(enrich, IpWhois):
-                    # IPWhois
-                    asn = self._gen_asn_text(enrich.connection.asn, enrich.connection.org)
-                    data += [
-                        ("ASN:", asn),
-                        ("ISP:", enrich.connection.isp),
-                        ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
-                    ]
-                else:
-                    # Shodan
-                    asn = self._gen_asn_text(enrich.asn, enrich.org)
-                    tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
-                    services_field = self._gen_linked_field_name(
-                        "Services",
-                        hyperlink=f"{self.shodan_gui_baseurl}/{attributes.ip_address}"
-                    )
-                    data += [
-                        ("ASN:", asn),
-                        ("ISP:", enrich.isp),
-                        ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
-                        ("OS:", enrich.os),
-                        (services_field, self._gen_shodan_services(enrich)),
-                        ("Tags:", tags),
-                        ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
-                                                                                          # (source: Google)
-                    ]
+            # Shodan
+            shodan = self._get_shodan_enrichment(attributes.ip_address)
+            if shodan:
+                tags = smart_join(*shodan.tags, style=self.theme.tags) if shodan.tags else None
+                services_field = self._gen_linked_field_name(
+                    "Services",
+                    hyperlink=f"{self.shodan_gui_baseurl}/{attributes.ip_address}"
+                )
+                data += [
+                    ("OS:", shodan.os),
+                    (services_field, self._gen_shodan_services(shodan)),
+                    ("Tags:", tags),
+                    # ("Last Scan:", Timestamp(f"{shodan.last_update}+00:00").render),  # Timestamps are UTC
+                    #                                                                   # (source: Google)
+                ]
 
             # Greynoise
             greynoise = self._get_greynoise_enrichment(attributes.ip_address)
-
             if greynoise:
                 data += [self._gen_greynoise_tuple(greynoise)]
 
@@ -190,18 +185,20 @@ class IpAddressView(BaseView):
         self,
         console: Console,
         entity: IpAddress,
+        geoasn: IpGeoAsnMapType,
         whois: WhoisBase,
-        ip_enrich: Union[IpWhoisMap, ShodanIpMap],
+        shodan: ShodanIpMap,
         greynoise: GreynoiseIpMap,
         abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
     ) -> None:
-        super().__init__(console, entity, whois, ip_enrich, greynoise, abuseipdb, urlhaus)
+        super().__init__(console, entity, geoasn, whois, shodan, greynoise, abuseipdb, urlhaus)
 
     def ip_panel(self) -> Panel:
         content = [self._gen_vt_section()]  # VT section
         for section in (
-            self._gen_ip_enrich_section(),  # IP enrich section
+            self._gen_geoasn_section(),     # IP location and ASN section
+            self._gen_shodan_section(),     # Shodan section
             self._gen_urlhaus_section(),    # URLhaus section
             self._gen_ip_other_section(),   # Other section
         ):

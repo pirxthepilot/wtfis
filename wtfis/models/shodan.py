@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from collections import defaultdict, namedtuple
 from pydantic import BaseModel, RootModel
 from typing import Dict, List, Optional
 
-from wtfis.models.common import LaxStr
+from wtfis.models.base import LaxStr
 
 
 class PortData(BaseModel):
@@ -43,3 +45,7 @@ class ShodanIp(BaseModel):
 
 class ShodanIpMap(RootModel):
     root: Dict[str, ShodanIp]
+
+    @classmethod
+    def empty(cls) -> ShodanIpMap:
+        return cls.model_validate({})

@@ -10,6 +10,7 @@ from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.passivetotal import PTClient
+from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.domain import DomainHandler
@@ -25,8 +26,9 @@ def generate_domain_handler(max_resolutions=3):
         console=Console(),
         progress=MagicMock(),
         vt_client=VTClient("dummykey"),
-        ip_enricher_client=IpWhoisClient(),
+        ip_geoasn_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
+        shodan_client=ShodanClient("dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),
         urlhaus_client=UrlHausClient(),
@@ -40,8 +42,9 @@ def generate_ip_handler():
         console=Console(),
         progress=MagicMock(),
         vt_client=VTClient("dummykey"),
-        ip_enricher_client=IpWhoisClient(),
+        ip_geoasn_client=IpWhoisClient(),
         whois_client=PTClient("dummyuser", "dummykey"),
+        shodan_client=ShodanClient("dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),
         urlhaus_client=UrlHausClient(),
@@ -70,16 +73,18 @@ class TestDomainHandler:
 
         handler._fetch_vt_domain = MagicMock()
         handler._fetch_vt_resolutions = MagicMock()
-        handler._fetch_ip_enrichments = MagicMock()
+        handler._fetch_geoasn = MagicMock()
         handler._fetch_whois = MagicMock()
+        handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_domain.assert_called_once()
         handler._fetch_vt_resolutions.assert_called_once()
-        handler._fetch_ip_enrichments.assert_called_once()
+        handler._fetch_geoasn.assert_called_once()
         handler._fetch_whois.assert_called_once()
+        handler._fetch_shodan.assert_called_once()
         handler._fetch_greynoise.assert_called_once()
         handler._fetch_urlhaus.assert_called_once()
 
@@ -88,21 +93,23 @@ class TestDomainHandler:
         handler = domain_handler(0)
         handler._fetch_vt_domain = MagicMock()
         handler._fetch_vt_resolutions = MagicMock()
-        handler._fetch_ip_enrichments = MagicMock()
+        handler._fetch_geoasn = MagicMock()
         handler._fetch_whois = MagicMock()
+        handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_domain.assert_called_once()
         handler._fetch_vt_resolutions.assert_not_called()
-        handler._fetch_ip_enrichments.assert_not_called()
+        handler._fetch_geoasn.assert_not_called()
         handler._fetch_whois.assert_called_once()
+        handler._fetch_shodan.assert_not_called()
         handler._fetch_greynoise.assert_not_called()
         handler._fetch_urlhaus.assert_called_once()
 
-        assert handler.ip_enrich == IpWhoisMap.model_validate({})
-        assert handler.ip_enrich.root == {}
+        assert handler.geoasn == IpWhoisMap.model_validate({})
+        assert handler.geoasn.root == {}
 
     @patch.object(requests.Session, "get")
     def test_vt_http_error(self, mock_requests_get, domain_handler, capsys):
@@ -173,7 +180,7 @@ class TestDomainHandler:
         mock_resp.status_code = 500
         mock_requests_get.return_value = mock_resp
 
-        handler._fetch_ip_enrichments(*["1.2.3.4", "1.2.3.5"])
+        handler._fetch_geoasn(*["1.2.3.4", "1.2.3.5"])
         assert handler.warnings[0].startswith("Could not fetch IPWhois: 500 Server Error:")
 
         handler.print_warnings()
@@ -191,12 +198,12 @@ class TestDomainHandler:
             mock_requests_get.return_value = mock_resp
 
             with pytest.raises(SystemExit) as e:
-                handler._fetch_ip_enrichments("1.2.3.4")
+                handler._fetch_geoasn("1.2.3.4")
 
             capture = capsys.readouterr()
 
             assert capture.err.startswith(
-                "Data model validation error: 16 validation errors for IpWhois\n"
+                "Data model validation error: 9 validation errors for IpWhois\n"
             )
             assert e.type == SystemExit
             assert e.value.code == 1
@@ -374,16 +381,18 @@ class TestIpAddressHandler:
     def test_fetch_data(self, ip_handler):
         handler = ip_handler()
         handler._fetch_vt_ip_address = MagicMock()
-        handler._fetch_ip_enrichments = MagicMock()
+        handler._fetch_geoasn = MagicMock()
         handler._fetch_whois = MagicMock()
+        handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
         handler._fetch_abuseipdb = MagicMock()
 
         handler.fetch_data()
         handler._fetch_vt_ip_address.assert_called_once()
-        handler._fetch_ip_enrichments.assert_called_once()
+        handler._fetch_geoasn.assert_called_once()
         handler._fetch_whois.assert_called_once()
+        handler._fetch_shodan.assert_called_once()
         handler._fetch_greynoise.assert_called_once()
         handler._fetch_urlhaus.assert_called_once()
         handler._fetch_abuseipdb.assert_called_once()
@@ -438,7 +447,7 @@ class TestIpAddressHandler:
         mock_resp.status_code = 502
         mock_requests_get.return_value = mock_resp
 
-        handler._fetch_ip_enrichments("1.2.3.4")
+        handler._fetch_geoasn("1.2.3.4")
         assert handler.warnings[0].startswith("Could not fetch IPWhois: 502 Server Error:")
 
         handler.print_warnings()
@@ -473,15 +482,34 @@ class TestIpAddressHandler:
             mock_requests_get.return_value = mock_resp
 
             with pytest.raises(SystemExit) as e:
-                handler._fetch_ip_enrichments("1.2.3.4")
+                handler._fetch_geoasn("1.2.3.4")
 
             capture = capsys.readouterr()
 
             assert capture.err.startswith(
-                "Data model validation error: 16 validation errors for IpWhois\n"
+                "Data model validation error: 9 validation errors for IpWhois\n"
             )
             assert e.type == SystemExit
             assert e.value.code == 1
+
+    @patch.object(requests.Session, "get")
+    def test_shodan_api_error(self, mock_requests_get, ip_handler, capsys):
+        """
+        Test fail open behavior of Shodan on invalid API key
+        """
+        handler = ip_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 401
+        mock_resp._content = b'<html>'
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_shodan("1.2.3.4")
+        assert handler.warnings[0].startswith("Could not fetch Shodan: Invalid API key")
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch Shodan: Invalid API key")
 
     @patch.object(requests.Session, "get")
     def test_greynoise_http_error(self, mock_requests_get, ip_handler, capsys):

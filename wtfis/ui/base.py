@@ -11,11 +11,10 @@ from rich.table import Table
 from rich.text import Text
 from typing import Any, Generator, List, Optional, Tuple, Union
 from wtfis.models.abuseipdb import AbuseIpDb, AbuseIpDbMap
-
-from wtfis.models.common import WhoisBase
+from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
-from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
+from wtfis.models.types import IpGeoAsnMapType, IpGeoAsnType
 from wtfis.models.virustotal import (
     LastAnalysisStats,
     PopularityRanks,
@@ -38,16 +37,18 @@ class BaseView(abc.ABC):
         self,
         console: Console,
         entity: Any,
+        geoasn: IpGeoAsnMapType,
         whois: Optional[WhoisBase],
-        ip_enrich: Union[IpWhoisMap, ShodanIpMap],
+        shodan: ShodanIpMap,
         greynoise: GreynoiseIpMap,
         abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
     ) -> None:
         self.console = console
         self.entity = entity
+        self.geoasn = geoasn
         self.whois = whois
-        self.ip_enrich = ip_enrich
+        self.shodan = shodan
         self.greynoise = greynoise
         self.abuseipdb = abuseipdb
         self.urlhaus = urlhaus
@@ -298,8 +299,11 @@ class BaseView(abc.ABC):
          .append(")"))
         return text
 
-    def _get_ip_enrichment(self, ip: str) -> Optional[Union[IpWhois, ShodanIp]]:
-        return self.ip_enrich.root[ip] if ip in self.ip_enrich.root.keys() else None
+    def _get_geoasn_enrichment(self, ip: str) -> Optional[IpGeoAsnType]:
+        return self.geoasn.root[ip] if ip in self.geoasn.root.keys() else None
+
+    def _get_shodan_enrichment(self, ip: str) -> Optional[ShodanIp]:
+        return self.shodan.root[ip] if ip in self.shodan.root.keys() else None
 
     def _get_greynoise_enrichment(self, ip: str) -> Optional[GreynoiseIp]:
         return self.greynoise.root[ip] if ip in self.greynoise.root.keys() else None
@@ -363,41 +367,48 @@ class BaseView(abc.ABC):
             self._gen_heading_text("VirusTotal")
         )
 
-    def _gen_ip_enrich_section(self) -> Optional[RenderableType]:
-        """ IP enrichment section. Applies to IP views only """
-        enrich = self._get_ip_enrichment(self.entity.data.id_)
+    def _gen_geoasn_section(self) -> Optional[RenderableType]:
+        """ IP location and ASN section. Applies to IP views only """
+        enrich = self._get_geoasn_enrichment(self.entity.data.id_)
 
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
         if enrich:
-            if isinstance(enrich, IpWhois):
-                # IPWhois
-                section_title = "IPwhois"
-                asn = self._gen_asn_text(enrich.connection.asn, enrich.connection.org)
-                data += [
-                    ("ASN:", asn),
-                    ("ISP:", enrich.connection.isp),
-                    ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
-                ]
-            else:
-                # Shodan
-                section_title = "Shodan"
-                asn = self._gen_asn_text(enrich.asn, enrich.org)
-                tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
-                services_field = self._gen_linked_field_name(
-                    "Services",
-                    hyperlink=f"{self.shodan_gui_baseurl}/{self.entity.data.id_}"
-                )
-                data += [
-                    ("ASN:", asn),
-                    ("ISP:", enrich.isp),
-                    ("Location:", smart_join(enrich.city, enrich.region_name, enrich.country_name)),
-                    ("OS:", enrich.os),
-                    (services_field, self._gen_shodan_services(enrich)),
-                    ("Tags:", tags),
-                    ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
-                                                                                      # (source: Google)
-                ]
+            section_title = enrich.source
+            asn = self._gen_asn_text(enrich.asn, enrich.org)
+            data += [
+                ("ASN:", asn),
+                ("ISP:", enrich.isp),
+                ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
+            ]
+            return self._gen_section(
+
+                self._gen_table(*data),
+                self._gen_heading_text(section_title)
+            )
+
+        return None  # No enrichment data
+
+    def _gen_shodan_section(self) -> Optional[RenderableType]:
+        """ Shodan section. Applies to IP views only """
+        enrich = self._get_shodan_enrichment(self.entity.data.id_)
+
+        data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
+
+        if enrich:
+            section_title = "Shodan"
+            tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+            services_field = self._gen_linked_field_name(
+                "Services",
+                hyperlink=f"{self.shodan_gui_baseurl}/{self.entity.data.id_}"
+            )
+            data += [
+                ("OS:", enrich.os),
+                (services_field, self._gen_shodan_services(enrich)),
+                ("Tags:", tags),
+                ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
+                                                                                  # (source: Google)
+            ]
 
             return self._gen_section(
                 self._gen_table(*data),

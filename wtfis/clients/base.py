@@ -4,8 +4,8 @@ import requests
 
 from typing import Optional, Union
 
-from wtfis.models.common import WhoisBase
-from wtfis.types import DomainEnrichmentType, IpEnrichmentType
+from wtfis.models.base import WhoisBase
+from wtfis.models.types import DomainEnrichmentType, IpEnrichmentType
 
 
 class AbstractAttribute:

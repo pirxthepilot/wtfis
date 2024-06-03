@@ -15,19 +15,18 @@ from typing import Callable, List, Optional, Union
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
-from wtfis.clients.ip2whois import Ip2WhoisClient
-from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.models.abuseipdb import AbuseIpDbMap
-from wtfis.models.common import WhoisBase
+from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.urlhaus import UrlHausMap
+from wtfis.models.types import IpGeoAsnMapType
 from wtfis.models.virustotal import Domain, IpAddress
+from wtfis.clients.types import IpGeoAsnClientType, IpWhoisClientType
 from wtfis.ui.theme import Theme
 from wtfis.utils import error_and_exit, refang
 
@@ -69,8 +68,9 @@ class BaseHandler(abc.ABC):
         console: Console,
         progress: Progress,
         vt_client: VTClient,
-        ip_enricher_client: Union[IpWhoisClient, ShodanClient],
-        whois_client: Union[Ip2WhoisClient, PTClient, VTClient],
+        ip_geoasn_client: IpGeoAsnClientType,
+        whois_client: IpWhoisClientType,
+        shodan_client: Optional[ShodanClient],
         greynoise_client: Optional[GreynoiseClient],
         abuseipdb_client: Optional[AbuseIpDbClient],
         urlhaus_client: Optional[UrlHausClient],
@@ -82,16 +82,18 @@ class BaseHandler(abc.ABC):
 
         # Clients
         self._vt = vt_client
-        self._enricher = ip_enricher_client
+        self._geoasn = ip_geoasn_client
         self._whois = whois_client
+        self._shodan = shodan_client
         self._greynoise = greynoise_client
         self._abuseipdb = abuseipdb_client
         self._urlhaus = urlhaus_client
 
         # Dataset containers
         self.vt_info: Union[Domain, IpAddress]
-        self.ip_enrich: Union[IpWhoisMap, ShodanIpMap] = IpWhoisMap.empty()
+        self.geoasn: IpGeoAsnMapType = IpWhoisMap.empty()  # Default to ipwhois
         self.whois: WhoisBase
+        self.shodan: ShodanIpMap = ShodanIpMap.empty()
         self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()
         self.abuseipdb: AbuseIpDbMap = AbuseIpDbMap.empty()
         self.urlhaus: UrlHausMap = UrlHausMap.empty()
@@ -105,9 +107,15 @@ class BaseHandler(abc.ABC):
         return NotImplemented  # type: ignore  # pragma: no coverage
 
     @common_exception_handler
-    @failopen_exception_handler("_enricher")
-    def _fetch_ip_enrichments(self, *ips: str) -> None:
-        self.ip_enrich = self._enricher.enrich_ips(*ips)
+    @failopen_exception_handler("_geoasn")
+    def _fetch_geoasn(self, *ips: str) -> None:
+        self.geoasn = self._geoasn.enrich_ips(*ips)
+
+    @common_exception_handler
+    @failopen_exception_handler("_shodan")
+    def _fetch_shodan(self, *ips: str) -> None:
+        if self._shodan:
+            self.shodan = self._shodan.enrich_ips(*ips)
 
     @common_exception_handler
     @failopen_exception_handler("_greynoise")
