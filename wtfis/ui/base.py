@@ -37,7 +37,7 @@ class BaseView(abc.ABC):
         self,
         console: Console,
         entity: Any,
-        ip_geoasn: IpGeoAsnMapType,
+        geoasn: IpGeoAsnMapType,
         whois: Optional[WhoisBase],
         shodan: ShodanIpMap,
         greynoise: GreynoiseIpMap,
@@ -46,7 +46,7 @@ class BaseView(abc.ABC):
     ) -> None:
         self.console = console
         self.entity = entity
-        self.ip_geoasn = ip_geoasn
+        self.geoasn = geoasn
         self.whois = whois
         self.shodan = shodan
         self.greynoise = greynoise
@@ -300,7 +300,7 @@ class BaseView(abc.ABC):
         return text
 
     def _get_geoasn_enrichment(self, ip: str) -> Optional[IpGeoAsnType]:
-        return self.ip_geoasn.root[ip] if ip in self.ip_geoasn.root.keys() else None
+        return self.geoasn.root[ip] if ip in self.geoasn.root.keys() else None
 
     def _get_shodan_enrichment(self, ip: str) -> Optional[ShodanIp]:
         return self.shodan.root[ip] if ip in self.shodan.root.keys() else None
@@ -367,7 +367,7 @@ class BaseView(abc.ABC):
             self._gen_heading_text("VirusTotal")
         )
 
-    def _gen_ip_geoasn_section(self) -> Optional[RenderableType]:
+    def _gen_geoasn_section(self) -> Optional[RenderableType]:
         """ IP location and ASN section. Applies to IP views only """
         enrich = self._get_geoasn_enrichment(self.entity.data.id_)
 

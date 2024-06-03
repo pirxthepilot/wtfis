@@ -408,10 +408,12 @@ class TestGenEntityHandler:
         assert entity.console == console
         assert entity.progress == progress
         assert isinstance(entity._vt, VTClient)
-        assert isinstance(entity._enricher, IpWhoisClient)
+        assert isinstance(entity._geoasn, IpWhoisClient)
         assert isinstance(entity._whois, PTClient)
+        assert entity._shodan is None
         assert entity._greynoise is None
         assert entity._urlhaus is None
+        assert entity._abuseipdb is None
         unset_env_vars()
 
     @patch("sys.argv", ["main", "www.example[.]com", "-s", "-g", "-u", "-m", "5"])
@@ -423,8 +425,9 @@ class TestGenEntityHandler:
             progress = simulate_progress(console),
             entity = generate_entity_handler(parse_args(), console, progress)
         assert entity.max_resolutions == 5
-        assert isinstance(entity._enricher, ShodanClient)
+        assert isinstance(entity._geoasn, IpWhoisClient)
         assert isinstance(entity._whois, PTClient)
+        assert isinstance(entity._shodan, ShodanClient)
         assert isinstance(entity._greynoise, GreynoiseClient)
         assert isinstance(entity._urlhaus, UrlHausClient)
         unset_env_vars()
@@ -464,7 +467,7 @@ class TestGenEntityHandler:
         assert entity.console == console
         assert entity.progress == progress
         assert isinstance(entity._vt, VTClient)
-        assert isinstance(entity._enricher, IpWhoisClient)
+        assert isinstance(entity._geoasn, IpWhoisClient)
         assert isinstance(entity._whois, PTClient)
         assert entity._greynoise is None
         assert entity._urlhaus is None
@@ -478,8 +481,9 @@ class TestGenEntityHandler:
             console = Console()
             progress = simulate_progress(console),
             entity = generate_entity_handler(parse_args(), console, progress)
-        assert isinstance(entity._enricher, ShodanClient)
+        assert isinstance(entity._geoasn, IpWhoisClient)
         assert isinstance(entity._whois, PTClient)
+        assert isinstance(entity._shodan, ShodanClient)
         assert isinstance(entity._greynoise, GreynoiseClient)
         assert isinstance(entity._urlhaus, UrlHausClient)
         assert isinstance(entity._abuseipdb, AbuseIpDbClient)
@@ -496,8 +500,9 @@ class TestGenView:
             console=MagicMock(),
             progress=MagicMock(),
             vt_client=MagicMock(),
-            ip_enricher_client=MagicMock(),
+            ip_geoasn_client=MagicMock(),
             whois_client=MagicMock(),
+            shodan_client=MagicMock(),
             greynoise_client=MagicMock(),
             abuseipdb_client=MagicMock(),
             urlhaus_client=MagicMock(),
@@ -516,8 +521,9 @@ class TestGenView:
             console=MagicMock(),
             progress=MagicMock(),
             vt_client=MagicMock(),
-            ip_enricher_client=MagicMock(),
+            ip_geoasn_client=MagicMock(),
             whois_client=MagicMock(),
+            shodan_client=MagicMock(),
             greynoise_client=MagicMock(),
             abuseipdb_client=MagicMock(),
             urlhaus_client=MagicMock(),

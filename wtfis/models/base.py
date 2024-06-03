@@ -61,4 +61,4 @@ class IpGeoAsnMapBase(RootModel, abc.ABC):
 
     @classmethod
     def empty(cls) -> IpGeoAsnMapBase:
-        return cls.model_validate({})
+        return cls.model_validate({})  # pragma: no coverage

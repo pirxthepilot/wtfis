@@ -21,6 +21,7 @@ from wtfis.clients.virustotal import VTClient
 from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
+from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.types import IpGeoAsnMapType
@@ -90,7 +91,7 @@ class BaseHandler(abc.ABC):
 
         # Dataset containers
         self.vt_info: Union[Domain, IpAddress]
-        self.geoasn: IpGeoAsnMapType
+        self.geoasn: IpGeoAsnMapType = IpWhoisMap.empty()  # Default to ipwhois
         self.whois: WhoisBase
         self.shodan: ShodanIpMap = ShodanIpMap.empty()
         self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()

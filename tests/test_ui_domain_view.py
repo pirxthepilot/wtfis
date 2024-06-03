@@ -17,6 +17,7 @@ from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ip2whois import Whois as Ip2Whois
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.passivetotal import Whois as PTWhois
+from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import (
     Domain,
@@ -31,17 +32,18 @@ def view01(test_data, mock_ipwhois_get):
     """ gist.github.com with PT whois. Complete test of all panels. Also test print(). """
     resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
-    ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
-    ipwhois_client = IpWhoisClient()
-    ipwhois_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
-    ip_enrich = ipwhois_client.enrich_ips(*resolutions.ip_list(3))
+    geoasn_pool = json.loads(test_data("ipwhois_gist.json"))
+    geoasn_client = IpWhoisClient()
+    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
 
     return DomainView(
         console=Console(),
         entity=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
         resolutions=resolutions,
+        geoasn=geoasn_enrich,
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
-        ip_enrich=ip_enrich,
+        shodan=ShodanIpMap.model_validate({}),
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=UrlHausMap.model_validate({}),
@@ -58,8 +60,9 @@ def view02(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json"))),
+        geoasn=IpWhoisMap.model_validate({}),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_gist.json"))),
-        ip_enrich=IpWhoisMap.model_validate({}),
+        shodan=ShodanIpMap.model_validate({}),
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
@@ -74,8 +77,9 @@ def view03(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
+        geoasn=MagicMock(),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_bbc.json"))),
-        ip_enrich=MagicMock(),
+        shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
@@ -92,8 +96,9 @@ def view04(test_data):
         console=Console(),
         entity=Domain.model_validate(json.loads(test_data("vt_domain_google.json"))),
         resolutions=None,
+        geoasn=MagicMock(),
         whois=MagicMock(),
-        ip_enrich=MagicMock(),
+        shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
@@ -107,8 +112,9 @@ def view05(test_data):
         console=Console(),
         entity=Domain.model_validate(json.loads(test_data("vt_domain_tucows.json"))),
         resolutions=MagicMock(),
+        geoasn=MagicMock(),
         whois=MagicMock(),
-        ip_enrich=MagicMock(),
+        shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
@@ -122,8 +128,9 @@ def view06(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
+        geoasn=MagicMock(),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_example_2.json"))),
-        ip_enrich=MagicMock(),
+        shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
@@ -131,21 +138,27 @@ def view06(test_data):
 
 
 @pytest.fixture()
-def view07(test_data, mock_shodan_get_ip):
-    """ gist.github.com with Shodan. Only test resolution and IP enrich. """
+def view07(test_data, mock_ipwhois_get, mock_shodan_get_ip):
+    """ gist.github.com with Shodan. Only test resolution, geoasn and Shodan. """
     resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+
+    geoasn_pool = json.loads(test_data("ipwhois_gist.json"))
+    geoasn_client = IpWhoisClient()
+    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
 
     shodan_pool = json.loads(test_data("shodan_gist.json"))
     shodan_client = ShodanClient(MagicMock())
     shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.enrich_ips(*resolutions.ip_list(3))
+    shodan_enrich = shodan_client.enrich_ips(*resolutions.ip_list(3))
 
     return DomainView(
         console=Console(),
         entity=MagicMock(),
         resolutions=resolutions,
+        geoasn=geoasn_enrich,
         whois=MagicMock(),
-        ip_enrich=ip_enrich,
+        shodan=shodan_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
@@ -154,20 +167,21 @@ def view07(test_data, mock_shodan_get_ip):
 
 @pytest.fixture()
 def view08(test_data, mock_shodan_get_ip):
-    """ www.wired.com with Shodan. Only test resolution and IP enrich. """
+    """ www.wired.com with Shodan. Only test resolution and Shodan. """
     resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_wired.json")))
 
     shodan_pool = json.loads(test_data("shodan_wired.json"))
     shodan_client = ShodanClient(MagicMock())
     shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.enrich_ips(*resolutions.ip_list(1))
+    shodan_enrich = shodan_client.enrich_ips(*resolutions.ip_list(1))
 
     return DomainView(
         console=Console(),
         entity=MagicMock(),
         resolutions=resolutions,
+        geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
-        ip_enrich=ip_enrich,
+        shodan=shodan_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
@@ -177,13 +191,13 @@ def view08(test_data, mock_shodan_get_ip):
 
 @pytest.fixture()
 def view09(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get):
-    """ one.one.one.one with Shodan, Greynoise and AbuseIPDB. Only test resolution and IP enrich. """
+    """ one.one.one.one with Shodan, Greynoise and AbuseIPDB. Only test mentioned services. """
     resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_one.json")))
 
     shodan_pool = json.loads(test_data("shodan_one.json"))
     shodan_client = ShodanClient(MagicMock())
     shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.enrich_ips(*resolutions.ip_list(1))
+    shodan_enrich = shodan_client.enrich_ips(*resolutions.ip_list(1))
 
     greynoise_pool = json.loads(test_data("greynoise_one.json"))
     greynoise_client = GreynoiseClient("dummykey")
@@ -199,8 +213,9 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get
         console=Console(),
         entity=MagicMock(),
         resolutions=resolutions,
+        geoasn=MagicMock(),
         whois=MagicMock(),
-        ip_enrich=ip_enrich,
+        shodan=shodan_enrich,
         greynoise=greynoise_enrich,
         abuseipdb=abuseipdb_enrich,
         urlhaus=MagicMock(),
@@ -215,8 +230,9 @@ def view10(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
+        geoasn=MagicMock(),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_foo.json"))),
-        ip_enrich=MagicMock(),
+        shodan=MagicMock(),
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
@@ -225,20 +241,21 @@ def view10(test_data):
 
 @pytest.fixture()
 def view11(test_data, mock_shodan_get_ip):
-    """ gist.github.com with Shodan. Only test IP enrich. Test empty open ports. """
+    """ gist.github.com with Shodan. Only test Shodan. Test empty open ports. """
     resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
     shodan_pool = json.loads(test_data("shodan_gist_2.json"))
     shodan_client = ShodanClient(MagicMock())
     shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
-    ip_enrich = shodan_client.enrich_ips(*resolutions.ip_list(3))
+    shodan_enrich = shodan_client.enrich_ips(*resolutions.ip_list(3))
 
     return DomainView(
         console=Console(),
         entity=MagicMock(),
         resolutions=resolutions,
+        geoasn=MagicMock(),
         whois=MagicMock(),
-        ip_enrich=ip_enrich,
+        shodan=shodan_enrich,
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
@@ -252,8 +269,9 @@ def view12(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
+        geoasn=MagicMock(),
         whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_hotmail.json"))),
-        ip_enrich=MagicMock(),
+        shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
@@ -267,8 +285,9 @@ def view13(test_data):
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
+        geoasn=MagicMock(),
         whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_bbc.json"))),
-        ip_enrich=MagicMock(),
+        shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
@@ -280,10 +299,10 @@ def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
     """ Same as view01() but with Urlhaus enrichment. Test URLhaus only. """
     resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
 
-    ipwhois_pool = json.loads(test_data("ipwhois_gist.json"))
-    ipwhois_client = IpWhoisClient()
-    ipwhois_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, ipwhois_pool))
-    ip_enrich = ipwhois_client.enrich_ips(*resolutions.ip_list(3))
+    geoasn_pool = json.loads(test_data("ipwhois_gist.json"))
+    geoasn_client = IpWhoisClient()
+    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
 
     urlhaus_pool = json.loads(test_data("urlhaus_gist.json"))
     urlhaus_client = UrlHausClient()
@@ -294,8 +313,9 @@ def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
         console=Console(),
         entity=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
         resolutions=resolutions,
+        geoasn=geoasn_enrich,
         whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
-        ip_enrich=ip_enrich,
+        shodan=ShodanIpMap.model_validate({}),
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=urlhaus_enrich,
@@ -952,23 +972,20 @@ class TestView07:
                 spans=[Span(0, 8, "link https://www.shodan.io/host/13.234.210.38")]
             ),
             "Tags:",
-            "Last Scan:",
         ]
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-08-06T14:56:20Z"),
-            Text(
-                "16509 (Amazon Data Services India)",
-                spans=[Span(7, 33, theme.asn_org)]
-            ),
+            Text("16509 (Amazon Data Services India)", spans=[Span(7, 33, "bright_white")]),
             "Amazon.com, Inc.",
             Text(
-                "Mumbai, India",
+                "Mumbai, Maharashtra, India",
                 spans=[
                     Span(6, 8, "default"),
-                ]
+                    Span(19, 21, "default")
+                ],
             ),
             Text(
                 "22/tcp, 80/tcp, 443/tcp",
@@ -989,7 +1006,6 @@ class TestView07:
                     Span(0, 5, 'bright_white on black')
                 ]
             ),
-            display_timestamp("2022-08-21T07:21:05Z")
         ]
 
         # Spacing
@@ -1020,23 +1036,20 @@ class TestView07:
                 "Services:",
                 spans=[Span(0, 8, "link https://www.shodan.io/host/192.30.255.113")]
             ),
-            "Last Scan:",
         ]
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious", spans=[Span(0, 14, theme.error)]),
             display_timestamp("2022-06-21T18:10:54Z"),
-            Text(
-                "36459 (GitHub, Inc.)",
-                spans=[Span(7, 19, theme.asn_org)]
-            ),
+            Text("36459 (GitHub, Inc.)", spans=[Span(7, 19, "bright_white")]),
             "GitHub, Inc.",
             Text(
-                "Seattle, United States",
+                "Seattle, Washington, United States",
                 spans=[
                     Span(7, 9, "default"),
-                ]
+                    Span(19, 21, "default")
+                ],
             ),
             Text(
                 "22/tcp, 80/tcp, 443/tcp",
@@ -1051,7 +1064,6 @@ class TestView07:
                     Span(19, 23, theme.transport)
                 ]
             ),
-            display_timestamp("2022-08-21T22:33:53Z")
         ]
 
         # Spacing
@@ -1086,23 +1098,20 @@ class TestView07:
                 spans=[Span(0, 8, "link https://www.shodan.io/host/13.234.176.102")]
             ),
             "Tags:",
-            "Last Scan:",
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2015-08-17T07:11:53Z"),
-            Text(
-                "16509 (Amazon Data Services India)",
-                spans=[Span(7, 33, theme.asn_org)]
-            ),
+            Text("16509 (Amazon Data Services India)", spans=[Span(7, 33, "bright_white")]),
             "Amazon.com, Inc.",
             Text(
-                "Mumbai, India",
+                "Mumbai, Maharashtra, India",
                 spans=[
                     Span(6, 8, "default"),
-                ]
+                    Span(19, 21, "default")
+                ],
             ),
             Text(
                 "22/tcp, 80/tcp, 443/tcp",
@@ -1123,7 +1132,6 @@ class TestView07:
                     Span(0, 5, 'bright_white on black')
                 ]
             ),
-            display_timestamp("2022-08-21T02:13:35Z")
         ]
 
         # Old timestamp warning
@@ -1167,32 +1175,17 @@ class TestView08:
                 spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/199.232.34.194')],
             ),
             "Resolved:",
-            "ASN:",
-            "ISP:",
-            "Location:",
             Text(
                 "Services:",
                 spans=[Span(0, 8, "link https://www.shodan.io/host/199.232.34.194")]
             ),
             "Tags:",
-            "Last Scan:",
         ]
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
         assert group[1].columns[1]._cells == [
             Text("0/93 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-06-03T22:32:19Z"),
-            Text(
-                "54113 (Fastly, Inc.)",
-                spans=[Span(7, 19, theme.asn_org)]
-            ),
-            "Fastly, Inc.",
-            Text(
-                "Atlanta, United States",
-                spans=[
-                    Span(7, 9, "default"),
-                ]
-            ),
             Text(
                 "Varnish HTTP Cache (80/tcp)\nOther (443/tcp)",
                 spans=[
@@ -1210,7 +1203,6 @@ class TestView08:
                     Span(0, 3, 'bright_white on black'),
                 ]
             ),
-            display_timestamp("2022-08-21T01:33:13Z")
         ]
 
         # Spacing
@@ -1255,14 +1247,10 @@ class TestView09:
                 spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/1.0.0.1')],
             ),
             "Resolved:",
-            "ASN:",
-            "ISP:",
-            "Location:",
             Text(
                 "Services:",
                 spans=[Span(0, 8, "link https://www.shodan.io/host/1.0.0.1")]
             ),
-            "Last Scan:",
             Text(
                 "GreyNoise:",
                 spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.0.0.1")]
@@ -1277,17 +1265,6 @@ class TestView09:
         assert table.columns[1]._cells == [
             Text("2/94 malicious", spans=[Span(0, 14, theme.error)]),
             display_timestamp("2020-08-01T22:07:20Z"),
-            Text(
-                "13335 (APNIC and Cloudflare DNS Resolver project)",
-                spans=[Span(7, 48, theme.asn_org)],
-            ),
-            "Cloudflare, Inc.",
-            Text(
-                "Los Angeles, United States",
-                spans=[
-                    Span(11, 13, "default"),
-                ]
-            ),
             Text(
                 (
                     "CloudFlare (80/tcp, 8080/tcp)\nOther (53/tcp, 53/udp, 443/tcp, 2082/tcp, "
@@ -1323,7 +1300,6 @@ class TestView09:
                     Span(96, 100, theme.transport),
                 ]
             ),
-            display_timestamp("2022-08-22T02:35:34Z"),
             Text(
                 "✓ riot  ✗ noise  ✓ benign",
                 spans=[
@@ -1406,11 +1382,7 @@ class TestView11:
                 spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.210.38')],
             ),
             "Resolved:",
-            "ASN:",
-            "ISP:",
-            "Location:",
             "Tags:",
-            "Last Scan:",
         ]
         assert group[1].columns[1].style == theme.table_value
         assert group[1].columns[1].justify == "left"
@@ -1418,23 +1390,11 @@ class TestView11:
             Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-08-06T14:56:20Z"),
             Text(
-                "16509 (Amazon Data Services India)",
-                spans=[Span(7, 33, theme.asn_org)]
-            ),
-            "Amazon.com, Inc.",
-            Text(
-                "Mumbai, India",
-                spans=[
-                    Span(6, 8, "default"),
-                ]
-            ),
-            Text(
                 "cloud",
                 spans=[
                     Span(0, 5, theme.tags)
                 ]
             ),
-            display_timestamp("2022-08-21T07:21:05Z")
         ]
 
 

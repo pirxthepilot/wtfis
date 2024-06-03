@@ -34,7 +34,7 @@ class DomainView(BaseView):
         console: Console,
         entity: Domain,
         resolutions: Optional[Resolutions],
-        ip_geoasn: IpGeoAsnMapType,
+        geoasn: IpGeoAsnMapType,
         whois: WhoisBase,
         shodan: ShodanIpMap,
         greynoise: GreynoiseIpMap,
@@ -42,7 +42,7 @@ class DomainView(BaseView):
         urlhaus: UrlHausMap,
         max_resolutions: int = 3,
     ) -> None:
-        super().__init__(console, entity, ip_geoasn, whois, shodan, greynoise, abuseipdb, urlhaus)
+        super().__init__(console, entity, geoasn, whois, shodan, greynoise, abuseipdb, urlhaus)
 
         self.resolutions = resolutions
         self.max_resolutions = max_resolutions
@@ -185,19 +185,19 @@ class IpAddressView(BaseView):
         self,
         console: Console,
         entity: IpAddress,
-        ip_geoasn: IpGeoAsnMapType,
+        geoasn: IpGeoAsnMapType,
         whois: WhoisBase,
         shodan: ShodanIpMap,
         greynoise: GreynoiseIpMap,
         abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
     ) -> None:
-        super().__init__(console, entity, ip_geoasn, whois, shodan, greynoise, abuseipdb, urlhaus)
+        super().__init__(console, entity, geoasn, whois, shodan, greynoise, abuseipdb, urlhaus)
 
     def ip_panel(self) -> Panel:
         content = [self._gen_vt_section()]  # VT section
         for section in (
-            self._gen_ip_geoasn_section(),  # IP location and ASN section
+            self._gen_geoasn_section(),     # IP location and ASN section
             self._gen_shodan_section(),     # Shodan section
             self._gen_urlhaus_section(),    # URLhaus section
             self._gen_ip_other_section(),   # Other section
