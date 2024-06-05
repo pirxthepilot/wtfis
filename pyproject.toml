@@ -60,7 +60,9 @@ disable = true
 [tool.hatch.envs.default]
 dependencies = [
     "bandit",
+    "black~=24.4.2",
     "flake8>=7.0.0",
+    "flake8-bugbear~=24.4.6",
     "freezegun",
     "mypy",
     "pytest",
@@ -85,12 +87,16 @@ python = ["38", "39", "310", "311", "312"]
 detached = true
 dependencies = [  # Make sure the respective versions are synced with default!
     "bandit",
-    "flake8>=6.0.0",
+    "black~=24.4.2",
+    "flake8>=7.0.0",
+    "flake8-bugbear~=24.4.6",
 ]
 [tool.hatch.envs.lint.scripts]
-flake = "flake8 {args:wtfis}"
-security = "bandit --quiet -r {args:wtfis}"
+blackcheck = "black --check wtfis tests"
+flake = "flake8 wtfis tests"
+security = "bandit --quiet -r wtfis"
 all = [
+    "blackcheck",
     "flake",
     "security",
 ]
