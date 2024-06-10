@@ -64,6 +64,7 @@ dependencies = [
     "flake8>=7.0.0",
     "flake8-bugbear~=24.4.6",
     "freezegun",
+    "isort~=5.13.2",
     "mypy",
     "pytest",
     "pytest-cov",
@@ -90,16 +91,23 @@ dependencies = [  # Make sure the respective versions are synced with default!
     "black~=24.4.2",
     "flake8>=7.0.0",
     "flake8-bugbear~=24.4.6",
+    "isort~=5.13.2",
 ]
 [tool.hatch.envs.lint.scripts]
-blackcheck = "black --check wtfis tests"
+black_check = "black --check wtfis tests"
+isort_check = "isort --check-only wtfis tests"
 flake = "flake8 wtfis"
 security = "bandit --quiet -r wtfis"
 all = [
-    "blackcheck",
+    "black_check",
+    "isort_check",
     "flake",
     "security",
 ]
+
+# isort
+[tool.isort]
+profile = "black"
 
 # mypy
 [tool.mypy]
