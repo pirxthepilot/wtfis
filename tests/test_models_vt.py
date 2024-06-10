@@ -1,8 +1,6 @@
 import json
-from wtfis.models.virustotal import (
-    Domain,
-    Resolutions,
-)
+
+from wtfis.models.virustotal import Domain, Resolutions
 
 
 class TestVirustotalModels:

@@ -10,7 +10,6 @@ from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.urlhaus import UrlHausMap
 
-
 # IP enrichment map types
 IpEnrichmentType = Union[
     AbuseIpDbMap,

@@ -1,5 +1,6 @@
-from pydantic import Field, field_validator, model_validator
 from typing import List, Optional
+
+from pydantic import Field, field_validator, model_validator
 
 from wtfis.models.base import WhoisBase
 

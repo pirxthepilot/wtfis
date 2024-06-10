@@ -1,10 +1,5 @@
 from wtfis.clients.base import BaseRequestsClient, BaseWhoisClient
-from wtfis.models.virustotal import (
-    Domain,
-    IpAddress,
-    Resolutions,
-    Whois,
-)
+from wtfis.models.virustotal import Domain, IpAddress, Resolutions, Whois
 from wtfis.utils import is_ip
 
 

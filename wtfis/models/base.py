@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import abc
 import sys
+from typing import List, Mapping, Optional
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, RootModel
 from pydantic.v1.validators import str_validator
-from typing import List, Mapping, Optional
 
 if sys.version_info >= (3, 9):
     from typing import Annotated

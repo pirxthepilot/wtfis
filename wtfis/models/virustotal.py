@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field, RootModel, field_validator, model_validator
 from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field, RootModel, field_validator, model_validator
 
 from wtfis.models.base import LaxStr, WhoisBase
 

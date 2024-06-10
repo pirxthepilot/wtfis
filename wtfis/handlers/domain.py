@@ -11,17 +11,15 @@ from rich.progress import Progress
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.types import IpGeoAsnClientType, IpWhoisClientType
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
-
 from wtfis.handlers.base import (
     BaseHandler,
     common_exception_handler,
     failopen_exception_handler,
 )
-
 from wtfis.models.virustotal import Resolutions
-from wtfis.clients.types import IpGeoAsnClientType, IpWhoisClientType
 
 
 class DomainHandler(BaseHandler):

@@ -1,16 +1,8 @@
 import pytest
-
 from freezegun import freeze_time
 from rich.text import Text
 
-from wtfis.utils import (
-    Timestamp,
-    older_than,
-    smart_join,
-    error_and_exit,
-    refang,
-    is_ip,
-)
+from wtfis.utils import Timestamp, error_and_exit, is_ip, older_than, refang, smart_join
 
 
 class TestUtils:

@@ -1,25 +1,18 @@
+from typing import List, Optional, Tuple, Union
+
 from rich.columns import Columns
-from rich.console import (
-    Console,
-    Group,
-    RenderableType,
-)
+from rich.console import Console, Group, RenderableType
 from rich.padding import Padding
 from rich.panel import Panel
 from rich.text import Text
-from typing import List, Optional, Tuple, Union
-from wtfis.models.abuseipdb import AbuseIpDbMap
 
+from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.shodan import ShodanIpMap
-from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.types import IpGeoAsnMapType
-from wtfis.models.virustotal import (
-    Domain,
-    IpAddress,
-    Resolutions,
-)
+from wtfis.models.urlhaus import UrlHausMap
+from wtfis.models.virustotal import Domain, IpAddress, Resolutions
 from wtfis.ui.base import BaseView
 from wtfis.utils import Timestamp, smart_join
 

@@ -1,8 +1,7 @@
-from wtfis.clients.base import BaseIpEnricherClient, BaseRequestsClient
-from wtfis.models.ipwhois import IpWhoisMap
-from wtfis.models.ipwhois import IpWhois
-
 from typing import Optional
+
+from wtfis.clients.base import BaseIpEnricherClient, BaseRequestsClient
+from wtfis.models.ipwhois import IpWhois, IpWhoisMap
 
 
 class IpWhoisClient(BaseRequestsClient, BaseIpEnricherClient):

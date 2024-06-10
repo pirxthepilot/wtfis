@@ -1,6 +1,5 @@
 import re
 import sys
-
 from datetime import datetime, timedelta, timezone
 from ipaddress import ip_address
 from typing import Optional, Union

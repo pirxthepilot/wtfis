@@ -1,5 +1,6 @@
-from requests.exceptions import HTTPError
 from typing import Optional
+
+from requests.exceptions import HTTPError
 
 from wtfis.clients.base import BaseIpEnricherClient, BaseRequestsClient
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap

@@ -1,26 +1,19 @@
 import abc
+from typing import Any, Generator, List, Optional, Tuple, Union
 
-from rich.console import (
-    Console,
-    Group,
-    RenderableType,
-    group,
-)
+from rich.console import Console, Group, RenderableType, group
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from typing import Any, Generator, List, Optional, Tuple, Union
+
 from wtfis.exceptions import WtfisException
 from wtfis.models.abuseipdb import AbuseIpDb, AbuseIpDbMap
 from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
 from wtfis.models.types import IpGeoAsnMapType, IpGeoAsnType
-from wtfis.models.virustotal import (
-    LastAnalysisStats,
-    PopularityRanks,
-)
 from wtfis.models.urlhaus import UrlHaus, UrlHausMap
+from wtfis.models.virustotal import LastAnalysisStats, PopularityRanks
 from wtfis.ui.theme import Theme
 from wtfis.utils import Timestamp, is_ip, smart_join
 

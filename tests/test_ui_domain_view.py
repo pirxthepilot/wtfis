@@ -11,19 +11,16 @@ from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
-from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.clients.urlhaus import UrlHausClient
+from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ip2whois import Whois as Ip2Whois
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.passivetotal import Whois as PTWhois
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.urlhaus import UrlHausMap
-from wtfis.models.virustotal import (
-    Domain,
-    Resolutions,
-    Whois as VTWhois,
-)
+from wtfis.models.virustotal import Domain, Resolutions
+from wtfis.models.virustotal import Whois as VTWhois
 from wtfis.ui.view import DomainView
 
 

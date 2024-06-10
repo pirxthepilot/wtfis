@@ -1,7 +1,7 @@
-import pytest
 from pathlib import Path
 from typing import Optional
 
+import pytest
 from rich.console import RenderableType
 from rich.text import Span, Text
 

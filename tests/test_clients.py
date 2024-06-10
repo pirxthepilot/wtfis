@@ -1,7 +1,7 @@
 import json
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
 from shodan import APIError
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient

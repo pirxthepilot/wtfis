@@ -1,8 +1,8 @@
 import abc
 import json
-import requests
-
 from typing import Optional, Union
+
+import requests
 
 from wtfis.models.base import WhoisBase
 from wtfis.models.types import DomainEnrichmentType, IpEnrichmentType

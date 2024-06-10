@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, RootModel, field_validator
 from typing import Dict, List, Optional, Set
+
+from pydantic import BaseModel, RootModel, field_validator
 
 
 class Blacklists(BaseModel):

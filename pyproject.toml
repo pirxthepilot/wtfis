@@ -96,7 +96,7 @@ dependencies = [  # Make sure the respective versions are synced with default!
 [tool.hatch.envs.lint.scripts]
 black_check = "black --check wtfis tests"
 isort_check = "isort --check-only wtfis tests"
-flake = "flake8 wtfis"
+flake = "flake8 wtfis tests"
 security = "bandit --quiet -r wtfis"
 all = [
     "black_check",

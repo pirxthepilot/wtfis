@@ -1,12 +1,13 @@
 import argparse
 import os
-
 from argparse import Namespace
-from dotenv import load_dotenv
 from pathlib import Path
+from typing import Union
+
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.progress import Progress
-from typing import Union
+
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
@@ -20,10 +21,10 @@ from wtfis.handlers.base import BaseHandler
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
 from wtfis.models.virustotal import Domain, IpAddress
-from wtfis.utils import error_and_exit, is_ip
 from wtfis.ui.base import BaseView
 from wtfis.ui.progress import get_progress
 from wtfis.ui.view import DomainView, IpAddressView
+from wtfis.utils import error_and_exit, is_ip
 from wtfis.version import get_version
 
 

@@ -1,5 +1,6 @@
-from shodan import Shodan
 from typing import Optional
+
+from shodan import Shodan
 
 from wtfis.clients.base import BaseClient, BaseIpEnricherClient
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
