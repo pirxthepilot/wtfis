@@ -29,12 +29,16 @@ from wtfis.ui.view import DomainView
 
 @pytest.fixture()
 def view01(test_data, mock_ipwhois_get):
-    """ gist.github.com with PT whois. Complete test of all panels. Also test print(). """
-    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+    """gist.github.com with PT whois. Complete test of all panels. Also test print()."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_gist.json"))
+    )
 
     geoasn_pool = json.loads(test_data("ipwhois_gist.json"))
     geoasn_client = IpWhoisClient()
-    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_client._get_ipwhois = MagicMock(
+        side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool)
+    )
     geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
 
     return DomainView(
@@ -59,7 +63,9 @@ def view02(test_data):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
-        resolutions=Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json"))),
+        resolutions=Resolutions.model_validate(
+            json.loads(test_data("vt_resolutions_gist.json"))
+        ),
         geoasn=IpWhoisMap.model_validate({}),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_gist.json"))),
         shodan=ShodanIpMap.model_validate({}),
@@ -72,7 +78,7 @@ def view02(test_data):
 
 @pytest.fixture()
 def view03(test_data):
-    """ bbc.co.uk VT whois. Whois panel test only. Test whois with no domain field. """
+    """bbc.co.uk VT whois. Whois panel test only. Test whois with no domain field."""
     return DomainView(
         console=Console(),
         entity=MagicMock(),
@@ -107,7 +113,8 @@ def view04(test_data):
 
 @pytest.fixture()
 def view05(test_data):
-    """ tucows.com domain. Domain test only. Test domain with negative reputation and no popularity."""
+    """tucows.com domain. Domain test only. Test domain with negative reputation and no
+    popularity."""
     return DomainView(
         console=Console(),
         entity=Domain.model_validate(json.loads(test_data("vt_domain_tucows.json"))),
@@ -123,7 +130,7 @@ def view05(test_data):
 
 @pytest.fixture()
 def view06(test_data):
-    """ exmple.com VT whois. Whois test only. Test empty whois_map."""
+    """exmple.com VT whois. Whois test only. Test empty whois_map."""
     return DomainView(
         console=Console(),
         entity=MagicMock(),
@@ -139,17 +146,23 @@ def view06(test_data):
 
 @pytest.fixture()
 def view07(test_data, mock_ipwhois_get, mock_shodan_get_ip):
-    """ gist.github.com with Shodan. Only test resolution, geoasn and Shodan. """
-    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+    """gist.github.com with Shodan. Only test resolution, geoasn and Shodan."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_gist.json"))
+    )
 
     geoasn_pool = json.loads(test_data("ipwhois_gist.json"))
     geoasn_client = IpWhoisClient()
-    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_client._get_ipwhois = MagicMock(
+        side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool)
+    )
     geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
 
     shodan_pool = json.loads(test_data("shodan_gist.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    shodan_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool)
+    )
     shodan_enrich = shodan_client.enrich_ips(*resolutions.ip_list(3))
 
     return DomainView(
@@ -167,12 +180,16 @@ def view07(test_data, mock_ipwhois_get, mock_shodan_get_ip):
 
 @pytest.fixture()
 def view08(test_data, mock_shodan_get_ip):
-    """ www.wired.com with Shodan. Only test resolution and Shodan. """
-    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_wired.json")))
+    """www.wired.com with Shodan. Only test resolution and Shodan."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_wired.json"))
+    )
 
     shodan_pool = json.loads(test_data("shodan_wired.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    shodan_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool)
+    )
     shodan_enrich = shodan_client.enrich_ips(*resolutions.ip_list(1))
 
     return DomainView(
@@ -191,22 +208,31 @@ def view08(test_data, mock_shodan_get_ip):
 
 @pytest.fixture()
 def view09(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get):
-    """ one.one.one.one with Shodan, Greynoise and AbuseIPDB. Only test mentioned services. """
-    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_one.json")))
+    """one.one.one.one with Shodan, Greynoise and AbuseIPDB. Only test mentioned
+    services."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_one.json"))
+    )
 
     shodan_pool = json.loads(test_data("shodan_one.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    shodan_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool)
+    )
     shodan_enrich = shodan_client.enrich_ips(*resolutions.ip_list(1))
 
     greynoise_pool = json.loads(test_data("greynoise_one.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool)
+    )
     greynoise_enrich = greynoise_client.enrich_ips(*resolutions.ip_list(1))
 
     abuseipdb_pool = json.loads(test_data("abuseipdb_one.json"))
     abuseipdb_client = AbuseIpDbClient("dummykey")
-    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
+    abuseipdb_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool)
+    )
     abuseipdb_enrich = abuseipdb_client.enrich_ips(*resolutions.ip_list(1))
 
     return DomainView(
@@ -225,7 +251,7 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get
 
 @pytest.fixture()
 def view10(test_data):
-    """ Dummy VT whois. Whois panel test only. Test whois with no data. """
+    """Dummy VT whois. Whois panel test only. Test whois with no data."""
     return DomainView(
         console=Console(),
         entity=MagicMock(),
@@ -241,12 +267,16 @@ def view10(test_data):
 
 @pytest.fixture()
 def view11(test_data, mock_shodan_get_ip):
-    """ gist.github.com with Shodan. Only test Shodan. Test empty open ports. """
-    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+    """gist.github.com with Shodan. Only test Shodan. Test empty open ports."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_gist.json"))
+    )
 
     shodan_pool = json.loads(test_data("shodan_gist_2.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    shodan_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool)
+    )
     shodan_enrich = shodan_client.enrich_ips(*resolutions.ip_list(3))
 
     return DomainView(
@@ -264,13 +294,15 @@ def view11(test_data, mock_shodan_get_ip):
 
 @pytest.fixture()
 def view12(test_data):
-    """ Dummy IP2WHOIS whois. Whois panel test only. """
+    """Dummy IP2WHOIS whois. Whois panel test only."""
     return DomainView(
         console=Console(),
         entity=MagicMock(),
         resolutions=MagicMock(),
         geoasn=MagicMock(),
-        whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_hotmail.json"))),
+        whois=Ip2Whois.model_validate(
+            json.loads(test_data("ip2whois_whois_hotmail.json"))
+        ),
         shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
@@ -280,7 +312,7 @@ def view12(test_data):
 
 @pytest.fixture()
 def view13(test_data):
-    """ Dummy IP2WHOIS whois. Whois panel test only. Test null registrant. """
+    """Dummy IP2WHOIS whois. Whois panel test only. Test null registrant."""
     return DomainView(
         console=Console(),
         entity=MagicMock(),
@@ -296,17 +328,23 @@ def view13(test_data):
 
 @pytest.fixture()
 def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
-    """ Same as view01() but with Urlhaus enrichment. Test URLhaus only. """
-    resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+    """Same as view01() but with Urlhaus enrichment. Test URLhaus only."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_gist.json"))
+    )
 
     geoasn_pool = json.loads(test_data("ipwhois_gist.json"))
     geoasn_client = IpWhoisClient()
-    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_client._get_ipwhois = MagicMock(
+        side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool)
+    )
     geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
 
     urlhaus_pool = json.loads(test_data("urlhaus_gist.json"))
     urlhaus_client = UrlHausClient()
-    urlhaus_client._get_host = MagicMock(side_effect=lambda domain: mock_urlhaus_get(domain, urlhaus_pool))
+    urlhaus_client._get_host = MagicMock(
+        side_effect=lambda domain: mock_urlhaus_get(domain, urlhaus_pool)
+    )
     urlhaus_enrich = urlhaus_client.enrich_domains("gist.github.com")
 
     return DomainView(
@@ -347,7 +385,9 @@ class TestView01:
         assert table.columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/domain/gist.github.com')],
+                spans=[
+                    Span(0, 8, "link https://virustotal.com/gui/domain/gist.github.com")
+                ],
             ),
             "Reputation:",
             "Popularity:",
@@ -367,10 +407,13 @@ class TestView01:
                     Span(10, 13, "cyan"),
                     Span(15, 29, "bright_cyan"),
                     Span(31, 36, "cyan"),
-                ]
+                ],
             ),
             Text(
-                "advice, file sharing/storage, information technology, media sharing, social networks",
+                (
+                    "advice, file sharing/storage, information technology, "
+                    "media sharing, social networks"
+                ),
                 spans=[
                     Span(0, 6, "bright_white on black"),
                     Span(6, 8, "default"),
@@ -381,7 +424,7 @@ class TestView01:
                     Span(54, 67, "bright_white on black"),
                     Span(67, 69, "default"),
                     Span(69, 84, "bright_white on black"),
-                ]
+                ],
             ),
             display_timestamp("2022-08-16T06:14:59Z"),
             display_timestamp("2022-08-15T22:25:30Z"),
@@ -417,7 +460,11 @@ class TestView01:
         assert group[1].columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.210.38')],
+                spans=[
+                    Span(
+                        0, 8, "link https://virustotal.com/gui/ip-address/13.234.210.38"
+                    )
+                ],
             ),
             "Resolved:",
             "ASN:",
@@ -430,8 +477,7 @@ class TestView01:
             Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-08-06T14:56:20Z"),
             Text(
-                "16509 (Amazon Data Services India)",
-                spans=[Span(7, 33, theme.asn_org)]
+                "16509 (Amazon Data Services India)", spans=[Span(7, 33, theme.asn_org)]
             ),
             "Amazon.com, Inc.",
             Text(
@@ -439,8 +485,8 @@ class TestView01:
                 spans=[
                     Span(6, 8, "default"),
                     Span(19, 21, "default"),
-                ]
-            )
+                ],
+            ),
         ]
 
         # Spacing
@@ -461,7 +507,13 @@ class TestView01:
         assert group[1].columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/192.30.255.113')],
+                spans=[
+                    Span(
+                        0,
+                        8,
+                        "link https://virustotal.com/gui/ip-address/192.30.255.113",
+                    )
+                ],
             ),
             "Resolved:",
             "ASN:",
@@ -473,18 +525,15 @@ class TestView01:
         assert group[1].columns[1]._cells == [
             Text("1/94 malicious", spans=[Span(0, 14, theme.error)]),
             display_timestamp("2022-06-21T18:10:54Z"),
-            Text(
-                "36459 (GitHub, Inc.)",
-                spans=[Span(7, 19, theme.asn_org)]
-            ),
+            Text("36459 (GitHub, Inc.)", spans=[Span(7, 19, theme.asn_org)]),
             "GitHub, Inc.",
             Text(
                 "Seattle, Washington, United States",
                 spans=[
                     Span(7, 9, "default"),
                     Span(19, 21, "default"),
-                ]
-            )
+                ],
+            ),
         ]
 
         # Spacing
@@ -499,8 +548,8 @@ class TestView01:
             spans=[Span(0, 14, theme.heading_h2)],
         )
 
-        # Unlike the previous entries, the table is inside a group of (Table, Text) due to
-        # old timestamp warning
+        # Unlike the previous entries, the table is inside a group of (Table, Text)
+        # due to old timestamp warning
         # table = group[1].renderables[0]
         table = group[1]
         assert table.columns[0].style == theme.table_field
@@ -508,7 +557,13 @@ class TestView01:
         assert table.columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.176.102')],
+                spans=[
+                    Span(
+                        0,
+                        8,
+                        "link https://virustotal.com/gui/ip-address/13.234.176.102",
+                    )
+                ],
             ),
             "Resolved:",
             "ASN:",
@@ -521,8 +576,7 @@ class TestView01:
             Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2015-08-17T07:11:53Z"),
             Text(
-                "16509 (Amazon Data Services India)",
-                spans=[Span(7, 33, theme.asn_org)]
+                "16509 (Amazon Data Services India)", spans=[Span(7, 33, theme.asn_org)]
             ),
             "Amazon.com, Inc.",
             Text(
@@ -530,8 +584,8 @@ class TestView01:
                 spans=[
                     Span(6, 8, "default"),
                     Span(19, 21, "default"),
-                ]
-            )
+                ],
+            ),
         ]
 
         # Old timestamp warning
@@ -540,7 +594,9 @@ class TestView01:
         # Spacing and remaining count footer
         assert res.renderable.renderables[6] == ""
         assert str(footer) == "+34 more"
-        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
+        assert footer.spans[0].style.startswith(
+            f"{theme.footer} link https://virustotal.com/gui/domain/"
+        )
 
     def test_whois_panel(self, view01, theme, display_timestamp):
         whois = view01.whois_panel()
@@ -558,7 +614,16 @@ class TestView01:
         # Content
         assert content.renderables[0] == Text(
             "github.com",
-            spans=[Span(0, 10, 'bold yellow link https://community.riskiq.com/search/github.com/whois')]
+            spans=[
+                Span(
+                    0,
+                    10,
+                    (
+                        "bold yellow link "
+                        "https://community.riskiq.com/search/github.com/whois"
+                    ),
+                )
+            ],
         )
 
         table = content.renderables[1]
@@ -585,10 +650,7 @@ class TestView01:
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             "MarkMonitor Inc.",
-            Text(
-                "GitHub, Inc.",
-                spans=[]
-            ),
+            Text("GitHub, Inc.", spans=[]),
             "N/A",
             "abusecomplaints@markmonitor.com",
             "+1.5555555",
@@ -598,8 +660,12 @@ class TestView01:
             "US",
             "00000",
             Text(
-                ("dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, dns4.p08.nsone.net, "
-                 "ns-1283.awsdns-32.org, ns-1707.awsdns-21.co.uk, ns-421.awsdns-52.com, ns-520.awsdns-01.net"),
+                (
+                    "dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, "
+                    "dns4.p08.nsone.net, ns-1283.awsdns-32.org, "
+                    "ns-1707.awsdns-21.co.uk, ns-421.awsdns-52.com, "
+                    "ns-520.awsdns-01.net"
+                ),
                 spans=[
                     Span(0, 18, theme.nameserver_list),
                     Span(18, 20, "default"),
@@ -615,8 +681,8 @@ class TestView01:
                     Span(126, 128, "default"),
                     Span(128, 148, theme.nameserver_list),
                     Span(148, 150, "default"),
-                    Span(150, 170, theme.nameserver_list)
-                ]
+                    Span(150, 170, theme.nameserver_list),
+                ],
             ),
             display_timestamp("2007-10-09T18:20:50Z"),
             display_timestamp("2020-09-08T09:18:27Z"),
@@ -665,7 +731,11 @@ class TestView02:
         assert group[1].columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.210.38')],
+                spans=[
+                    Span(
+                        0, 8, "link https://virustotal.com/gui/ip-address/13.234.210.38"
+                    )
+                ],
             ),
             "Resolved:",
         ]
@@ -679,7 +749,9 @@ class TestView02:
         # Spacing and remaining count footer
         assert res.renderable.renderables[2] == ""
         assert str(footer) == "+36 more"
-        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
+        assert footer.spans[0].style.startswith(
+            f"{theme.footer} link https://virustotal.com/gui/domain/"
+        )
 
     def test_whois_panel(self, view02, theme):
         whois = view02.whois_panel()
@@ -696,8 +768,7 @@ class TestView02:
 
         # Content
         assert content.renderables[0] == Text(
-            "github.com",
-            spans=[Span(0, 10, 'bold yellow')]
+            "github.com", spans=[Span(0, 10, "bold yellow")]
         )
 
         table = content.renderables[1]
@@ -714,7 +785,9 @@ class TestView02:
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
-        assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
+        assert [
+            str(c) for c in table.columns[1]._cells
+        ] == [  # Just test the strings (no style)
             "MarkMonitor Inc.",
             "dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, "
             "dns4.p08.nsone.net, ns-1283.awsdns-32.org, ns-1707.awsdns-21.co.uk, "
@@ -786,7 +859,7 @@ class TestView04:
         assert table.columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/domain/google.com')],
+                spans=[Span(0, 8, "link https://virustotal.com/gui/domain/google.com")],
             ),
             "Reputation:",
             "Popularity:",
@@ -802,11 +875,14 @@ class TestView04:
                 spans=[
                     Span(0, 14, theme.error),
                     Span(15, 20, "cyan"),
-                ]
+                ],
             ),
             Text("448"),
             Text(
-                "Majestic (1)\nStatvoo (1)\nAlexa (1)\nCisco Umbrella (2)\nQuantcast (1)",
+                (
+                    "Majestic (1)\nStatvoo (1)\nAlexa (1)\nCisco Umbrella (2)\n"
+                    "Quantcast (1)"
+                ),
                 spans=[
                     Span(0, 8, "bright_cyan"),
                     Span(10, 11, "cyan"),
@@ -818,10 +894,13 @@ class TestView04:
                     Span(51, 52, "cyan"),
                     Span(54, 63, "bright_cyan"),
                     Span(65, 66, "cyan"),
-                ]
+                ],
             ),
             Text(
-                "mobile communications, portals, search engines, search engines and portals, searchengines",
+                (
+                    "mobile communications, portals, search engines, "
+                    "search engines and portals, searchengines"
+                ),
                 spans=[
                     Span(0, 21, "bright_white on black"),
                     Span(21, 23, "default"),
@@ -832,7 +911,7 @@ class TestView04:
                     Span(48, 74, "bright_white on black"),
                     Span(74, 76, "default"),
                     Span(76, 89, "bright_white on black"),
-                ]
+                ],
             ),
             display_timestamp("2022-08-17T06:03:03Z"),
             display_timestamp("2022-08-17T00:35:19Z"),
@@ -867,7 +946,7 @@ class TestView05:
         assert table.columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/domain/tucows.com')],
+                spans=[Span(0, 8, "link https://virustotal.com/gui/domain/tucows.com")],
             ),
             "Reputation:",
             "Categories:",
@@ -882,13 +961,14 @@ class TestView05:
                 spans=[
                     Span(0, 14, theme.error),
                     Span(15, 21, "cyan"),
-                ]
+                ],
             ),
             Text("-1"),
             Text(
                 (
-                    "ads/analytics, dynamic dns and isp sites, hosting, information technology, "
-                    "known infection source, mobile communications, not recommended site"
+                    "ads/analytics, dynamic dns and isp sites, hosting, "
+                    "information technology, known infection source, "
+                    "mobile communications, not recommended site"
                 ),
                 spans=[
                     Span(0, 13, "bright_white on black"),
@@ -904,7 +984,7 @@ class TestView05:
                     Span(99, 120, "bright_white on black"),
                     Span(120, 122, "default"),
                     Span(122, 142, "bright_white on black"),
-                ]
+                ],
             ),
             display_timestamp("2022-08-17T05:30:23Z"),
             display_timestamp("2022-08-16T22:24:18Z"),
@@ -961,7 +1041,11 @@ class TestView07:
         assert group[1].columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.210.38')],
+                spans=[
+                    Span(
+                        0, 8, "link https://virustotal.com/gui/ip-address/13.234.210.38"
+                    )
+                ],
             ),
             "Resolved:",
             "ASN:",
@@ -969,7 +1053,7 @@ class TestView07:
             "Location:",
             Text(
                 "Services:",
-                spans=[Span(0, 8, "link https://www.shodan.io/host/13.234.210.38")]
+                spans=[Span(0, 8, "link https://www.shodan.io/host/13.234.210.38")],
             ),
             "Tags:",
         ]
@@ -978,14 +1062,14 @@ class TestView07:
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-08-06T14:56:20Z"),
-            Text("16509 (Amazon Data Services India)", spans=[Span(7, 33, "bright_white")]),
+            Text(
+                "16509 (Amazon Data Services India)",
+                spans=[Span(7, 33, "bright_white")],
+            ),
             "Amazon.com, Inc.",
             Text(
                 "Mumbai, Maharashtra, India",
-                spans=[
-                    Span(6, 8, "default"),
-                    Span(19, 21, "default")
-                ],
+                spans=[Span(6, 8, "default"), Span(19, 21, "default")],
             ),
             Text(
                 "22/tcp, 80/tcp, 443/tcp",
@@ -998,14 +1082,9 @@ class TestView07:
                     Span(14, 16, "default"),
                     Span(16, 19, theme.port),
                     Span(19, 23, theme.transport),
-                ]
+                ],
             ),
-            Text(
-                "cloud",
-                spans=[
-                    Span(0, 5, 'bright_white on black')
-                ]
-            ),
+            Text("cloud", spans=[Span(0, 5, "bright_white on black")]),
         ]
 
         # Spacing
@@ -1026,7 +1105,13 @@ class TestView07:
         assert group[1].columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/192.30.255.113')],
+                spans=[
+                    Span(
+                        0,
+                        8,
+                        "link https://virustotal.com/gui/ip-address/192.30.255.113",
+                    )
+                ],
             ),
             "Resolved:",
             "ASN:",
@@ -1034,7 +1119,7 @@ class TestView07:
             "Location:",
             Text(
                 "Services:",
-                spans=[Span(0, 8, "link https://www.shodan.io/host/192.30.255.113")]
+                spans=[Span(0, 8, "link https://www.shodan.io/host/192.30.255.113")],
             ),
         ]
         assert group[1].columns[1].style == theme.table_value
@@ -1046,10 +1131,7 @@ class TestView07:
             "GitHub, Inc.",
             Text(
                 "Seattle, Washington, United States",
-                spans=[
-                    Span(7, 9, "default"),
-                    Span(19, 21, "default")
-                ],
+                spans=[Span(7, 9, "default"), Span(19, 21, "default")],
             ),
             Text(
                 "22/tcp, 80/tcp, 443/tcp",
@@ -1061,8 +1143,8 @@ class TestView07:
                     Span(10, 14, theme.transport),
                     Span(14, 16, "default"),
                     Span(16, 19, theme.port),
-                    Span(19, 23, theme.transport)
-                ]
+                    Span(19, 23, theme.transport),
+                ],
             ),
         ]
 
@@ -1078,8 +1160,8 @@ class TestView07:
             spans=[Span(0, 14, theme.heading_h2)],
         )
 
-        # Unlike the previous entries, the table is inside a group of (Table, Text) due to
-        # old timestamp warning
+        # Unlike the previous entries, the table is inside a group of (Table, Text) due
+        # to old timestamp warning
         # table = group[1].renderables[0]
         table = group[1]
         assert table.columns[0].style == theme.table_field
@@ -1087,7 +1169,13 @@ class TestView07:
         assert table.columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.176.102')],
+                spans=[
+                    Span(
+                        0,
+                        8,
+                        "link https://virustotal.com/gui/ip-address/13.234.176.102",
+                    )
+                ],
             ),
             "Resolved:",
             "ASN:",
@@ -1095,7 +1183,7 @@ class TestView07:
             "Location:",
             Text(
                 "Services:",
-                spans=[Span(0, 8, "link https://www.shodan.io/host/13.234.176.102")]
+                spans=[Span(0, 8, "link https://www.shodan.io/host/13.234.176.102")],
             ),
             "Tags:",
         ]
@@ -1104,14 +1192,14 @@ class TestView07:
         assert table.columns[1]._cells == [
             Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2015-08-17T07:11:53Z"),
-            Text("16509 (Amazon Data Services India)", spans=[Span(7, 33, "bright_white")]),
+            Text(
+                "16509 (Amazon Data Services India)",
+                spans=[Span(7, 33, "bright_white")],
+            ),
             "Amazon.com, Inc.",
             Text(
                 "Mumbai, Maharashtra, India",
-                spans=[
-                    Span(6, 8, "default"),
-                    Span(19, 21, "default")
-                ],
+                spans=[Span(6, 8, "default"), Span(19, 21, "default")],
             ),
             Text(
                 "22/tcp, 80/tcp, 443/tcp",
@@ -1124,14 +1212,9 @@ class TestView07:
                     Span(14, 16, "default"),
                     Span(16, 19, theme.port),
                     Span(19, 23, theme.transport),
-                ]
+                ],
             ),
-            Text(
-                "cloud",
-                spans=[
-                    Span(0, 5, 'bright_white on black')
-                ]
-            ),
+            Text("cloud", spans=[Span(0, 5, "bright_white on black")]),
         ]
 
         # Old timestamp warning
@@ -1140,7 +1223,9 @@ class TestView07:
         # Spacing and remaining count footer
         assert res.renderable.renderables[6] == ""
         assert str(footer) == "+34 more"
-        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
+        assert footer.spans[0].style.startswith(
+            f"{theme.footer} link https://virustotal.com/gui/domain/"
+        )
 
 
 class TestView08:
@@ -1172,12 +1257,18 @@ class TestView08:
         assert group[1].columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/199.232.34.194')],
+                spans=[
+                    Span(
+                        0,
+                        8,
+                        "link https://virustotal.com/gui/ip-address/199.232.34.194",
+                    )
+                ],
             ),
             "Resolved:",
             Text(
                 "Services:",
-                spans=[Span(0, 8, "link https://www.shodan.io/host/199.232.34.194")]
+                spans=[Span(0, 8, "link https://www.shodan.io/host/199.232.34.194")],
             ),
             "Tags:",
         ]
@@ -1195,13 +1286,13 @@ class TestView08:
                     Span(28, 33, theme.product),
                     Span(35, 38, theme.port),
                     Span(38, 42, theme.transport),
-                ]
+                ],
             ),
             Text(
                 "cdn",
                 spans=[
-                    Span(0, 3, 'bright_white on black'),
-                ]
+                    Span(0, 3, "bright_white on black"),
+                ],
             ),
         ]
 
@@ -1210,7 +1301,9 @@ class TestView08:
 
         # Footer
         assert str(footer) == "+199 more"
-        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
+        assert footer.spans[0].style.startswith(
+            f"{theme.footer} link https://virustotal.com/gui/domain/"
+        )
 
 
 class TestView09:
@@ -1244,20 +1337,22 @@ class TestView09:
         assert table.columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/1.0.0.1')],
+                spans=[
+                    Span(0, 8, "link https://virustotal.com/gui/ip-address/1.0.0.1")
+                ],
             ),
             "Resolved:",
             Text(
                 "Services:",
-                spans=[Span(0, 8, "link https://www.shodan.io/host/1.0.0.1")]
+                spans=[Span(0, 8, "link https://www.shodan.io/host/1.0.0.1")],
             ),
             Text(
                 "GreyNoise:",
-                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.0.0.1")]
+                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.0.0.1")],
             ),
             Text(
                 "AbuseIPDB:",
-                spans=[Span(0, 9, "link https://www.abuseipdb.com/check/1.0.0.1")]
+                spans=[Span(0, 9, "link https://www.abuseipdb.com/check/1.0.0.1")],
             ),
         ]
         assert table.columns[1].style == theme.table_value
@@ -1267,8 +1362,8 @@ class TestView09:
             display_timestamp("2020-08-01T22:07:20Z"),
             Text(
                 (
-                    "CloudFlare (80/tcp, 8080/tcp)\nOther (53/tcp, 53/udp, 443/tcp, 2082/tcp, "
-                    "2086/tcp, 2087/tcp, 8443/tcp)"
+                    "CloudFlare (80/tcp, 8080/tcp)\nOther (53/tcp, 53/udp, 443/tcp, "
+                    "2082/tcp, 2086/tcp, 2087/tcp, 8443/tcp)"
                 ),
                 spans=[
                     Span(0, 10, theme.product),
@@ -1298,7 +1393,7 @@ class TestView09:
                     Span(90, 92, "default"),
                     Span(92, 96, theme.port),
                     Span(96, 100, theme.transport),
-                ]
+                ],
             ),
             Text(
                 "✓ riot  ✗ noise  ✓ benign",
@@ -1309,7 +1404,7 @@ class TestView09:
                     Span(10, 15, theme.tags),
                     Span(17, 18, theme.info),
                     Span(19, 25, theme.tags_green),
-                ]
+                ],
             ),
             Text(
                 "100 confidence score (567 reports)",
@@ -1317,7 +1412,7 @@ class TestView09:
                     Span(0, 3, theme.error),
                     Span(3, 20, "red"),
                     Span(20, 34, theme.table_value),
-                ]
+                ],
             ),
         ]
 
@@ -1329,7 +1424,9 @@ class TestView09:
 
         # Footer
         assert str(footer) == "+1 more"
-        assert footer.spans[0].style.startswith(f"{theme.footer} link https://virustotal.com/gui/domain/")
+        assert footer.spans[0].style.startswith(
+            f"{theme.footer} link https://virustotal.com/gui/domain/"
+        )
 
 
 class TestView10:
@@ -1379,7 +1476,11 @@ class TestView11:
         assert group[1].columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/13.234.210.38')],
+                spans=[
+                    Span(
+                        0, 8, "link https://virustotal.com/gui/ip-address/13.234.210.38"
+                    )
+                ],
             ),
             "Resolved:",
             "Tags:",
@@ -1389,12 +1490,7 @@ class TestView11:
         assert group[1].columns[1]._cells == [
             Text("0/94 malicious", spans=[Span(0, 14, theme.info)]),
             display_timestamp("2022-08-06T14:56:20Z"),
-            Text(
-                "cloud",
-                spans=[
-                    Span(0, 5, theme.tags)
-                ]
-            ),
+            Text("cloud", spans=[Span(0, 5, theme.tags)]),
         ]
 
 
@@ -1414,8 +1510,7 @@ class TestView12:
 
         # Content
         assert content.renderables[0] == Text(
-            "hotmail.com",
-            spans=[Span(0, 11, "bold yellow")]
+            "hotmail.com", spans=[Span(0, 11, "bold yellow")]
         )
 
         # Table
@@ -1441,7 +1536,9 @@ class TestView12:
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
-        assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
+        assert [
+            str(c) for c in table.columns[1]._cells
+        ] == [  # Just test the strings (no style)
             "MarkMonitor, Inc.",
             "Microsoft Corporation",
             "Domain Administrator",
@@ -1452,8 +1549,10 @@ class TestView12:
             "WA",
             "US",
             "98052",
-            ("ns4-205.azure-dns.info, ns3-205.azure-dns.org, ns1-205.azure-dns.com, "
-             "ns2-205.azure-dns.net"),
+            (
+                "ns4-205.azure-dns.info, ns3-205.azure-dns.org, ns1-205.azure-dns.com, "
+                "ns2-205.azure-dns.net"
+            ),
             "1996-03-27T05:00:00Z",
             "2021-02-02T17:08:19Z",
             "2024-03-27T07:00:00Z",
@@ -1487,7 +1586,9 @@ class TestView13:
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
-        assert [str(c) for c in table.columns[1]._cells] == [  # Just test the strings (no style)
+        assert [
+            str(c) for c in table.columns[1]._cells
+        ] == [  # Just test the strings (no style)
             "1996-08-01T00:00:00Z",
             "2020-12-10T00:00:00Z",
             "2025-12-13T00:00:00Z",
@@ -1511,7 +1612,9 @@ class TestView14:
         assert table.columns[0]._cells == [
             Text(
                 "Malware URLs:",
-                spans=[Span(0, 12, "link https://urlhaus.abuse.ch/host/gist.github.com/")],
+                spans=[
+                    Span(0, 12, "link https://urlhaus.abuse.ch/host/gist.github.com/")
+                ],
             ),
             "Blocklists:",
             "Tags:",
@@ -1533,7 +1636,7 @@ class TestView14:
                     Span(24, 32, theme.urlhaus_bl_name),
                     Span(33, 39, theme.urlhaus_bl_high),
                     Span(43, 48, theme.urlhaus_bl_name),
-                ]
+                ],
             ),
             Text(
                 "Pikabot, TA577, foo, zip",
@@ -1545,6 +1648,6 @@ class TestView14:
                     Span(16, 19, theme.tags),
                     Span(19, 21, "default"),
                     Span(21, 24, theme.tags),
-                ]
+                ],
             ),
         ]

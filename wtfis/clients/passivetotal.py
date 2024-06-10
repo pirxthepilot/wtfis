@@ -7,6 +7,7 @@ class PTClient(BaseRequestsClient, BaseWhoisClient):
     """
     Passivetotal client
     """
+
     baseurl = "https://api.riskiq.net/pt/v2"
 
     def __init__(self, api_user: str, api_key: str) -> None:
@@ -18,10 +19,7 @@ class PTClient(BaseRequestsClient, BaseWhoisClient):
         return "Passivetotal"
 
     def _query(self, path: str, query: str) -> dict:
-        return self._get(
-            path,
-            params={"query": query}
-        )
+        return self._get(path, params={"query": query})
 
     def get_passive_dns(self, domain: str) -> dict:
         return self._query("/dns/passive", refang(domain))

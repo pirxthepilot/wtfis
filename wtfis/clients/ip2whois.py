@@ -9,6 +9,7 @@ class Ip2WhoisClient(BaseRequestsClient, BaseWhoisClient):
     """
     IP2WHOIS client
     """
+
     baseurl = "https://api.ip2whois.com/v2"
 
     def __init__(self, api_key: str) -> None:
@@ -29,10 +30,9 @@ class Ip2WhoisClient(BaseRequestsClient, BaseWhoisClient):
         try:
             return Whois.model_validate(self._get("/", params))
         except HTTPError as e:
-            if (
-                e.response.status_code == 404 or
-                (e.response.status_code == 400 and
-                 e.response.json().get("error", {})["error_code"] == 10007)
+            if e.response.status_code == 404 or (
+                e.response.status_code == 400
+                and e.response.json().get("error", {})["error_code"] == 10007
             ):
                 return Whois.model_validate({})
             raise

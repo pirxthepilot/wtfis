@@ -8,6 +8,7 @@ class AbuseIpDbClient(BaseRequestsClient, BaseIpEnricherClient):
     """
     AbuseIPDB client
     """
+
     baseurl = "https://api.abuseipdb.com/api/v2"
 
     def __init__(self, api_key: str) -> None:

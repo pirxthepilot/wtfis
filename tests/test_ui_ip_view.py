@@ -24,33 +24,50 @@ from wtfis.ui.view import IpAddressView
 
 
 @pytest.fixture()
-def view01(test_data, mock_abuseipdb_get, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get, mock_urlhaus_get):
-    """ 1.1.1.1 with PT whois. Complete test of all panels. Also test print(). """
+def view01(
+    test_data,
+    mock_abuseipdb_get,
+    mock_ipwhois_get,
+    mock_shodan_get_ip,
+    mock_greynoise_get,
+    mock_urlhaus_get,
+):
+    """1.1.1.1 with PT whois. Complete test of all panels. Also test print()."""
     ip = "1.1.1.1"
 
     geoasn_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
     geoasn_client = IpWhoisClient()
-    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_client._get_ipwhois = MagicMock(
+        side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool)
+    )
     geoasn_enrich = geoasn_client.enrich_ips(ip)
 
     shodan_pool = json.loads(test_data("shodan_1.1.1.1.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    shodan_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool)
+    )
     shodan_enrich = shodan_client.enrich_ips(ip)
 
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool)
+    )
     greynoise_enrich = greynoise_client.enrich_ips(ip)
 
     abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_red.json"))
     abuseipdb_client = AbuseIpDbClient("dummykey")
-    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
+    abuseipdb_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool)
+    )
     abuseipdb_enrich = abuseipdb_client.enrich_ips(ip)
 
     urlhaus_pool = json.loads(test_data("urlhaus_1.1.1.1.json"))
     urlhaus_client = UrlHausClient()
-    urlhaus_client._get_host = MagicMock(side_effect=lambda ip: mock_urlhaus_get(ip, urlhaus_pool))
+    urlhaus_client._get_host = MagicMock(
+        side_effect=lambda ip: mock_urlhaus_get(ip, urlhaus_pool)
+    )
     urlhaus_enrich = urlhaus_client.enrich_ips(ip)
 
     return IpAddressView(
@@ -67,21 +84,27 @@ def view01(test_data, mock_abuseipdb_get, mock_ipwhois_get, mock_shodan_get_ip, 
 
 @pytest.fixture()
 def view02(test_data, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get):
-    """ 1.1.1.1 with Shodan and Greynoise. Test the whole IP panel. """
+    """1.1.1.1 with Shodan and Greynoise. Test the whole IP panel."""
     ip = "1.1.1.1"
     geoasn_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
     geoasn_client = IpWhoisClient()
-    geoasn_client._get_ipwhois = MagicMock(side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool))
+    geoasn_client._get_ipwhois = MagicMock(
+        side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool)
+    )
     geoasn_enrich = geoasn_client.enrich_ips(ip)
 
     shodan_pool = json.loads(test_data("shodan_1.1.1.1.json"))
     shodan_client = ShodanClient(MagicMock())
-    shodan_client._get_ip = MagicMock(side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool))
+    shodan_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_shodan_get_ip(ip, shodan_pool)
+    )
     shodan_enrich = shodan_client.enrich_ips(ip)
 
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool)
+    )
     greynoise_enrich = greynoise_client.enrich_ips(ip)
 
     return IpAddressView(
@@ -98,7 +121,7 @@ def view02(test_data, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get):
 
 @pytest.fixture()
 def view03(test_data):
-    """ 1.1.1.1 VT whois. Whois panel test only."""
+    """1.1.1.1 VT whois. Whois panel test only."""
     return IpAddressView(
         console=Console(),
         entity=MagicMock(),
@@ -119,7 +142,9 @@ def view04(test_data):
     """
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_142.251.220.110.json"))),
+        entity=IpAddress.model_validate(
+            json.loads(test_data("vt_ip_142.251.220.110.json"))
+        ),
         geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
         shodan=MagicMock(),
@@ -131,11 +156,13 @@ def view04(test_data):
 
 @pytest.fixture()
 def view05(test_data, mock_greynoise_get):
-    """ 1.1.1.1 with alt Greynoise results. Test Greynoise only. """
+    """1.1.1.1 with alt Greynoise results. Test Greynoise only."""
     ip = "1.1.1.1"
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1_malicious.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool)
+    )
     greynoise_enrich = greynoise_client.enrich_ips(ip)
 
     return IpAddressView(
@@ -152,11 +179,14 @@ def view05(test_data, mock_greynoise_get):
 
 @pytest.fixture()
 def view06(test_data, mock_greynoise_get):
-    """ 1.1.1.1 with another alt Greynoise result (unknown class). Test Greynoise only. """
+    """1.1.1.1 with another alt Greynoise result (unknown class).
+    Test Greynoise only."""
     ip = "1.1.1.1"
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1_unknown.json"))
     greynoise_client = GreynoiseClient("dummykey")
-    greynoise_client._get_ip = MagicMock(side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool))
+    greynoise_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_greynoise_get(ip, greynoise_pool)
+    )
     greynoise_enrich = greynoise_client.enrich_ips(ip)
 
     return IpAddressView(
@@ -173,11 +203,13 @@ def view06(test_data, mock_greynoise_get):
 
 @pytest.fixture()
 def view07(test_data, mock_abuseipdb_get):
-    """ 1.1.1.1 with green AbuseIPDB score. Test AbuseIPDB only. """
+    """1.1.1.1 with green AbuseIPDB score. Test AbuseIPDB only."""
     ip = "1.1.1.1"
     abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_green.json"))
     abuseipdb_client = AbuseIpDbClient("dummykey")
-    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
+    abuseipdb_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool)
+    )
     abuseipdb_enrich = abuseipdb_client.enrich_ips(ip)
 
     return IpAddressView(
@@ -194,11 +226,13 @@ def view07(test_data, mock_abuseipdb_get):
 
 @pytest.fixture()
 def view08(test_data, mock_abuseipdb_get):
-    """ 1.1.1.1 with yellow AbuseIPDB score. Test AbuseIPDB only. """
+    """1.1.1.1 with yellow AbuseIPDB score. Test AbuseIPDB only."""
     ip = "1.1.1.1"
     abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_yellow.json"))
     abuseipdb_client = AbuseIpDbClient("dummykey")
-    abuseipdb_client._get_ip = MagicMock(side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool))
+    abuseipdb_client._get_ip = MagicMock(
+        side_effect=lambda ip: mock_abuseipdb_get(ip, abuseipdb_pool)
+    )
     abuseipdb_enrich = abuseipdb_client.enrich_ips(ip)
 
     return IpAddressView(
@@ -248,7 +282,9 @@ class TestView01:
         assert table.columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/1.1.1.1')],
+                spans=[
+                    Span(0, 8, "link https://virustotal.com/gui/ip-address/1.1.1.1")
+                ],
             ),
             "Reputation:",
             "Updated:",
@@ -257,9 +293,12 @@ class TestView01:
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text(
-                "4/94 malicious\nCMC Threat Intelligence, Comodo Valkyrie Verdict, CRDF, Blueliv",
+                (
+                    "4/94 malicious\nCMC Threat Intelligence, Comodo Valkyrie Verdict, "
+                    "CRDF, Blueliv"
+                ),
                 spans=[
-                    Span(0,  14, theme.error),
+                    Span(0, 14, theme.error),
                     Span(15, 38, theme.vendor_list),
                     Span(38, 40, "default"),
                     Span(40, 63, theme.vendor_list),
@@ -267,7 +306,7 @@ class TestView01:
                     Span(65, 69, theme.vendor_list),
                     Span(69, 71, "default"),
                     Span(71, 78, theme.vendor_list),
-                ]
+                ],
             ),
             Text("134"),
             display_timestamp("2022-09-03T06:47:04Z"),
@@ -304,7 +343,7 @@ class TestView01:
                 spans=[
                     Span(6, 8, "default"),
                     Span(23, 25, "default"),
-                ]
+                ],
             ),
         ]
 
@@ -324,7 +363,7 @@ class TestView01:
         assert table.columns[0]._cells == [
             Text(
                 "Services:",
-                spans=[Span(0, 8, 'link https://www.shodan.io/host/1.1.1.1')],
+                spans=[Span(0, 8, "link https://www.shodan.io/host/1.1.1.1")],
             ),
             "Last Scan:",
         ]
@@ -333,9 +372,11 @@ class TestView01:
         assert table.columns[1]._cells == [
             Text(
                 (
-                    "Cisco router tftpd (69/udp)\nCloudFlare (80/tcp, 8080/tcp, 8880/tcp)\n"
-                    "DrayTek Vigor Router (443/tcp)\nOther (53/tcp, 53/udp, 161/udp, "
-                    "2082/tcp, 2083/tcp, 2086/tcp, 2087/tcp, 8443/tcp)"
+                    "Cisco router tftpd (69/udp)\n"
+                    "CloudFlare (80/tcp, 8080/tcp, 8880/tcp)\n"
+                    "DrayTek Vigor Router (443/tcp)\n"
+                    "Other (53/tcp, 53/udp, 161/udp, 2082/tcp, 2083/tcp, 2086/tcp, "
+                    "2087/tcp, 8443/tcp)"
                 ),
                 spans=[
                     Span(0, 18, theme.product),
@@ -377,7 +418,7 @@ class TestView01:
                     Span(169, 171, "default"),
                     Span(171, 175, theme.port),
                     Span(175, 179, theme.transport),
-                ]
+                ],
             ),
             display_timestamp("2022-09-04T01:03:56Z"),
         ]
@@ -398,7 +439,7 @@ class TestView01:
         assert table.columns[0]._cells == [
             Text(
                 "Malware URLs:",
-                spans=[Span(0, 12, 'link https://urlhaus.abuse.ch/host/1.1.1.1/')]
+                spans=[Span(0, 12, "link https://urlhaus.abuse.ch/host/1.1.1.1/")],
             ),
             "Blocklists:",
             "Tags:",
@@ -412,7 +453,7 @@ class TestView01:
                 spans=[
                     Span(0, 9, theme.error),
                     Span(9, 20, theme.table_value),
-                ]
+                ],
             ),
             Text(
                 "not listed in spamhaus\nnot listed in surbl",
@@ -421,7 +462,7 @@ class TestView01:
                     Span(14, 22, theme.urlhaus_bl_name),
                     Span(23, 33, theme.urlhaus_bl_low),
                     Span(37, 42, theme.urlhaus_bl_name),
-                ]
+                ],
             ),
             Text(
                 "elf, mirai",
@@ -429,7 +470,7 @@ class TestView01:
                     Span(0, 3, theme.tags),
                     Span(3, 5, "default"),
                     Span(5, 10, theme.tags),
-                ]
+                ],
             ),
         ]
 
@@ -449,12 +490,12 @@ class TestView01:
         assert table.columns[0]._cells == [
             Text(
                 "GreyNoise:",
-                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
+                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")],
             ),
             Text(
                 "AbuseIPDB:",
-                spans=[Span(0, 9, "link https://www.abuseipdb.com/check/1.1.1.1")]
-            )
+                spans=[Span(0, 9, "link https://www.abuseipdb.com/check/1.1.1.1")],
+            ),
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
@@ -468,7 +509,7 @@ class TestView01:
                     Span(10, 15, theme.tags),
                     Span(17, 18, theme.info),
                     Span(19, 25, theme.tags_green),
-                ]
+                ],
             ),
             Text(
                 "100 confidence score (567 reports)",
@@ -476,7 +517,7 @@ class TestView01:
                     Span(0, 3, theme.error),
                     Span(3, 20, "red"),
                     Span(20, 34, theme.table_value),
-                ]
+                ],
             ),
         ]
 
@@ -496,7 +537,16 @@ class TestView01:
         # Heading
         assert content.renderables[0] == Text(
             "1.1.1.0",
-            spans=[Span(0, 7, f"{theme.heading_h2} link https://community.riskiq.com/search/1.1.1.0/whois")]
+            spans=[
+                Span(
+                    0,
+                    7,
+                    (
+                        f"{theme.heading_h2} link "
+                        "https://community.riskiq.com/search/1.1.1.0/whois"
+                    ),
+                )
+            ],
         )
 
         # Table
@@ -570,7 +620,9 @@ class TestView02:
         assert table.columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/1.1.1.1')],
+                spans=[
+                    Span(0, 8, "link https://virustotal.com/gui/ip-address/1.1.1.1")
+                ],
             ),
             "Reputation:",
             "Updated:",
@@ -579,7 +631,10 @@ class TestView02:
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
             Text(
-                "4/94 malicious\nCMC Threat Intelligence, Comodo Valkyrie Verdict, CRDF, Blueliv",
+                (
+                    "4/94 malicious\nCMC Threat Intelligence, Comodo Valkyrie Verdict, "
+                    "CRDF, Blueliv"
+                ),
                 spans=[
                     Span(0, 14, theme.error),
                     Span(15, 38, theme.vendor_list),
@@ -589,7 +644,7 @@ class TestView02:
                     Span(65, 69, theme.vendor_list),
                     Span(69, 71, "default"),
                     Span(71, 78, theme.vendor_list),
-                ]
+                ],
             ),
             Text("134"),
             display_timestamp("2022-09-03T06:47:04Z"),
@@ -623,10 +678,7 @@ class TestView02:
             "Cloudflare, Inc.",
             Text(
                 "Sydney, New South Wales, Australia",
-                spans=[
-                    Span(6, 8, "default"),
-                    Span(23, 25, "default")
-                ],
+                spans=[Span(6, 8, "default"), Span(23, 25, "default")],
             ),
         ]
 
@@ -646,7 +698,7 @@ class TestView02:
         assert table.columns[0]._cells == [
             Text(
                 "Services:",
-                spans=[Span(0, 8, 'link https://www.shodan.io/host/1.1.1.1')],
+                spans=[Span(0, 8, "link https://www.shodan.io/host/1.1.1.1")],
             ),
             "Last Scan:",
         ]
@@ -655,7 +707,8 @@ class TestView02:
         assert table.columns[1]._cells == [
             Text(
                 (
-                    "Cisco router tftpd (69/udp)\nCloudFlare (80/tcp, 8080/tcp, 8880/tcp)\n"
+                    "Cisco router tftpd (69/udp)\n"
+                    "CloudFlare (80/tcp, 8080/tcp, 8880/tcp)\n"
                     "DrayTek Vigor Router (443/tcp)\nOther (53/tcp, 53/udp, 161/udp, "
                     "2082/tcp, 2083/tcp, 2086/tcp, 2087/tcp, 8443/tcp)"
                 ),
@@ -699,7 +752,7 @@ class TestView02:
                     Span(169, 171, "default"),
                     Span(171, 175, theme.port),
                     Span(175, 179, theme.transport),
-                ]
+                ],
             ),
             display_timestamp("2022-09-04T01:03:56Z"),
         ]
@@ -720,7 +773,7 @@ class TestView02:
         assert table.columns[0]._cells == [
             Text(
                 "GreyNoise:",
-                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")]
+                spans=[Span(0, 9, "link https://viz.greynoise.io/riot/1.1.1.1")],
             ),
         ]
         assert table.columns[1].style == theme.table_value
@@ -735,7 +788,7 @@ class TestView02:
                     Span(10, 15, theme.tags),
                     Span(17, 18, theme.info),
                     Span(19, 25, theme.tags_green),
-                ]
+                ],
             ),
         ]
 
@@ -757,7 +810,7 @@ class TestView03:
         # Content
         assert content.renderables[0] == Text(
             "one.one",
-            spans=[Span(0, 7, 'bold yellow')],
+            spans=[Span(0, 7, "bold yellow")],
         )
 
         table = content.renderables[1]
@@ -787,9 +840,9 @@ class TestView03:
             "One.com A/S",
             "REDACTED FOR PRIVACY",
             (
-                "Please query the RDDS service of the Registrar of Record identified in this "
-                "output for information on how to contact the Registrant, Admin, or Tech "
-                "contact of the queried domain name."
+                "Please query the RDDS service of the Registrar of Record identified "
+                "in this output for information on how to contact the Registrant, "
+                "Admin, or Tech contact of the queried domain name."
             ),
             "REDACTED FOR PRIVACY",
             "REDACTED FOR PRIVACY",
@@ -797,15 +850,16 @@ class TestView03:
             "dk",
             "REDACTED FOR PRIVACY",
             (
-                "* a response from the service that a domain name is 'available', does not "
-                "guarantee that is able to be registered,, * we may restrict, suspend or "
-                "terminate your access to the service at any time, and, * the copying, "
-                "compilation, repackaging, dissemination or other use of the information "
-                "provided by the service is not permitted, without our express written "
-                "consent., this information has been prepared and published in order to "
-                "represent administrative and technical management of the tld., we may "
-                "discontinue or amend any part or the whole of these terms of service from "
-                "time to time at our absolute discretion."
+                "* a response from the service that a domain name is 'available', does "
+                "not guarantee that is able to be registered,, * we may restrict, "
+                "suspend or terminate your access to the service at any time, and, "
+                "* the copying, compilation, repackaging, dissemination or other use "
+                "of the information provided by the service is not permitted, without "
+                "our express written consent., this information has been prepared and "
+                "published in order to represent administrative and technical "
+                "management of the tld., we may discontinue or amend any part or the "
+                "whole of these terms of service from time to time at our absolute "
+                "discretion."
             ),
             "signedDelegation",
             "2015-05-20T12:15:44Z",
@@ -838,7 +892,13 @@ class TestView04:
         assert table.columns[0]._cells == [
             Text(
                 "Analysis:",
-                spans=[Span(0, 8, 'link https://virustotal.com/gui/ip-address/142.251.220.110')],
+                spans=[
+                    Span(
+                        0,
+                        8,
+                        "link https://virustotal.com/gui/ip-address/142.251.220.110",
+                    )
+                ],
             ),
             "Reputation:",
             "Updated:",
@@ -869,7 +929,7 @@ class TestView05:
                 Span(10, 15, theme.tags),
                 Span(17, 18, theme.error),
                 Span(19, 28, theme.tags_red),
-            ]
+            ],
         )
 
 
@@ -889,7 +949,7 @@ class TestView06:
                 Span(8, 9, theme.warn),
                 Span(10, 15, theme.tags),
                 Span(19, 26, theme.tags),
-            ]
+            ],
         )
 
 
@@ -906,7 +966,7 @@ class TestAbuseIpDbOnly:
             spans=[
                 Span(0, 1, theme.info),
                 Span(1, 18, "green"),
-            ]
+            ],
         )
 
     def test_abuseipdb_yellow(self, view08, theme):
@@ -922,5 +982,5 @@ class TestAbuseIpDbOnly:
                 Span(0, 2, theme.warn),
                 Span(2, 19, "yellow"),
                 Span(19, 33, theme.table_value),
-            ]
+            ],
         )

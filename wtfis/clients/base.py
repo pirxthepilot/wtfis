@@ -18,6 +18,7 @@ class BaseClient(abc.ABC):
     Base client
     All clients should at least inherit from this class
     """
+
     @property
     @abc.abstractmethod
     def name(self) -> str:  # pragma: no coverage
@@ -28,6 +29,7 @@ class BaseRequestsClient(BaseClient):
     """
     Client that uses the requests library
     """
+
     baseurl: Union[AbstractAttribute, str] = AbstractAttribute()
 
     def __init__(self) -> None:
@@ -60,6 +62,7 @@ class BaseWhoisClient(abc.ABC):
     """
     Client used for whois lookups
     """
+
     @abc.abstractmethod
     def get_whois(self, entity: str) -> WhoisBase:  # pragma: no coverage
         return NotImplemented
@@ -69,8 +72,11 @@ class BaseDomainEnricherClient(abc.ABC):
     """
     Client used for domain/FQDN enrichments
     """
+
     @abc.abstractmethod
-    def enrich_domains(self, *domains: str) -> DomainEnrichmentType:  # pragma: no coverage
+    def enrich_domains(
+        self, *domains: str
+    ) -> DomainEnrichmentType:  # pragma: no coverage
         return NotImplemented
 
 
@@ -78,6 +84,7 @@ class BaseIpEnricherClient(abc.ABC):
     """
     Client used for IP enrichments
     """
+
     @abc.abstractmethod
     def enrich_ips(self, *ips: str) -> IpEnrichmentType:  # pragma: no coverage
         return NotImplemented

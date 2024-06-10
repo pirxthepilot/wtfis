@@ -17,7 +17,8 @@ LaxStr = Annotated[str, BeforeValidator(str_validator)]
 
 
 class WhoisBase(BaseModel, abc.ABC):
-    """ Use to normalize WHOIS fields from different sources """
+    """Use to normalize WHOIS fields from different sources"""
+
     source: Optional[str] = None
     domain: Optional[str] = None
     registrar: Optional[str] = None
@@ -38,7 +39,8 @@ class WhoisBase(BaseModel, abc.ABC):
 
 
 class IpGeoAsnBase(BaseModel, abc.ABC):
-    """ Use to normalize IP geolocation and ASN fields """
+    """Use to normalize IP geolocation and ASN fields"""
+
     model_config = ConfigDict(coerce_numbers_to_str=True)
 
     ip: str

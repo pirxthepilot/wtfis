@@ -9,6 +9,7 @@ class IpWhoisClient(BaseRequestsClient, BaseIpEnricherClient):
     """
     IPWhois client
     """
+
     baseurl = "https://ipwho.is"
 
     @property

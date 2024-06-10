@@ -1,6 +1,7 @@
 """
 Type aliases
 """
+
 from typing import Union
 
 from wtfis.models.abuseipdb import AbuseIpDbMap
@@ -20,15 +21,9 @@ IpEnrichmentType = Union[
 ]
 
 # Domain/FQDN enrichment map types
-DomainEnrichmentType = Union[
-    UrlHausMap,
-]
+DomainEnrichmentType = Union[UrlHausMap,]
 
 # IP geolocation and ASN types
-IpGeoAsnType = Union[
-    IpWhois,
-]
+IpGeoAsnType = Union[IpWhois,]
 
-IpGeoAsnMapType = Union[
-    IpWhoisMap,
-]
+IpGeoAsnMapType = Union[IpWhoisMap,]

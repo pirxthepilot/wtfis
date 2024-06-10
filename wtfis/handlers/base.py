@@ -32,7 +32,8 @@ from wtfis.utils import error_and_exit, refang
 
 
 def common_exception_handler(func: Callable) -> Callable:
-    """ Decorator for handling common fetch errors """
+    """Decorator for handling common fetch errors"""
+
     def inner(*args, **kwargs) -> None:
         progress: Progress = args[0].progress  # args[0] is the method's self input
         try:
@@ -43,11 +44,13 @@ def common_exception_handler(func: Callable) -> Callable:
         except ValidationError as e:
             progress.stop()
             error_and_exit(f"Data model validation error: {e}")
+
     return inner
 
 
 def failopen_exception_handler(client_attr_name: str) -> Callable:
-    """ Decorator for handling calls that can fail open """
+    """Decorator for handling calls that can fail open"""
+
     def inner(func):
         def wrapper(*args, **kwargs) -> None:
             client = getattr(args[0], client_attr_name)  # Client obj who made the call
@@ -57,7 +60,9 @@ def failopen_exception_handler(client_attr_name: str) -> Callable:
             except (APIError, RequestException) as e:
                 # Add warning
                 warnings.append(f"Could not fetch {client.name}: {e}")
+
         return wrapper
+
     return inner
 
 
@@ -103,7 +108,7 @@ class BaseHandler(abc.ABC):
 
     @abc.abstractmethod
     def fetch_data(self) -> None:
-        """ Main method that controls what get fetched """
+        """Main method that controls what get fetched"""
         return NotImplemented  # type: ignore  # pragma: no coverage
 
     @common_exception_handler

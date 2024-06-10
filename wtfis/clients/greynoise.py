@@ -9,6 +9,7 @@ class GreynoiseClient(BaseRequestsClient, BaseIpEnricherClient):
     """
     Greynoise client
     """
+
     baseurl = "https://api.greynoise.io/v3/community"
 
     def __init__(self, api_key: str) -> None:

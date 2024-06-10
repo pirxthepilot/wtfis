@@ -159,30 +159,30 @@ class Whois(WhoisBase):
         # Normalized fields with multiple possible sources
         fields_w_multiple_possible_sources = {
             "date_changed": (
-                transformed.pop("last_updated", None) or
-                transformed.pop("Updated Date", None) or
-                transformed.pop("Last updated", None)
+                transformed.pop("last_updated", None)
+                or transformed.pop("Updated Date", None)
+                or transformed.pop("Last updated", None)
             ),
             "date_created": (
-                transformed.pop("Creation Date", None) or
-                transformed.pop("Registered on", None)
+                transformed.pop("Creation Date", None)
+                or transformed.pop("Registered on", None)
             ),
             "date_expires": (
-                transformed.pop("Expiry Date", None) or
-                transformed.pop("Registry Expiry Date", None) or
-                transformed.pop("Expiry date", None)
+                transformed.pop("Expiry Date", None)
+                or transformed.pop("Registry Expiry Date", None)
+                or transformed.pop("Expiry date", None)
             ),
             "name": (
-                transformed.pop("registrant_name", None) or
-                transformed.pop("Registrant Name", None)
+                transformed.pop("registrant_name", None)
+                or transformed.pop("Registrant Name", None)
             ),
             "country": (
-                transformed.pop("registrant_country", None) or
-                transformed.pop("Registrant Country", None)
+                transformed.pop("registrant_country", None)
+                or transformed.pop("Registrant Country", None)
             ),
             "registrar": (
-                transformed.pop("registrar_name", None) or
-                transformed.pop("Registrar", None)
+                transformed.pop("registrar_name", None)
+                or transformed.pop("Registrar", None)
             ),
         }
 

@@ -6,8 +6,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 from dotenv import load_dotenv
 from rich.console import Console
-from rich.progress import (BarColumn, Progress, SpinnerColumn,
-                           TaskProgressColumn, TextColumn, TimeElapsedColumn)
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
+)
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
@@ -17,10 +23,16 @@ from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
+from wtfis.exceptions import WtfisException
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
-from wtfis.main import (generate_entity_handler, generate_view, main,
-                        parse_args, parse_env)
+from wtfis.main import (
+    generate_entity_handler,
+    generate_view,
+    main,
+    parse_args,
+    parse_env,
+)
 from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.view import DomainView, IpAddressView
 
@@ -129,10 +141,13 @@ def fake_load_dotenv_ip2whois(tmp_path):
 
 class TestArgs:
     def test_basic(self):
-        with patch("sys.argv", [
-            "main",
-            "www.example.com",
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "www.example.com",
+            ],
+        ):
             args = parse_args()
             assert args.entity == "www.example.com"
             assert args.max_resolutions == 3
@@ -143,142 +158,189 @@ class TestArgs:
             assert args.use_urlhaus is False
 
     def test_display(self):
-        with patch("sys.argv", [
-            "main",
-            "www.example.com",
-            "-n",
-            "-1",
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "www.example.com",
+                "-n",
+                "-1",
+            ],
+        ):
             args = parse_args()
             assert args.no_color is True
             assert args.one_column is True
 
     def test_max_resolutions_ok(self):
-        with patch("sys.argv", [
-            "main",
-            "www.example.com",
-            "-m",
-            "8",
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "www.example.com",
+                "-m",
+                "8",
+            ],
+        ):
             args = parse_args()
             assert args.max_resolutions == 8
 
     def test_max_resolutions_error_1(self, capsys):
         with pytest.raises(SystemExit) as e:
-            with patch("sys.argv", [
-                "main",
-                "www.example.com",
-                "-m",
-                "11",
-            ]):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                    "-m",
+                    "11",
+                ],
+            ):
                 parse_args()
 
         capture = capsys.readouterr()
 
-        assert capture.err == "usage: main [-h]\nmain: error: Maximum --max-resolutions value is 10\n"
+        assert (
+            capture.err
+            == "usage: main [-h]\nmain: error: Maximum --max-resolutions value is 10\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 2
 
     def test_max_resolutions_error_2(self, capsys):
         with pytest.raises(SystemExit) as e:
-            with patch("sys.argv", [
-                "main",
-                "1.1.1.1",
-                "-m",
-                "5",
-            ]):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "1.1.1.1",
+                    "-m",
+                    "5",
+                ],
+            ):
                 parse_args()
 
         capture = capsys.readouterr()
 
-        assert capture.err == "usage: main [-h]\nmain: error: --max-resolutions is not applicable to IPs\n"
+        assert capture.err == (
+            "usage: main [-h]\nmain: error: --max-resolutions is not "
+            "applicable to IPs\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 2
 
     def test_shodan_ok(self):
         os.environ["SHODAN_API_KEY"] = "foo"
-        with patch("sys.argv", [
-            "main",
-            "www.example.com",
-            "-s",
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "www.example.com",
+                "-s",
+            ],
+        ):
             args = parse_args()
             assert args.use_shodan is True
         del os.environ["SHODAN_API_KEY"]
 
     def test_shodan_error(self, capsys):
         with pytest.raises(SystemExit) as e:
-            with patch("sys.argv", [
-                "main",
-                "www.example.com",
-                "-s",
-            ]):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                    "-s",
+                ],
+            ):
                 parse_args()
 
         capture = capsys.readouterr()
 
-        assert capture.err == "usage: main [-h]\nmain: error: SHODAN_API_KEY is not set\n"
+        assert (
+            capture.err == "usage: main [-h]\nmain: error: SHODAN_API_KEY is not set\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 2
 
     def test_greynoise_ok(self):
         os.environ["GREYNOISE_API_KEY"] = "foo"
-        with patch("sys.argv", [
-            "main",
-            "www.example.com",
-            "-g",
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "www.example.com",
+                "-g",
+            ],
+        ):
             args = parse_args()
             assert args.use_greynoise is True
         del os.environ["GREYNOISE_API_KEY"]
 
     def test_greynoise_error(self, capsys):
         with pytest.raises(SystemExit) as e:
-            with patch("sys.argv", [
-                "main",
-                "www.example.com",
-                "-g",
-            ]):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                    "-g",
+                ],
+            ):
                 parse_args()
 
         capture = capsys.readouterr()
 
-        assert capture.err == "usage: main [-h]\nmain: error: GREYNOISE_API_KEY is not set\n"
+        assert (
+            capture.err
+            == "usage: main [-h]\nmain: error: GREYNOISE_API_KEY is not set\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 2
 
     def test_urlhaus(self):
-        with patch("sys.argv", [
-            "main",
-            "www.example.com",
-            "-u",
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "www.example.com",
+                "-u",
+            ],
+        ):
             args = parse_args()
             assert args.use_urlhaus is True
 
     def test_abuseipdb_ok(self):
         os.environ["ABUSEIPDB_API_KEY"] = "foo"
-        with patch("sys.argv", [
-            "main",
-            "1.1.1.1",
-            "-a",
-        ]):
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "1.1.1.1",
+                "-a",
+            ],
+        ):
             args = parse_args()
             assert args.use_abuseipdb is True
         del os.environ["ABUSEIPDB_API_KEY"]
 
     def test_abuseipdb_error(self, capsys):
         with pytest.raises(SystemExit) as e:
-            with patch("sys.argv", [
-                "main",
-                "1.1.1.1",
-                "-a",
-            ]):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "1.1.1.1",
+                    "-a",
+                ],
+            ):
                 parse_args()
 
         capture = capsys.readouterr()
 
-        assert capture.err == "usage: main [-h]\nmain: error: ABUSEIPDB_API_KEY is not set\n"
+        assert (
+            capture.err
+            == "usage: main [-h]\nmain: error: ABUSEIPDB_API_KEY is not set\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 2
 
@@ -314,7 +376,8 @@ class TestEnvs:
 
         assert capture.err == (
             "Error: Environment variable VT_API_KEY not set\n"
-            f"Env file {Path().home() / '.env.wtfis'} was not found either. Did you forget?\n"
+            f"Env file {Path().home() / '.env.wtfis'} was not found either. "
+            "Did you forget?\n"
         )
         assert e.type == SystemExit
         assert e.value.code == 1
@@ -323,10 +386,13 @@ class TestEnvs:
 class TestDefaults:
     def test_defaults_1(self, fake_load_dotenv_2):
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_2):
-            with patch("sys.argv", [
-                "main",
-                "www.example.com",
-            ]):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                ],
+            ):
                 parse_env()
                 args = parse_args()
                 assert args.entity == "www.example.com"
@@ -340,11 +406,14 @@ class TestDefaults:
 
     def test_defaults_2(self, fake_load_dotenv_2):
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_2):
-            with patch("sys.argv", [
-                "main",
-                "www.example.com",
-                "-s",
-            ]):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                    "-s",
+                ],
+            ):
                 parse_env()
                 args = parse_args()
                 assert args.entity == "www.example.com"
@@ -358,10 +427,13 @@ class TestDefaults:
 
     def test_defaults_3(self, fake_load_dotenv_3):
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_3):
-            with patch("sys.argv", [
-                "main",
-                "www.example.com",
-            ]):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                ],
+            ):
                 parse_env()
                 args = parse_args()
                 assert args.entity == "www.example.com"
@@ -375,11 +447,14 @@ class TestDefaults:
 
     def test_defaults_4(self, fake_load_dotenv_4):
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_4):
-            with patch("sys.argv", [
-                "main",
-                "1.1.1.1",
-                "-u",
-            ]):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "1.1.1.1",
+                    "-u",
+                ],
+            ):
                 parse_env()
                 args = parse_args()
                 assert args.entity == "1.1.1.1"
@@ -393,14 +468,15 @@ class TestDefaults:
 
 
 class TestGenEntityHandler:
-    """ Tests for the generate_entity_handler function """
+    """Tests for the generate_entity_handler function"""
+
     @patch("sys.argv", ["main", "www.example[.]com"])
     def test_handler_domain_1(self, fake_load_dotenv_1):
-        """ Domain with default params """
+        """Domain with default params"""
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
             parse_env()
             console = Console()
-            progress = simulate_progress(console),
+            progress = (simulate_progress(console),)
             entity = generate_entity_handler(parse_args(), console, progress)
         assert isinstance(entity, DomainHandler)
         assert entity.entity == "www.example.com"
@@ -418,11 +494,11 @@ class TestGenEntityHandler:
 
     @patch("sys.argv", ["main", "www.example[.]com", "-s", "-g", "-u", "-m", "5"])
     def test_handler_domain_2(self, fake_load_dotenv_1):
-        """ Domain with Shodan and Greynoise and non-default max_resolutions """
+        """Domain with Shodan and Greynoise and non-default max_resolutions"""
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
             parse_env()
             console = Console()
-            progress = simulate_progress(console),
+            progress = (simulate_progress(console),)
             entity = generate_entity_handler(parse_args(), console, progress)
         assert entity.max_resolutions == 5
         assert isinstance(entity._geoasn, IpWhoisClient)
@@ -434,33 +510,33 @@ class TestGenEntityHandler:
 
     @patch("sys.argv", ["main", "www.example[.]com"])
     def test_handler_domain_3(self, fake_load_dotenv_vt_whois):
-        """ Domain using default Ip2Whois for whois """
+        """Domain using default Ip2Whois for whois"""
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_vt_whois):
             parse_env()
             console = Console()
-            progress = simulate_progress(console),
+            progress = (simulate_progress(console),)
             entity = generate_entity_handler(parse_args(), console, progress)
         assert isinstance(entity._whois, VTClient)
         unset_env_vars()
 
     @patch("sys.argv", ["main", "www.example[.]com"])
     def test_handler_domain_4(self, fake_load_dotenv_ip2whois):
-        """ Domain using default Ip2Whois for whois """
+        """Domain using default Ip2Whois for whois"""
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_ip2whois):
             parse_env()
             console = Console()
-            progress = simulate_progress(console),
+            progress = (simulate_progress(console),)
             entity = generate_entity_handler(parse_args(), console, progress)
         assert isinstance(entity._whois, Ip2WhoisClient)
         unset_env_vars()
 
     @patch("sys.argv", ["main", "1[.]1[.]1[.]1"])
     def test_handler_ip_1(self, fake_load_dotenv_1):
-        """ IP with default params """
+        """IP with default params"""
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
             parse_env()
             console = Console()
-            progress = simulate_progress(console),
+            progress = (simulate_progress(console),)
             entity = generate_entity_handler(parse_args(), console, progress)
         assert isinstance(entity, IpAddressHandler)
         assert entity.entity == "1.1.1.1"
@@ -475,11 +551,11 @@ class TestGenEntityHandler:
 
     @patch("sys.argv", ["main", "1[.]1[.]1[.]1", "-s", "-g", "-u", "-a"])
     def test_handler_ip_2(self, fake_load_dotenv_1):
-        """ IP with various options """
+        """IP with various options"""
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
             parse_env()
             console = Console()
-            progress = simulate_progress(console),
+            progress = (simulate_progress(console),)
             entity = generate_entity_handler(parse_args(), console, progress)
         assert isinstance(entity._geoasn, IpWhoisClient)
         assert isinstance(entity._whois, PTClient)
@@ -491,10 +567,11 @@ class TestGenEntityHandler:
 
 
 class TestGenView:
-    """ Tests for the generate_view function """
+    """Tests for the generate_view function"""
+
     @patch("wtfis.main.DomainView", return_value=MagicMock(spec=DomainView))
     def test_view_domain_1(self, m_domain_view, test_data):
-        """ Domain view with default params """
+        """Domain view with default params"""
         entity = DomainHandler(
             entity=MagicMock(),
             console=MagicMock(),
@@ -507,7 +584,9 @@ class TestGenView:
             abuseipdb_client=MagicMock(),
             urlhaus_client=MagicMock(),
         )
-        entity.vt_info = Domain.model_validate(json.loads(test_data("vt_domain_gist.json")))
+        entity.vt_info = Domain.model_validate(
+            json.loads(test_data("vt_domain_gist.json"))
+        )
         entity.whois = MagicMock()
         entity.ip_enrich = MagicMock()
         view = generate_view(MagicMock(), MagicMock(), entity)
@@ -515,7 +594,7 @@ class TestGenView:
 
     @patch("wtfis.main.IpAddressView", return_value=MagicMock(spec=IpAddressView))
     def test_view_ip_1(self, m_ip_view, test_data):
-        """ IP address view with default params """
+        """IP address view with default params"""
         entity = IpAddressHandler(
             entity=MagicMock(),
             console=MagicMock(),
@@ -528,15 +607,17 @@ class TestGenView:
             abuseipdb_client=MagicMock(),
             urlhaus_client=MagicMock(),
         )
-        entity.vt_info = IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json")))
+        entity.vt_info = IpAddress.model_validate(
+            json.loads(test_data("vt_ip_1.1.1.1.json"))
+        )
         entity.whois = MagicMock()
         entity.ip_enrich = MagicMock()
         view = generate_view(MagicMock(), MagicMock(), entity)
         assert isinstance(view, IpAddressView)
 
     def test_view_error(self):
-        """ IP address view with default params """
-        with pytest.raises(Exception):
+        """IP address view with default params"""
+        with pytest.raises(WtfisException):
             generate_view(MagicMock(), MagicMock(), "foobar")
 
 
@@ -547,8 +628,10 @@ class TestMain:
     @patch("wtfis.main.get_progress")
     @patch("wtfis.main.generate_entity_handler", return_value=MagicMock())
     @patch("wtfis.main.generate_view", return_value=MagicMock())
-    def test_main_default(self, m_view, m_handler, m_progress, m_args, m_console, fake_load_dotenv_1):
-        """ Test all calls with default values """
+    def test_main_default(
+        self, m_view, m_handler, m_progress, m_args, m_console, fake_load_dotenv_1
+    ):
+        """Test all calls with default values"""
         m_args.return_value = parse_args()
         m_progress.return_value = simulate_progress(m_console())
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):

@@ -1,6 +1,7 @@
 """
 Logic handler for domain and hostname inputs
 """
+
 from typing import Optional
 
 from requests.exceptions import HTTPError
@@ -38,8 +39,18 @@ class DomainHandler(BaseHandler):
         urlhaus_client: Optional[UrlHausClient],
         max_resolutions: int = 0,
     ):
-        super().__init__(entity, console, progress, vt_client, ip_geoasn_client, whois_client,
-                         shodan_client, greynoise_client, abuseipdb_client, urlhaus_client)
+        super().__init__(
+            entity,
+            console,
+            progress,
+            vt_client,
+            ip_geoasn_client,
+            whois_client,
+            shodan_client,
+            greynoise_client,
+            abuseipdb_client,
+            urlhaus_client,
+        )
 
         # Extended attributes
         self.max_resolutions = max_resolutions
@@ -76,36 +87,48 @@ class DomainHandler(BaseHandler):
         self.progress.update(task_v, completed=100)
 
         if self.resolutions and self.resolutions.data:
-            task_g = self.progress.add_task(f"Fetching IP location and ASN from {self._geoasn.name}")
+            task_g = self.progress.add_task(
+                f"Fetching IP location and ASN from {self._geoasn.name}"
+            )
             self.progress.update(task_g, advance=50)
             self._fetch_geoasn(*self.resolutions.ip_list(self.max_resolutions))
             self.progress.update(task_g, completed=100)
 
             if self._shodan:
-                task_s = self.progress.add_task(f"Fetching IP data from {self._shodan.name}")
+                task_s = self.progress.add_task(
+                    f"Fetching IP data from {self._shodan.name}"
+                )
                 self.progress.update(task_s, advance=50)
                 self._fetch_shodan(*self.resolutions.ip_list(self.max_resolutions))
                 self.progress.update(task_s, completed=100)
 
             if self._greynoise:
-                task_g = self.progress.add_task(f"Fetching IP data from {self._greynoise.name}")
+                task_g = self.progress.add_task(
+                    f"Fetching IP data from {self._greynoise.name}"
+                )
                 self.progress.update(task_g, advance=50)
                 self._fetch_greynoise(*self.resolutions.ip_list(self.max_resolutions))
                 self.progress.update(task_g, completed=100)
 
             if self._abuseipdb:
-                task_g = self.progress.add_task(f"Fetching IP data from {self._abuseipdb.name}")
+                task_g = self.progress.add_task(
+                    f"Fetching IP data from {self._abuseipdb.name}"
+                )
                 self.progress.update(task_g, advance=50)
                 self._fetch_abuseipdb(*self.resolutions.ip_list(self.max_resolutions))
                 self.progress.update(task_g, completed=100)
 
         if self._urlhaus:
-            task_u = self.progress.add_task(f"Fetching domain data from {self._urlhaus.name}")
+            task_u = self.progress.add_task(
+                f"Fetching domain data from {self._urlhaus.name}"
+            )
             self.progress.update(task_u, advance=50)
             self._fetch_urlhaus()
             self.progress.update(task_u, completed=100)
 
-        task_w = self.progress.add_task(f"Fetching domain whois from {self._whois.name}")
+        task_w = self.progress.add_task(
+            f"Fetching domain whois from {self._whois.name}"
+        )
         self.progress.update(task_w, advance=50)
         self._fetch_whois()
         self.progress.update(task_w, completed=100)

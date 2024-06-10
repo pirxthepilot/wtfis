@@ -12,14 +12,17 @@ class VTClient(BaseRequestsClient, BaseWhoisClient):
     """
     Virustotal client
     """
+
     baseurl = "https://www.virustotal.com/api/v3"
 
     def __init__(self, api_key: str) -> None:
         super().__init__()
-        self.s.headers.update({
-            "x-apikey": api_key,
-            "Accept": "application/json",
-        })
+        self.s.headers.update(
+            {
+                "x-apikey": api_key,
+                "Accept": "application/json",
+            }
+        )
 
     @property
     def name(self) -> str:
@@ -41,7 +44,7 @@ class VTClient(BaseRequestsClient, BaseWhoisClient):
         return Whois.model_validate(self._get(f"/ip_addresses/{ip}/historical_whois"))
 
     def get_whois(self, entity: str) -> Whois:
-        """ Generalized for domain and IP """
+        """Generalized for domain and IP"""
         if is_ip(entity):
             return self.get_ip_whois(entity)
         else:

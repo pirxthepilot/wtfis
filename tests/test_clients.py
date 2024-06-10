@@ -65,7 +65,9 @@ class TestAbuseIpDbClient:
     def test_enrich_ips(self, mock_requests_get, test_data, abuseipdb_client):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = json.loads(test_data("abuseipdb_1.1.1.1_raw.json"))
+        mock_resp.json.return_value = json.loads(
+            test_data("abuseipdb_1.1.1.1_raw.json")
+        )
         mock_requests_get.return_value = mock_resp
 
         abuseipdb = abuseipdb_client.enrich_ips("thisdoesntmatter").root["1.1.1.1"]
@@ -86,7 +88,9 @@ class TestIp2WhoisClient:
     def test_get_whois(self, mock_requests_get, test_data, ip2whois_client):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = json.loads(test_data("ip2whois_whois_hotmail.json"))
+        mock_resp.json.return_value = json.loads(
+            test_data("ip2whois_whois_hotmail.json")
+        )
         mock_requests_get.return_value = mock_resp
 
         whois = ip2whois_client.get_whois("thisdoesntmatter")
@@ -167,7 +171,7 @@ class TestShodanClient:
 
     @patch.object(Shodan, "host")
     def test_get_ip_apierror_invalid_key(self, mock_shodan_host, shodan_client):
-        """ Test invalid API key APIError """
+        """Test invalid API key APIError"""
         mock_shodan_host.side_effect = APIError("Invalid API key")
 
         with pytest.raises(APIError) as e:
@@ -178,7 +182,7 @@ class TestShodanClient:
 
     @patch.object(Shodan, "host")
     def test_get_ip_apierror_other(self, mock_shodan_host, shodan_client):
-        """ Test other invalid API key APIError """
+        """Test other invalid API key APIError"""
         mock_shodan_host.side_effect = APIError("Some other error")
 
         with pytest.raises(APIError) as e:
@@ -196,7 +200,9 @@ class TestUrlhausClient:
     def test_enrich_ips(self, mock_requests_post, test_data, urlhaus_client):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = json.loads(test_data("urlhaus_1.1.1.1.json"))["1.1.1.1"]
+        mock_resp.json.return_value = json.loads(test_data("urlhaus_1.1.1.1.json"))[
+            "1.1.1.1"
+        ]
         mock_requests_post.return_value = mock_resp
 
         urlhaus = urlhaus_client.enrich_ips("thisdoesntmatter").root["1.1.1.1"]
