@@ -2,6 +2,7 @@
 ipwhois datamodels
 API doc: https://ipwhois.io/documentation
 """
+
 from __future__ import annotations
 
 from typing import Dict

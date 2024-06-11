@@ -1,5 +1,6 @@
-from pydantic import Field, field_validator, model_validator
 from typing import List, Optional
+
+from pydantic import Field, field_validator, model_validator
 
 from wtfis.models.base import WhoisBase
 
@@ -27,13 +28,20 @@ class Whois(WhoisBase):
     @model_validator(mode="before")
     @classmethod
     def extract_registrant(cls, v):
-        """ Surface registrant fields to root level """
+        """Surface registrant fields to root level"""
         registrant = v.pop("registrant", {})
         if not registrant:
             return v
         for field in [
-            "organization", "name", "email", "phone",
-            "street_address", "city", "region", "country", "zip_code",
+            "organization",
+            "name",
+            "email",
+            "phone",
+            "street_address",
+            "city",
+            "region",
+            "country",
+            "zip_code",
         ]:
             v[field] = registrant.get(field)
         return v
@@ -41,5 +49,5 @@ class Whois(WhoisBase):
     @field_validator("registrar", mode="before")
     @classmethod
     def transform_registrar(cls, v):
-        """ Convert registrar from dict to simply registrar.name """
+        """Convert registrar from dict to simply registrar.name"""
         return v.get("name") if v else v

@@ -4,8 +4,8 @@ from rich.progress import (
     Progress,
     SpinnerColumn,
     TaskProgressColumn,
-    TimeElapsedColumn,
     TextColumn,
+    TimeElapsedColumn,
 )
 
 

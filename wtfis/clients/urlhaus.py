@@ -10,6 +10,7 @@ class UrlHausClient(BaseRequestsClient, BaseDomainEnricherClient, BaseIpEnricher
     """
     URLhaus client
     """
+
     baseurl = "https://urlhaus-api.abuse.ch/v1"
 
     @property
@@ -20,7 +21,7 @@ class UrlHausClient(BaseRequestsClient, BaseDomainEnricherClient, BaseIpEnricher
         return UrlHaus.model_validate(self._post("/host", {"host": host}))
 
     def _enrich(self, *entities: str) -> UrlHausMap:
-        """ Method is the same whether input is a domain or IP """
+        """Method is the same whether input is a domain or IP"""
         urlhaus_map = {}
         for entity in entities:
             data = self._get_host(entity)

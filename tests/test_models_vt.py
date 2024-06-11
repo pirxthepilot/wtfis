@@ -1,8 +1,6 @@
 import json
-from wtfis.models.virustotal import (
-    Domain,
-    Resolutions,
-)
+
+from wtfis.models.virustotal import Domain, Resolutions
 
 
 class TestVirustotalModels:
@@ -21,7 +19,9 @@ class TestVirustotalModels:
         ]
 
     def test_resolutions_1(self, test_data):
-        res = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+        res = Resolutions.model_validate(
+            json.loads(test_data("vt_resolutions_gist.json"))
+        )
 
         assert res.meta.count == 37
         assert len(res.data) == 10

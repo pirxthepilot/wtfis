@@ -67,9 +67,11 @@ class TestDomainHandler:
         assert handler.entity == "www.example.com"
 
     def test_fetch_data_1(self, domain_handler, test_data):
-        """ Test with max_resolutions = 3 (default) """
+        """Test with max_resolutions = 3 (default)"""
         handler = domain_handler()
-        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(
+            json.loads(test_data("vt_resolutions_gist.json"))
+        )
 
         handler._fetch_vt_domain = MagicMock()
         handler._fetch_vt_resolutions = MagicMock()
@@ -89,7 +91,7 @@ class TestDomainHandler:
         handler._fetch_urlhaus.assert_called_once()
 
     def test_fetch_data_2(self, domain_handler):
-        """ Test with max_resolutions = 0 """
+        """Test with max_resolutions = 0"""
         handler = domain_handler(0)
         handler._fetch_vt_domain = MagicMock()
         handler._fetch_vt_resolutions = MagicMock()
@@ -129,7 +131,9 @@ class TestDomainHandler:
 
         capture = capsys.readouterr()
 
-        assert capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        assert (
+            capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 1
 
@@ -141,8 +145,8 @@ class TestDomainHandler:
     @patch.object(requests.Session, "get")
     def test_vt_validation_error(self, mock_requests_get, domain_handler, capsys):
         """
-        Test a pydantic data model ValidationError from the VT client. This also tests the
-        common_exception_handler decorator.
+        Test a pydantic data model ValidationError from the VT client. This also tests
+        the common_exception_handler decorator.
         """
         handler = domain_handler()
         mock_resp = requests.models.Response()
@@ -160,7 +164,8 @@ class TestDomainHandler:
 
             assert capture.err.startswith(
                 "Data model validation error: 1 validation error for Domain\ndata\n"
-                "  Field required [type=missing, input_value={'intentionally': 'wrong data'}, input_type=dict]\n"
+                "  Field required [type=missing, input_value={'intentionally': "
+                "'wrong data'}, input_type=dict]\n"
             )
             assert e.type == SystemExit
             assert e.value.code == 1
@@ -171,9 +176,13 @@ class TestDomainHandler:
             assert e.value.code == 1
 
     @patch.object(requests.Session, "get")
-    def test_ipwhois_http_error(self, mock_requests_get, domain_handler, capsys, test_data):
+    def test_ipwhois_http_error(
+        self, mock_requests_get, domain_handler, capsys, test_data
+    ):
         handler = domain_handler()
-        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(
+            json.loads(test_data("vt_resolutions_gist.json"))
+        )
 
         mock_resp = requests.models.Response()
 
@@ -181,11 +190,15 @@ class TestDomainHandler:
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_geoasn(*["1.2.3.4", "1.2.3.5"])
-        assert handler.warnings[0].startswith("Could not fetch IPWhois: 500 Server Error:")
+        assert handler.warnings[0].startswith(
+            "Could not fetch IPWhois: 500 Server Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch IPWhois: 500 Server Error:")
+        assert capture.out.startswith(
+            "WARN: Could not fetch IPWhois: 500 Server Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_ipwhois_validation_error(self, mock_requests_get, domain_handler, capsys):
@@ -194,7 +207,10 @@ class TestDomainHandler:
 
         with patch.object(mock_resp, "json") as mock_resp_json:
             mock_resp.status_code = 200
-            mock_resp_json.return_value = {"success": True, "intentionally": "wrong data"}
+            mock_resp_json.return_value = {
+                "success": True,
+                "intentionally": "wrong data",
+            }
             mock_requests_get.return_value = mock_resp
 
             with pytest.raises(SystemExit) as e:
@@ -221,7 +237,9 @@ class TestDomainHandler:
 
         capture = capsys.readouterr()
 
-        assert capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        assert (
+            capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 1
 
@@ -237,17 +255,22 @@ class TestDomainHandler:
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_vt_resolutions()
-        assert handler.warnings[0].startswith("Could not fetch Virustotal resolutions: 429 Client Error:")
+        assert handler.warnings[0].startswith(
+            "Could not fetch Virustotal resolutions: 429 Client Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch Virustotal resolutions: 429 Client Error:")
+        assert capture.out.startswith(
+            "WARN: Could not fetch Virustotal resolutions: 429 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_whois_429_error(self, mock_requests_get, domain_handler, capsys):
         """
         Test fail open behavior of whois fetching when rate limited
-        Since _fetch_whois() is in the base class, this should also cover the IpAddressHandler use case.
+        Since _fetch_whois() is in the base class, this should also cover the
+        IpAddressHandler use case.
         """
         handler = domain_handler()
         mock_resp = requests.models.Response()
@@ -256,14 +279,18 @@ class TestDomainHandler:
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_whois()
-        assert handler.warnings[0].startswith("Could not fetch Whois: 429 Client Error:")
+        assert handler.warnings[0].startswith(
+            "Could not fetch Whois: 429 Client Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
         assert capture.out.startswith("WARN: Could not fetch Whois: 429 Client Error:")
 
     @patch.object(requests.Session, "get")
-    def test_greynoise_429_error(self, mock_requests_get, domain_handler, capsys, test_data):
+    def test_greynoise_429_error(
+        self, mock_requests_get, domain_handler, capsys, test_data
+    ):
         """
         Test fail open behavior of Greynoise when rate limited
         """
@@ -273,24 +300,33 @@ class TestDomainHandler:
         mock_resp.status_code = 429
         mock_requests_get.return_value = mock_resp
 
-        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(
+            json.loads(test_data("vt_resolutions_gist.json"))
+        )
 
         handler._fetch_greynoise(*["1.2.3.4", "1.2.3.5"])
-        assert handler.warnings[0].startswith("Could not fetch Greynoise: 429 Client Error:")
+        assert handler.warnings[0].startswith(
+            "Could not fetch Greynoise: 429 Client Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch Greynoise: 429 Client Error:")
+        assert capture.out.startswith(
+            "WARN: Could not fetch Greynoise: 429 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_greynoise_404_error(self, mock_requests_get, domain_handler, test_data):
         """
-        Test fail open behavior of Greynoise when no IP found (404) and no warning message
+        Test fail open behavior of Greynoise when no IP found (404) and no warning
+        message
         """
         handler = domain_handler(3)
         mock_resp = requests.models.Response()
 
-        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(
+            json.loads(test_data("vt_resolutions_gist.json"))
+        )
 
         mock_resp.status_code = 404
         mock_requests_get.return_value = mock_resp
@@ -300,44 +336,60 @@ class TestDomainHandler:
         assert handler.greynoise == GreynoiseIpMap.model_validate({})
 
     @patch.object(requests.Session, "get")
-    def test_greynoise_403_error(self, mock_requests_get, domain_handler, test_data, capsys):
+    def test_greynoise_403_error(
+        self, mock_requests_get, domain_handler, test_data, capsys
+    ):
         """
         Test exception behavior of Greynoise when not under any of the handled cases
         """
         handler = domain_handler(3)
         mock_resp = requests.models.Response()
 
-        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(
+            json.loads(test_data("vt_resolutions_gist.json"))
+        )
 
         mock_resp.status_code = 403
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_greynoise(*["1.2.3.4", "1.2.3.5"])
-        assert handler.warnings[0].startswith("Could not fetch Greynoise: 403 Client Error:")
+        assert handler.warnings[0].startswith(
+            "Could not fetch Greynoise: 403 Client Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch Greynoise: 403 Client Error:")
+        assert capture.out.startswith(
+            "WARN: Could not fetch Greynoise: 403 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
-    def test_greynoise_connection_error(self, mock_requests_get, domain_handler, test_data, capsys):
+    def test_greynoise_connection_error(
+        self, mock_requests_get, domain_handler, test_data, capsys
+    ):
         """
         Test exception behavior of Greynoise with non-HTTPError requests exception
         """
         handler = domain_handler(3)
         mock_requests_get.side_effect = ConnectionError("Foo bar message")
 
-        handler.resolutions = Resolutions.model_validate(json.loads(test_data("vt_resolutions_gist.json")))
+        handler.resolutions = Resolutions.model_validate(
+            json.loads(test_data("vt_resolutions_gist.json"))
+        )
 
         handler._fetch_greynoise(*["1.2.3.4", "1.2.3.5"])
         assert handler.warnings[0] == "Could not fetch Greynoise: Foo bar message"
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch Greynoise: Foo bar message")
+        assert capture.out.startswith(
+            "WARN: Could not fetch Greynoise: Foo bar message"
+        )
 
     @patch.object(requests.Session, "get")
-    def test_greynoise_validation_error(self, mock_requests_get, domain_handler, capsys):
+    def test_greynoise_validation_error(
+        self, mock_requests_get, domain_handler, capsys
+    ):
         handler = domain_handler()
         mock_resp = requests.models.Response()
 
@@ -411,7 +463,9 @@ class TestIpAddressHandler:
 
         capture = capsys.readouterr()
 
-        assert capture.err == "Error fetching data: 404 Client Error: None for url: None\n"
+        assert (
+            capture.err == "Error fetching data: 404 Client Error: None for url: None\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 1
 
@@ -433,7 +487,8 @@ class TestIpAddressHandler:
 
             assert capture.err.startswith(
                 "Data model validation error: 1 validation error for IpAddress\ndata\n"
-                "  Field required [type=missing, input_value={'intentionally': 'wrong data'}, input_type=dict]\n"
+                "  Field required [type=missing, input_value={'intentionally': "
+                "'wrong data'}, input_type=dict]\n"
             )
             assert e.type == SystemExit
             assert e.value.code == 1
@@ -448,11 +503,15 @@ class TestIpAddressHandler:
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_geoasn("1.2.3.4")
-        assert handler.warnings[0].startswith("Could not fetch IPWhois: 502 Server Error:")
+        assert handler.warnings[0].startswith(
+            "Could not fetch IPWhois: 502 Server Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch IPWhois: 502 Server Error:")
+        assert capture.out.startswith(
+            "WARN: Could not fetch IPWhois: 502 Server Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_whois_http_error(self, mock_requests_get, ip_handler, capsys):
@@ -467,7 +526,9 @@ class TestIpAddressHandler:
 
         capture = capsys.readouterr()
 
-        assert capture.err == "Error fetching data: 403 Client Error: None for url: None\n"
+        assert (
+            capture.err == "Error fetching data: 403 Client Error: None for url: None\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 1
 
@@ -478,7 +539,10 @@ class TestIpAddressHandler:
 
         with patch.object(mock_resp, "json") as mock_resp_json:
             mock_resp.status_code = 200
-            mock_resp_json.return_value = {"success": True, "intentionally": "wrong data"}
+            mock_resp_json.return_value = {
+                "success": True,
+                "intentionally": "wrong data",
+            }
             mock_requests_get.return_value = mock_resp
 
             with pytest.raises(SystemExit) as e:
@@ -501,7 +565,7 @@ class TestIpAddressHandler:
         mock_resp = requests.models.Response()
 
         mock_resp.status_code = 401
-        mock_resp._content = b'<html>'
+        mock_resp._content = b"<html>"
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_shodan("1.2.3.4")
@@ -527,7 +591,9 @@ class TestIpAddressHandler:
 
         capture = capsys.readouterr()
 
-        assert capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        assert (
+            capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        )
         assert e.type == SystemExit
         assert e.value.code == 1
 
@@ -543,16 +609,21 @@ class TestIpAddressHandler:
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_greynoise("1.2.3.4")
-        assert handler.warnings[0].startswith("Could not fetch Greynoise: 429 Client Error:")
+        assert handler.warnings[0].startswith(
+            "Could not fetch Greynoise: 429 Client Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch Greynoise: 429 Client Error:")
+        assert capture.out.startswith(
+            "WARN: Could not fetch Greynoise: 429 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_greynoise_404_error(self, mock_requests_get, ip_handler):
         """
-        Test fail open behavior of Greynoise when no IP found (404) and no warning message
+        Test fail open behavior of Greynoise when no IP found (404) and no warning
+        message
         """
         handler = ip_handler()
         mock_resp = requests.models.Response()
@@ -576,11 +647,15 @@ class TestIpAddressHandler:
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_greynoise("1.2.3.4")
-        assert handler.warnings[0].startswith("Could not fetch Greynoise: 403 Client Error:")
+        assert handler.warnings[0].startswith(
+            "Could not fetch Greynoise: 403 Client Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch Greynoise: 403 Client Error:")
+        assert capture.out.startswith(
+            "WARN: Could not fetch Greynoise: 403 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_greynoise_connection_error(self, mock_requests_get, ip_handler, capsys):
@@ -595,7 +670,9 @@ class TestIpAddressHandler:
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch Greynoise: Foo bar message")
+        assert capture.out.startswith(
+            "WARN: Could not fetch Greynoise: Foo bar message"
+        )
 
     @patch.object(requests.Session, "get")
     def test_greynoise_validation_error(self, mock_requests_get, ip_handler, capsys):
@@ -645,8 +722,12 @@ class TestIpAddressHandler:
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_abuseipdb("1.2.3.4")
-        assert handler.warnings[0].startswith("Could not fetch AbuseIPDB: 429 Client Error:")
+        assert handler.warnings[0].startswith(
+            "Could not fetch AbuseIPDB: 429 Client Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch AbuseIPDB: 429 Client Error:")
+        assert capture.out.startswith(
+            "WARN: Could not fetch AbuseIPDB: 429 Client Error:"
+        )

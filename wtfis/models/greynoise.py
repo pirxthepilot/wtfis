@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, RootModel
 from typing import Dict, Optional
+
+from pydantic import BaseModel, RootModel
 
 
 class GreynoiseIp(BaseModel):

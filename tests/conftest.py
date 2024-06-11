@@ -1,7 +1,7 @@
-import pytest
 from pathlib import Path
 from typing import Optional
 
+import pytest
 from rich.console import RenderableType
 from rich.text import Span, Text
 
@@ -13,7 +13,8 @@ from wtfis.models.urlhaus import UrlHaus
 
 
 class TestTheme:
-    """ Expected theme values for the tests """
+    """Expected theme values for the tests"""
+
     panel_title = "bold yellow"
     heading_h1 = "bold bright_green on dark_green"
     heading_h2 = "bold yellow"
@@ -53,32 +54,32 @@ def open_test_data(fname: str) -> str:
 
 
 def abuseipdb_get_ip(ip, pool) -> AbuseIpDb:
-    """ Mock replacement for AbuseIpDbClient()._get_ip() """
+    """Mock replacement for AbuseIpDbClient()._get_ip()"""
     return AbuseIpDb.model_validate(pool[ip])
 
 
 def greynoise_get(ip, pool) -> GreynoiseIp:
-    """ Mock replacement for GreynoiseClient().get_ip() """
+    """Mock replacement for GreynoiseClient().get_ip()"""
     return GreynoiseIp.model_validate(pool[ip])
 
 
 def ipwhois_get(ip, pool) -> IpWhois:
-    """ Mock replacement for IpWhoisClient().get_ipwhois() """
+    """Mock replacement for IpWhoisClient().get_ipwhois()"""
     return IpWhois.model_validate(pool[ip])
 
 
 def shodan_get_ip(ip, pool) -> ShodanIp:
-    """ Mock replacement for ShodanClient().get_ip() """
+    """Mock replacement for ShodanClient().get_ip()"""
     return ShodanIp.model_validate(pool[ip])
 
 
 def urlhaus_get_host(entity, pool) -> UrlHaus:
-    """ Mock replacement for UrlHausClient()._get_host() """
+    """Mock replacement for UrlHausClient()._get_host()"""
     return UrlHaus.model_validate(pool[entity])
 
 
 def timestamp_text(ts) -> Optional[RenderableType]:
-    """ Standard timestamp formatting """
+    """Standard timestamp formatting"""
     theme = TestTheme()
     return Text(
         ts,
@@ -86,7 +87,7 @@ def timestamp_text(ts) -> Optional[RenderableType]:
             Span(10, 11, theme.timestamp_t),
             Span(11, 19, theme.timestamp_time),
             Span(19, 20, theme.timestamp_z),
-        ]
+        ],
     )
 
 

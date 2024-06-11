@@ -1,25 +1,19 @@
 import abc
+from typing import Any, Generator, List, Optional, Tuple, Union
 
-from rich.console import (
-    Console,
-    Group,
-    RenderableType,
-    group,
-)
+from rich.console import Console, Group, RenderableType, group
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from typing import Any, Generator, List, Optional, Tuple, Union
+
+from wtfis.exceptions import WtfisException
 from wtfis.models.abuseipdb import AbuseIpDb, AbuseIpDbMap
 from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
 from wtfis.models.types import IpGeoAsnMapType, IpGeoAsnType
-from wtfis.models.virustotal import (
-    LastAnalysisStats,
-    PopularityRanks,
-)
 from wtfis.models.urlhaus import UrlHaus, UrlHausMap
+from wtfis.models.virustotal import LastAnalysisStats, PopularityRanks
 from wtfis.ui.theme import Theme
 from wtfis.utils import Timestamp, is_ip, smart_join
 
@@ -28,6 +22,7 @@ class BaseView(abc.ABC):
     """
     Handles the look of the output
     """
+
     vt_gui_baseurl_domain = "https://virustotal.com/gui/domain"
     vt_gui_baseurl_ip = "https://virustotal.com/gui/ip-address"
     pt_gui_baseurl = "https://community.riskiq.com/search"
@@ -56,25 +51,32 @@ class BaseView(abc.ABC):
 
     def _vendors_who_flagged_malicious(self) -> List[str]:
         vendors = []
-        for key, result in self.entity.data.attributes.last_analysis_results.root.items():
+        for (
+            key,
+            result,
+        ) in self.entity.data.attributes.last_analysis_results.root.items():
             if result.category == "malicious":
                 vendors.append(key)
         return vendors
 
-    def _gen_heading_text(self, heading: str, hyperlink: Optional[str] = None, type: Optional[str] = "h1") -> Text:
-        """ Heading text
-            Generates 2 types:
-                "h1": Style is applied across the entire line
-                "h2": Style is applied to the text only
+    def _gen_heading_text(
+        self, heading: str, hyperlink: Optional[str] = None, type: Optional[str] = "h1"
+    ) -> Text:
+        """Heading text
+        Generates 2 types:
+            "h1": Style is applied across the entire line
+            "h2": Style is applied to the text only
         """
         link_style = f" link {hyperlink}" if hyperlink else ""
         if type == "h1":
-            return Text(heading, style=f"{self.theme.heading_h1}{link_style}", justify="center")
+            return Text(
+                heading, style=f"{self.theme.heading_h1}{link_style}", justify="center"
+            )
         elif type == "h2":
             text = Text(justify="center")
             return text.append(heading, style=f"{self.theme.heading_h2}{link_style}")
         else:  # pragma: no cover
-            raise Exception(f"Invalid heading type \"{type}\"")
+            raise WtfisException(f'Invalid heading type "{type}"')
 
     def _gen_linked_field_name(self, name: str, hyperlink: str) -> Text:
         text = Text(style=self.theme.table_field)
@@ -82,12 +84,16 @@ class BaseView(abc.ABC):
         text.append(":")
         return text
 
-    def _gen_table(self, *params: Tuple[Union[Text, str], Union[RenderableType, None]]) -> Union[Table, str]:
-        """ Each param should be a tuple of (field, value) """
+    def _gen_table(
+        self, *params: Tuple[Union[Text, str], Union[RenderableType, None]]
+    ) -> Union[Table, str]:
+        """Each param should be a tuple of (field, value)"""
         # Set up table
         grid = Table.grid(expand=False, padding=(0, 1))
-        grid.add_column(style=self.theme.table_field)                                 # Field
-        grid.add_column(style=self.theme.table_value, max_width=38, overflow="fold")  # Value
+        grid.add_column(style=self.theme.table_field)  # Field
+        grid.add_column(
+            style=self.theme.table_value, max_width=38, overflow="fold"
+        )  # Value
 
         # Populate rows
         valid_rows = 0
@@ -107,8 +113,10 @@ class BaseView(abc.ABC):
             yield item
 
     @staticmethod
-    def _gen_section(body: RenderableType, heading: Optional[Text] = None) -> RenderableType:
-        """ A section is a subset of a panel, with its own title and content """
+    def _gen_section(
+        body: RenderableType, heading: Optional[Text] = None
+    ) -> RenderableType:
+        """A section is a subset of a panel, with its own title and content"""
         return Group(heading, body) if heading else body
 
     def _gen_panel(
@@ -122,15 +130,19 @@ class BaseView(abc.ABC):
         return Panel(renderable, expand=False)
 
     def _gen_vt_analysis_stats(
-        self,
-        stats: LastAnalysisStats,
-        vendors: Optional[List[str]] = None
+        self, stats: LastAnalysisStats, vendors: Optional[List[str]] = None
     ) -> Text:
         # Custom style
         stats_style = self.theme.error if stats.malicious >= 1 else self.theme.info
 
         # Total count
-        total = stats.harmless + stats.malicious + stats.suspicious + stats.timeout + stats.undetected
+        total = (
+            stats.harmless
+            + stats.malicious
+            + stats.suspicious
+            + stats.timeout
+            + stats.undetected
+        )
 
         # Text
         text = Text()
@@ -185,10 +197,7 @@ class BaseView(abc.ABC):
         grouped = ip.group_ports_by_product()
 
         # Return a simple port list if no identified ports
-        if (
-            len(list(grouped.keys())) == 1 and
-            list(grouped.keys())[0] == "Other"
-        ):
+        if len(list(grouped.keys())) == 1 and list(grouped.keys())[0] == "Other":
             return smart_join(*ports_stylized(grouped["Other"]))
 
         # Return grouped display of there are identified ports
@@ -218,41 +227,43 @@ class BaseView(abc.ABC):
         text = Text()
 
         # RIOT
-        riot_icon = (Text("✓", style=true_style)
-                     if ip.riot is True
-                     else Text("✗", style=false_style))
-        (text
-         .append(riot_icon)
-         .append(" ")
-         .append(Text("riot", style=text_style))
-         .append("  "))
+        riot_icon = (
+            Text("✓", style=true_style)
+            if ip.riot is True
+            else Text("✗", style=false_style)
+        )
+        (
+            text.append(riot_icon)
+            .append(" ")
+            .append(Text("riot", style=text_style))
+            .append("  ")
+        )
 
         # Noise
-        noise_icon = (Text("✓", style=true_style)
-                      if ip.noise is True
-                      else Text("✗", style=false_style))
-        (text
-         .append(noise_icon)
-         .append(" ")
-         .append(Text("noise", style=text_style)))
+        noise_icon = (
+            Text("✓", style=true_style)
+            if ip.noise is True
+            else Text("✗", style=false_style)
+        )
+        (text.append(noise_icon).append(" ").append(Text("noise", style=text_style)))
 
         # Classification
         if ip.classification:
             text.append("  ")
             if ip.classification == "benign":
-                (text
-                 .append(Text("✓", style=self.theme.info))
-                 .append(" ")
-                 .append(Text("benign", style=self.theme.tags_green)))
+                (
+                    text.append(Text("✓", style=self.theme.info))
+                    .append(" ")
+                    .append(Text("benign", style=self.theme.tags_green))
+                )
             elif ip.classification == "malicious":
-                (text
-                 .append(Text("!", style=self.theme.error))
-                 .append(" ")
-                 .append(Text("malicious", style=self.theme.tags_red)))
+                (
+                    text.append(Text("!", style=self.theme.error))
+                    .append(" ")
+                    .append(Text("malicious", style=self.theme.tags_red))
+                )
             else:
-                (text
-                 .append("? ")
-                 .append(Text(ip.classification, style=text_style)))
+                (text.append("? ").append(Text(ip.classification, style=text_style)))
 
         return title, text
 
@@ -261,7 +272,9 @@ class BaseView(abc.ABC):
         #
         # Title
         #
-        title = self._gen_linked_field_name("AbuseIPDB", hyperlink=f"https://www.abuseipdb.com/check/{ip.ip_address}")
+        title = self._gen_linked_field_name(
+            "AbuseIPDB", hyperlink=f"https://www.abuseipdb.com/check/{ip.ip_address}"
+        )
 
         #
         # Content
@@ -275,9 +288,11 @@ class BaseView(abc.ABC):
             style = self.theme.error
 
         text = Text()
-        (text
-         .append(Text(str(ip.abuse_confidence_score), style=style))
-         .append(" confidence score", style=style.replace("bold ", "")))
+        (
+            text.append(Text(str(ip.abuse_confidence_score), style=style)).append(
+                " confidence score", style=style.replace("bold ", "")
+            )
+        )
 
         if ip.abuse_confidence_score > 0:
             text.append(f" ({ip.total_reports} reports)", style=self.theme.table_value)
@@ -293,10 +308,11 @@ class BaseView(abc.ABC):
             return None
 
         text = Text()
-        (text
-         .append(f"{asn.replace('AS', '')} (")
-         .append(str(org), style=self.theme.asn_org)
-         .append(")"))
+        (
+            text.append(f"{asn.replace('AS', '')} (")
+            .append(str(org), style=self.theme.asn_org)
+            .append(")")
+        )
         return text
 
     def _get_geoasn_enrichment(self, ip: str) -> Optional[IpGeoAsnType]:
@@ -315,18 +331,20 @@ class BaseView(abc.ABC):
         return self.urlhaus.root[entity] if entity in self.urlhaus.root.keys() else None
 
     def _gen_vt_section(self) -> RenderableType:
-        """ Virustotal section. Applies to both domain and IP views """
+        """Virustotal section. Applies to both domain and IP views"""
         attributes = self.entity.data.attributes
-        baseurl = self.vt_gui_baseurl_ip if is_ip(self.entity.data.id_) else self.vt_gui_baseurl_domain
+        baseurl = (
+            self.vt_gui_baseurl_ip
+            if is_ip(self.entity.data.id_)
+            else self.vt_gui_baseurl_domain
+        )
 
         # Analysis (IP and domain)
         analysis = self._gen_vt_analysis_stats(
-            attributes.last_analysis_stats,
-            self._vendors_who_flagged_malicious()
+            attributes.last_analysis_stats, self._vendors_who_flagged_malicious()
         )
         analysis_field = self._gen_linked_field_name(
-            "Analysis",
-            hyperlink=f"{baseurl}/{self.entity.data.id_}"
+            "Analysis", hyperlink=f"{baseurl}/{self.entity.data.id_}"
         )
 
         # Reputation (IP and domain)
@@ -346,29 +364,29 @@ class BaseView(abc.ABC):
         # Categories (Domain only)
         if hasattr(attributes, "categories"):
             data += [
-                ("Categories:",
-                 smart_join(*attributes.categories, style=self.theme.tags)
-                 if attributes.categories else None)
+                (
+                    "Categories:",
+                    (
+                        smart_join(*attributes.categories, style=self.theme.tags)
+                        if attributes.categories
+                        else None
+                    ),
+                )
             ]
 
         # Updated (IP and domain)
-        data += [
-            ("Updated:", Timestamp(attributes.last_modification_date).render)
-        ]
+        data += [("Updated:", Timestamp(attributes.last_modification_date).render)]
 
         # Last seen (Domain only)
         if hasattr(attributes, "last_dns_records_date"):
-            data += [
-                ("Last Seen:", Timestamp(attributes.last_dns_records_date).render)
-            ]
+            data += [("Last Seen:", Timestamp(attributes.last_dns_records_date).render)]
 
         return self._gen_section(
-            self._gen_table(*data),
-            self._gen_heading_text("VirusTotal")
+            self._gen_table(*data), self._gen_heading_text("VirusTotal")
         )
 
     def _gen_geoasn_section(self) -> Optional[RenderableType]:
-        """ IP location and ASN section. Applies to IP views only """
+        """IP location and ASN section. Applies to IP views only"""
         enrich = self._get_geoasn_enrichment(self.entity.data.id_)
 
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
@@ -382,43 +400,46 @@ class BaseView(abc.ABC):
                 ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
             ]
             return self._gen_section(
-
-                self._gen_table(*data),
-                self._gen_heading_text(section_title)
+                self._gen_table(*data), self._gen_heading_text(section_title)
             )
 
         return None  # No enrichment data
 
     def _gen_shodan_section(self) -> Optional[RenderableType]:
-        """ Shodan section. Applies to IP views only """
+        """Shodan section. Applies to IP views only"""
         enrich = self._get_shodan_enrichment(self.entity.data.id_)
 
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
         if enrich:
             section_title = "Shodan"
-            tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+            tags = (
+                smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+            )
             services_field = self._gen_linked_field_name(
                 "Services",
-                hyperlink=f"{self.shodan_gui_baseurl}/{self.entity.data.id_}"
+                hyperlink=f"{self.shodan_gui_baseurl}/{self.entity.data.id_}",
             )
             data += [
                 ("OS:", enrich.os),
                 (services_field, self._gen_shodan_services(enrich)),
                 ("Tags:", tags),
-                ("Last Scan:", Timestamp(f"{enrich.last_update}+00:00").render),  # Timestamps are UTC
-                                                                                  # (source: Google)
+                (
+                    "Last Scan:",
+                    Timestamp(f"{enrich.last_update}+00:00").render,
+                ),  # Timestamps are UTC
+                # (source: Google)
             ]
 
             return self._gen_section(
-                self._gen_table(*data),
-                self._gen_heading_text(section_title)
+                self._gen_table(*data), self._gen_heading_text(section_title)
             )
 
         return None  # No enrichment data
 
     def _gen_urlhaus_section(self) -> Optional[RenderableType]:
-        """ URLhaus """
+        """URLhaus"""
+
         def bl_text(blocklist: str, status: str) -> Text:
             # https://urlhaus-api.abuse.ch/#hostinfo
             text = Text()
@@ -429,7 +450,7 @@ class BaseView(abc.ABC):
             elif status.endswith("_domain") or status == "listed":
                 text.append(status, self.theme.urlhaus_bl_high)
             else:  # pragma: no cover
-                raise Exception(f"Invalid URLhaus BL status: {status}")
+                raise WtfisException(f"Invalid URLhaus BL status: {status}")
             text.append(" in ").append(blocklist, style=self.theme.urlhaus_bl_name)
             return text
 
@@ -438,45 +459,66 @@ class BaseView(abc.ABC):
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
         if enrich:
-            malware_urls_field: Union[Text, str] = self._gen_linked_field_name(
-                "Malware URLs",
-                hyperlink=enrich.urlhaus_reference,
-            ) if enrich.urlhaus_reference else "Malware URLs:"
+            malware_urls_field: Union[Text, str] = (
+                self._gen_linked_field_name(
+                    "Malware URLs",
+                    hyperlink=enrich.urlhaus_reference,
+                )
+                if enrich.urlhaus_reference
+                else "Malware URLs:"
+            )
 
             malware_urls_value = Text()
-            (malware_urls_value
-             .append(
-                (str(enrich.online_url_count)
-                    if enrich.url_count and enrich.url_count <= 100
-                    else f"{enrich.online_url_count}+") + " online",
-                style=self.theme.error if enrich.online_url_count > 0 else self.theme.warn,
-             )
-             .append(
-                f" ({enrich.url_count} total)",
-                style=self.theme.table_value,
-             ))
+            (
+                malware_urls_value.append(
+                    (
+                        str(enrich.online_url_count)
+                        if enrich.url_count and enrich.url_count <= 100
+                        else f"{enrich.online_url_count}+"
+                    )
+                    + " online",
+                    style=(
+                        self.theme.error
+                        if enrich.online_url_count > 0
+                        else self.theme.warn
+                    ),
+                ).append(
+                    f" ({enrich.url_count} total)",
+                    style=self.theme.table_value,
+                )
+            )
 
-            tags = smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+            tags = (
+                smart_join(*enrich.tags, style=self.theme.tags) if enrich.tags else None
+            )
 
             data += [
                 (malware_urls_field, malware_urls_value),
                 (
                     "Blocklists:",
-                    (bl_text("spamhaus", enrich.blacklists.spamhaus_dbl if enrich.blacklists else "") + "\n" +
-                     bl_text("surbl", enrich.blacklists.surbl if enrich.blacklists else ""))
+                    (
+                        bl_text(
+                            "spamhaus",
+                            enrich.blacklists.spamhaus_dbl if enrich.blacklists else "",
+                        )
+                        + "\n"
+                        + bl_text(
+                            "surbl",
+                            enrich.blacklists.surbl if enrich.blacklists else "",
+                        )
+                    ),
                 ),
                 ("Tags:", tags),
             ]
 
             return self._gen_section(
-                self._gen_table(*data),
-                self._gen_heading_text("URLhaus")
+                self._gen_table(*data), self._gen_heading_text("URLhaus")
             )
 
         return None  # No enrichment data
 
     def _gen_ip_other_section(self) -> Optional[RenderableType]:
-        """ Other section for IP views """
+        """Other section for IP views"""
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
         # Greynoise
@@ -491,8 +533,7 @@ class BaseView(abc.ABC):
 
         if data:
             return self._gen_section(
-                self._gen_table(*data),
-                self._gen_heading_text("Other")
+                self._gen_table(*data), self._gen_heading_text("Other")
             )
 
         return None  # No other data
@@ -507,14 +548,21 @@ class BaseView(abc.ABC):
         else:  # VT
             hyperlink = None
 
-        heading = self._gen_heading_text(
-            self.whois.domain,
-            hyperlink=hyperlink,
-            type="h2",
-        ) if self.whois.domain else None
+        heading = (
+            self._gen_heading_text(
+                self.whois.domain,
+                hyperlink=hyperlink,
+                type="h2",
+            )
+            if self.whois.domain
+            else None
+        )
 
-        organization = (Text(self.whois.organization, style=self.theme.whois_org)
-                        if self.whois.organization else None)
+        organization = (
+            Text(self.whois.organization, style=self.theme.whois_org)
+            if self.whois.organization
+            else None
+        )
         body = self._gen_table(
             ("Registrar:", self.whois.registrar),
             ("Organization:", organization),
@@ -526,7 +574,10 @@ class BaseView(abc.ABC):
             ("State:", self.whois.state),
             ("Country:", self.whois.country),
             ("Postcode:", self.whois.postal_code),
-            ("Nameservers:", smart_join(*self.whois.name_servers, style=self.theme.nameserver_list)),
+            (
+                "Nameservers:",
+                smart_join(*self.whois.name_servers, style=self.theme.nameserver_list),
+            ),
             ("DNSSEC:", self.whois.dnssec),
             ("Registered:", Timestamp(self.whois.date_created).render),
             ("Updated:", Timestamp(self.whois.date_changed).render),

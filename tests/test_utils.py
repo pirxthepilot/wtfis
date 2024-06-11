@@ -1,16 +1,8 @@
 import pytest
-
 from freezegun import freeze_time
 from rich.text import Text
 
-from wtfis.utils import (
-    Timestamp,
-    older_than,
-    smart_join,
-    error_and_exit,
-    refang,
-    is_ip,
-)
+from wtfis.utils import Timestamp, error_and_exit, is_ip, older_than, refang, smart_join
 
 
 class TestUtils:
@@ -18,7 +10,10 @@ class TestUtils:
         assert Timestamp(1660428690).timestamp == "2022-08-13T22:11:30Z"
 
     def test_Timestamp_2(self):
-        assert Timestamp("2017-04-26T15:43:49.000-07:00").timestamp == "2017-04-26T22:43:49Z"
+        assert (
+            Timestamp("2017-04-26T15:43:49.000-07:00").timestamp
+            == "2017-04-26T22:43:49Z"
+        )
 
     def test_Timestamp_3(self):
         assert Timestamp(None).timestamp is None

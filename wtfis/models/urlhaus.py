@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, RootModel, field_validator
 from typing import Dict, List, Optional, Set
+
+from pydantic import BaseModel, RootModel, field_validator
 
 
 class Blacklists(BaseModel):
@@ -24,14 +25,14 @@ class Url(BaseModel):
     @field_validator("larted", mode="before")
     @classmethod
     def convert_larted(cls, v):
-        """ Cast larted to bool """
+        """Cast larted to bool"""
         mapping = {"true": True, "false": False}
         return mapping[v.lower()]
 
     @field_validator("tags", mode="before")
     @classmethod
     def handle_none_tags(cls, v):
-        """ Turn NoneType tags into an empty list """
+        """Turn NoneType tags into an empty list"""
         return [] if v is None else v
 
 
@@ -51,7 +52,7 @@ class UrlHaus(BaseModel):
     @field_validator("url_count", mode="before")
     @classmethod
     def convert_url_count(cls, v):
-        """ Cast url_count to int """
+        """Cast url_count to int"""
         return int(v) if v else None
 
     @property
@@ -59,7 +60,8 @@ class UrlHaus(BaseModel):
         if not self._online_url_count:
             self._online_url_count = (
                 len([u for u in self.urls if u.url_status == "online"])
-                if self.urls else 0
+                if self.urls
+                else 0
             )
         return self._online_url_count
 

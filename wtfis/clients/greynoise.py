@@ -1,5 +1,6 @@
-from requests.exceptions import HTTPError
 from typing import Optional
+
+from requests.exceptions import HTTPError
 
 from wtfis.clients.base import BaseIpEnricherClient, BaseRequestsClient
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
@@ -9,6 +10,7 @@ class GreynoiseClient(BaseRequestsClient, BaseIpEnricherClient):
     """
     Greynoise client
     """
+
     baseurl = "https://api.greynoise.io/v3/community"
 
     def __init__(self, api_key: str) -> None:

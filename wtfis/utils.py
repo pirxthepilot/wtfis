@@ -1,6 +1,5 @@
 import re
 import sys
-
 from datetime import datetime, timedelta, timezone
 from ipaddress import ip_address
 from typing import Optional, Union
@@ -20,7 +19,7 @@ class Timestamp:
         self.timestamp = self._standardize(ts)
 
     def _standardize(self, ts: Union[str, int, None]) -> Optional[str]:
-        """ Convert any time to a standard format """
+        """Convert any time to a standard format"""
         # Do nothing if ts is None
         if ts is None:
             return None
@@ -63,7 +62,11 @@ class Timestamp:
 
             # Default
             try:
-                return datetime.fromisoformat(ts).astimezone(timezone.utc).strftime(self.std_utc)
+                return (
+                    datetime.fromisoformat(ts)
+                    .astimezone(timezone.utc)
+                    .strftime(self.std_utc)
+                )
             except ValueError:  # Cannot convert; fail open
                 return ts
 
@@ -84,13 +87,12 @@ class Timestamp:
 
 
 def older_than(ts: int, days: int) -> bool:
-    """ Tells if a timestamp is older than X days. "ts" must be epoch format """
+    """Tells if a timestamp is older than X days. "ts" must be epoch format"""
     return datetime.fromtimestamp(ts) < datetime.now() - timedelta(days=days)
 
 
 def smart_join(
-    *items: Optional[Union[Text, str]],
-    style: Optional[str] = None
+    *items: Optional[Union[Text, str]], style: Optional[str] = None
 ) -> Union[Text, str]:
     text = Text()
     for idx, item in enumerate(items):
@@ -110,12 +112,12 @@ def error_and_exit(message: str, status: int = 1):
 
 
 def refang(text: str) -> str:
-    """ Strip []s out of text """
+    """Strip []s out of text"""
     return text.replace("[", "").replace("]", "")
 
 
 def is_ip(text: str) -> bool:
-    """ Detect whether text is IPv4 or not """
+    """Detect whether text is IPv4 or not"""
     try:
         return ip_address(refang(text)).is_global
     except ValueError:
