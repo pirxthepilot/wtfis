@@ -43,7 +43,7 @@ jobs:
     - name: Install hatch
       run: pip install hatch
 
-    - if: matrix.python-version == '3.9' && runner.os == 'Linux'
+    - if: matrix.python-version == '3.12' && runner.os == 'Linux'
       name: Lint
       run: hatch run lint:all
 
