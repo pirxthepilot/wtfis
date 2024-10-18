@@ -28,7 +28,7 @@ class IpWhois(IpGeoAsnBase):
     domain: str = Field(validation_alias=AliasPath("connection", "domain"))
 
 
-class IpWhoisMap(IpGeoAsnMapBase):
+class IpWhoisMap(IpGeoAsnMapBase):  # type: ignore[override]
     root: Dict[str, IpWhois]
 
     @classmethod
