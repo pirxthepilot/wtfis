@@ -8,8 +8,8 @@ from rich.console import Console
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -27,7 +27,7 @@ def generate_domain_handler(max_resolutions=3):
         progress=MagicMock(),
         vt_client=VTClient("dummykey"),
         ip_geoasn_client=IpWhoisClient(),
-        whois_client=PTClient("dummyuser", "dummykey"),
+        whois_client=Ip2WhoisClient("dummykey"),
         shodan_client=ShodanClient("dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),
@@ -43,7 +43,7 @@ def generate_ip_handler():
         progress=MagicMock(),
         vt_client=VTClient("dummykey"),
         ip_geoasn_client=IpWhoisClient(),
-        whois_client=PTClient("dummyuser", "dummykey"),
+        whois_client=Ip2WhoisClient("dummykey"),
         shodan_client=ShodanClient("dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),

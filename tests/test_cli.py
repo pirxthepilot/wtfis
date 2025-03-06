@@ -19,7 +19,6 @@ from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -38,8 +37,6 @@ from wtfis.ui.view import DomainView, IpAddressView
 
 POSSIBLE_ENV_VARS = [
     "VT_API_KEY",
-    "PT_API_KEY",
-    "PT_API_USER",
     "IP2WHOIS_API_KEY",
     "SHODAN_API_KEY",
     "GREYNOISE_API_KEY",
@@ -82,8 +79,6 @@ def simulate_progress(console):
 def fake_load_dotenv_1(tmp_path):
     fake_env_vars = {
         "VT_API_KEY": "foo",
-        "PT_API_KEY": "bar",
-        "PT_API_USER": "baz@example.com",
         "IP2WHOIS_API_KEY": "alice",
         "SHODAN_API_KEY": "hunter2",
         "GREYNOISE_API_KEY": "upupdowndown",
@@ -350,8 +345,6 @@ class TestEnvs:
         with patch("wtfis.main.load_dotenv", fake_load_dotenv_1):
             parse_env()
             assert os.environ["VT_API_KEY"] == "foo"
-            assert os.environ["PT_API_KEY"] == "bar"
-            assert os.environ["PT_API_USER"] == "baz@example.com"
             assert os.environ["IP2WHOIS_API_KEY"] == "alice"
             assert os.environ["SHODAN_API_KEY"] == "hunter2"
             assert os.environ["GREYNOISE_API_KEY"] == "upupdowndown"
@@ -477,15 +470,14 @@ class TestGenEntityHandler:
             parse_env()
             console = Console()
             progress = (simulate_progress(console),)
-            entity = generate_entity_handler(parse_args(), console, progress)
+            entity = generate_entity_handler(parse_args(), console, progress)  # type: ignore
         assert isinstance(entity, DomainHandler)
         assert entity.entity == "www.example.com"
         assert entity.max_resolutions == 3
         assert entity.console == console
-        assert entity.progress == progress
+        assert entity.progress == progress  # type: ignore
         assert isinstance(entity._vt, VTClient)
         assert isinstance(entity._geoasn, IpWhoisClient)
-        assert isinstance(entity._whois, PTClient)
         assert entity._shodan is None
         assert entity._greynoise is None
         assert entity._urlhaus is None
@@ -499,10 +491,11 @@ class TestGenEntityHandler:
             parse_env()
             console = Console()
             progress = (simulate_progress(console),)
-            entity = generate_entity_handler(parse_args(), console, progress)
-        assert entity.max_resolutions == 5
+            entity = generate_entity_handler(
+                parse_args(), console, progress
+            )  # type: ignore
+        assert entity.max_resolutions == 5  # type: ignore
         assert isinstance(entity._geoasn, IpWhoisClient)
-        assert isinstance(entity._whois, PTClient)
         assert isinstance(entity._shodan, ShodanClient)
         assert isinstance(entity._greynoise, GreynoiseClient)
         assert isinstance(entity._urlhaus, UrlHausClient)
@@ -515,7 +508,9 @@ class TestGenEntityHandler:
             parse_env()
             console = Console()
             progress = (simulate_progress(console),)
-            entity = generate_entity_handler(parse_args(), console, progress)
+            entity = generate_entity_handler(
+                parse_args(), console, progress
+            )  # type: ignore
         assert isinstance(entity._whois, VTClient)
         unset_env_vars()
 
@@ -526,7 +521,9 @@ class TestGenEntityHandler:
             parse_env()
             console = Console()
             progress = (simulate_progress(console),)
-            entity = generate_entity_handler(parse_args(), console, progress)
+            entity = generate_entity_handler(
+                parse_args(), console, progress
+            )  # type: ignore
         assert isinstance(entity._whois, Ip2WhoisClient)
         unset_env_vars()
 
@@ -537,14 +534,15 @@ class TestGenEntityHandler:
             parse_env()
             console = Console()
             progress = (simulate_progress(console),)
-            entity = generate_entity_handler(parse_args(), console, progress)
+            entity = generate_entity_handler(
+                parse_args(), console, progress
+            )  # type: ignore
         assert isinstance(entity, IpAddressHandler)
         assert entity.entity == "1.1.1.1"
         assert entity.console == console
-        assert entity.progress == progress
+        assert entity.progress == progress  # type: ignore
         assert isinstance(entity._vt, VTClient)
         assert isinstance(entity._geoasn, IpWhoisClient)
-        assert isinstance(entity._whois, PTClient)
         assert entity._greynoise is None
         assert entity._urlhaus is None
         unset_env_vars()
@@ -556,9 +554,10 @@ class TestGenEntityHandler:
             parse_env()
             console = Console()
             progress = (simulate_progress(console),)
-            entity = generate_entity_handler(parse_args(), console, progress)
+            entity = generate_entity_handler(
+                parse_args(), console, progress
+            )  # type: ignore
         assert isinstance(entity._geoasn, IpWhoisClient)
-        assert isinstance(entity._whois, PTClient)
         assert isinstance(entity._shodan, ShodanClient)
         assert isinstance(entity._greynoise, GreynoiseClient)
         assert isinstance(entity._urlhaus, UrlHausClient)
@@ -588,7 +587,7 @@ class TestGenView:
             json.loads(test_data("vt_domain_gist.json"))
         )
         entity.whois = MagicMock()
-        entity.ip_enrich = MagicMock()
+        entity.ip_enrich = MagicMock()  # type: ignore
         view = generate_view(MagicMock(), MagicMock(), entity)
         assert isinstance(view, DomainView)
 
@@ -611,14 +610,14 @@ class TestGenView:
             json.loads(test_data("vt_ip_1.1.1.1.json"))
         )
         entity.whois = MagicMock()
-        entity.ip_enrich = MagicMock()
+        entity.ip_enrich = MagicMock()  # type: ignore
         view = generate_view(MagicMock(), MagicMock(), entity)
         assert isinstance(view, IpAddressView)
 
     def test_view_error(self):
         """IP address view with default params"""
         with pytest.raises(WtfisException):
-            generate_view(MagicMock(), MagicMock(), "foobar")
+            generate_view(MagicMock(), MagicMock(), "foobar")  # type: ignore
 
 
 class TestMain:

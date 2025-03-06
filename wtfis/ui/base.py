@@ -25,7 +25,6 @@ class BaseView(abc.ABC):
 
     vt_gui_baseurl_domain = "https://virustotal.com/gui/domain"
     vt_gui_baseurl_ip = "https://virustotal.com/gui/ip-address"
-    pt_gui_baseurl = "https://community.riskiq.com/search"
     shodan_gui_baseurl = "https://www.shodan.io/host"
 
     def __init__(
@@ -543,15 +542,10 @@ class BaseView(abc.ABC):
         if self.whois is None:
             return None
 
-        if self.whois.source == "passivetotal":  # PT
-            hyperlink = f"{self.pt_gui_baseurl}/{self.whois.domain}/whois"
-        else:  # VT
-            hyperlink = None
-
         heading = (
             self._gen_heading_text(
                 self.whois.domain,
-                hyperlink=hyperlink,
+                hyperlink=None,
                 type="h2",
             )
             if self.whois.domain

@@ -12,7 +12,6 @@ from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -137,15 +136,12 @@ def generate_entity_handler(
 
     # Whois client selector
     # Order of use based on set envvars:
-    #    1. Passivetotal
-    #    2. IP2Whois (Domain only)
+    #    1. IP2Whois (Domain only)
     #    2. Virustotal (fallback)
-    if os.environ.get("PT_API_USER") and os.environ.get("PT_API_KEY"):
-        whois_client: Union[PTClient, Ip2WhoisClient, VTClient] = PTClient(
-            os.environ["PT_API_USER"], os.environ["PT_API_KEY"]
+    if os.environ.get("IP2WHOIS_API_KEY") and not is_ip(args.entity):
+        whois_client: Union[Ip2WhoisClient, VTClient] = Ip2WhoisClient(
+            os.environ["IP2WHOIS_API_KEY"]
         )
-    elif os.environ.get("IP2WHOIS_API_KEY") and not is_ip(args.entity):
-        whois_client = Ip2WhoisClient(os.environ["IP2WHOIS_API_KEY"])
     else:
         whois_client = vt_client
 
