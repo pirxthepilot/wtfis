@@ -24,7 +24,7 @@ from wtfis.ui.view import IpAddressView
 
 
 @pytest.fixture()
-def view02(test_data, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get):
+def view01(test_data, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get):
     """1.1.1.1 with Shodan and Greynoise. Test the whole IP panel."""
     ip = "1.1.1.1"
     geoasn_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
@@ -61,7 +61,7 @@ def view02(test_data, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get):
 
 
 @pytest.fixture()
-def view03(test_data):
+def view02(test_data):
     """1.1.1.1 VT whois. Whois panel test only."""
     return IpAddressView(
         console=Console(),
@@ -76,7 +76,7 @@ def view03(test_data):
 
 
 @pytest.fixture()
-def view04(test_data):
+def view03(test_data):
     """
     142.251.220.110. Test whole IP panel with 0 malicious, 0 reputation and no IP and
     Greynoise enrichment.
@@ -96,7 +96,7 @@ def view04(test_data):
 
 
 @pytest.fixture()
-def view05(test_data, mock_greynoise_get):
+def view04(test_data, mock_greynoise_get):
     """1.1.1.1 with alt Greynoise results. Test Greynoise only."""
     ip = "1.1.1.1"
     greynoise_pool = json.loads(test_data("greynoise_1.1.1.1_malicious.json"))
@@ -119,7 +119,7 @@ def view05(test_data, mock_greynoise_get):
 
 
 @pytest.fixture()
-def view06(test_data, mock_greynoise_get):
+def view05(test_data, mock_greynoise_get):
     """1.1.1.1 with another alt Greynoise result (unknown class).
     Test Greynoise only."""
     ip = "1.1.1.1"
@@ -143,7 +143,7 @@ def view06(test_data, mock_greynoise_get):
 
 
 @pytest.fixture()
-def view07(test_data, mock_abuseipdb_get):
+def view06(test_data, mock_abuseipdb_get):
     """1.1.1.1 with green AbuseIPDB score. Test AbuseIPDB only."""
     ip = "1.1.1.1"
     abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_green.json"))
@@ -166,7 +166,7 @@ def view07(test_data, mock_abuseipdb_get):
 
 
 @pytest.fixture()
-def view08(test_data, mock_abuseipdb_get):
+def view07(test_data, mock_abuseipdb_get):
     """1.1.1.1 with yellow AbuseIPDB score. Test AbuseIPDB only."""
     ip = "1.1.1.1"
     abuseipdb_pool = json.loads(test_data("abuseipdb_1.1.1.1_yellow.json"))
@@ -188,9 +188,9 @@ def view08(test_data, mock_abuseipdb_get):
     )
 
 
-class TestView02:
-    def test_ip_panel(self, view02, theme, display_timestamp):
-        ip = view02.ip_panel()
+class TestView01:
+    def test_ip_panel(self, view01, theme, display_timestamp):
+        ip = view01.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("1.1.1.1")
 
@@ -393,9 +393,9 @@ class TestView02:
         ]
 
 
-class TestView03:
-    def test_whois_panel(self, view03, theme):
-        whois = view03.whois_panel()
+class TestView02:
+    def test_whois_panel(self, view02, theme):
+        whois = view02.whois_panel()
         assert type(whois) is Panel
         assert whois.title is None
 
@@ -468,9 +468,9 @@ class TestView03:
         ]
 
 
-class TestView04:
-    def test_ip_panel(self, view04, theme, display_timestamp):
-        ip = view04.ip_panel()
+class TestView03:
+    def test_ip_panel(self, view03, theme, display_timestamp):
+        ip = view03.ip_panel()
         assert type(ip) is Panel
         assert ip.title == Text("142.251.220.110")
 
@@ -512,9 +512,9 @@ class TestView04:
         ]
 
 
-class TestView05:
-    def test_ip_panel_greynoise_only(self, view05, theme):
-        ip = view05.ip_panel()
+class TestView04:
+    def test_ip_panel_greynoise_only(self, view04, theme):
+        ip = view04.ip_panel()
 
         other_section = ip.renderable.renderables[2]
 
@@ -533,9 +533,9 @@ class TestView05:
         )
 
 
-class TestView06:
-    def test_ip_panel_greynoise_only(self, view06, theme):
-        ip = view06.ip_panel()
+class TestView05:
+    def test_ip_panel_greynoise_only(self, view05, theme):
+        ip = view05.ip_panel()
 
         other_section = ip.renderable.renderables[2]
 
@@ -554,8 +554,8 @@ class TestView06:
 
 
 class TestAbuseIpDbOnly:
-    def test_abuseipdb_green(self, view07, theme):
-        ip = view07.ip_panel()
+    def test_abuseipdb_green(self, view06, theme):
+        ip = view06.ip_panel()
 
         other_section = ip.renderable.renderables[2]
 
@@ -569,8 +569,8 @@ class TestAbuseIpDbOnly:
             ],
         )
 
-    def test_abuseipdb_yellow(self, view08, theme):
-        ip = view08.ip_panel()
+    def test_abuseipdb_yellow(self, view07, theme):
+        ip = view07.ip_panel()
 
         other_section = ip.renderable.renderables[2]
 

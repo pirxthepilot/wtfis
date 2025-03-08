@@ -28,7 +28,7 @@ from wtfis.ui.view import DomainView
 
 
 @pytest.fixture()
-def view02(test_data):
+def view01(test_data):
     """
     gist.github.com VT whois. Resolution and whois tests only. Test empty enrichment
     and max_resolutions=1
@@ -50,7 +50,7 @@ def view02(test_data):
 
 
 @pytest.fixture()
-def view03(test_data):
+def view02(test_data):
     """bbc.co.uk VT whois. Whois panel test only. Test whois with no domain field."""
     return DomainView(
         console=Console(),
@@ -66,7 +66,7 @@ def view03(test_data):
 
 
 @pytest.fixture()
-def view04(test_data):
+def view03(test_data):
     """
     google.com domain. Domain and resolution test only. Test domain with 1 malicious
     analysis point, and empty resolutions.
@@ -85,7 +85,7 @@ def view04(test_data):
 
 
 @pytest.fixture()
-def view05(test_data):
+def view04(test_data):
     """tucows.com domain. Domain test only. Test domain with negative reputation and no
     popularity."""
     return DomainView(
@@ -102,7 +102,7 @@ def view05(test_data):
 
 
 @pytest.fixture()
-def view06(test_data):
+def view05(test_data):
     """exmple.com VT whois. Whois test only. Test empty whois_map."""
     return DomainView(
         console=Console(),
@@ -118,7 +118,7 @@ def view06(test_data):
 
 
 @pytest.fixture()
-def view07(test_data, mock_ipwhois_get, mock_shodan_get_ip):
+def view06(test_data, mock_ipwhois_get, mock_shodan_get_ip):
     """gist.github.com with Shodan. Only test resolution, geoasn and Shodan."""
     resolutions = Resolutions.model_validate(
         json.loads(test_data("vt_resolutions_gist.json"))
@@ -152,7 +152,7 @@ def view07(test_data, mock_ipwhois_get, mock_shodan_get_ip):
 
 
 @pytest.fixture()
-def view08(test_data, mock_shodan_get_ip):
+def view07(test_data, mock_shodan_get_ip):
     """www.wired.com with Shodan. Only test resolution and Shodan."""
     resolutions = Resolutions.model_validate(
         json.loads(test_data("vt_resolutions_wired.json"))
@@ -180,7 +180,7 @@ def view08(test_data, mock_shodan_get_ip):
 
 
 @pytest.fixture()
-def view09(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get):
+def view08(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get):
     """one.one.one.one with Shodan, Greynoise and AbuseIPDB. Only test mentioned
     services."""
     resolutions = Resolutions.model_validate(
@@ -223,7 +223,7 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get
 
 
 @pytest.fixture()
-def view10(test_data):
+def view09(test_data):
     """Dummy VT whois. Whois panel test only. Test whois with no data."""
     return DomainView(
         console=Console(),
@@ -239,7 +239,7 @@ def view10(test_data):
 
 
 @pytest.fixture()
-def view11(test_data, mock_shodan_get_ip):
+def view10(test_data, mock_shodan_get_ip):
     """gist.github.com with Shodan. Only test Shodan. Test empty open ports."""
     resolutions = Resolutions.model_validate(
         json.loads(test_data("vt_resolutions_gist.json"))
@@ -266,7 +266,7 @@ def view11(test_data, mock_shodan_get_ip):
 
 
 @pytest.fixture()
-def view12(test_data):
+def view11(test_data):
     """Dummy IP2WHOIS whois. Whois panel test only."""
     return DomainView(
         console=Console(),
@@ -284,7 +284,7 @@ def view12(test_data):
 
 
 @pytest.fixture()
-def view13(test_data):
+def view12(test_data):
     """Dummy IP2WHOIS whois. Whois panel test only. Test null registrant."""
     return DomainView(
         console=Console(),
@@ -299,9 +299,9 @@ def view13(test_data):
     )
 
 
-class TestView02:
-    def test_resolutions_panel(self, view02, theme, display_timestamp):
-        res = view02.resolutions_panel()
+class TestView01:
+    def test_resolutions_panel(self, view01, theme, display_timestamp):
+        res = view01.resolutions_panel()
         assert type(res) is Panel
 
         # Sections
@@ -350,8 +350,8 @@ class TestView02:
             f"{theme.footer} link https://virustotal.com/gui/domain/"
         )
 
-    def test_whois_panel(self, view02, theme):
-        whois = view02.whois_panel()
+    def test_whois_panel(self, view01, theme):
+        whois = view01.whois_panel()
         assert type(whois) is Panel
         assert whois.title is None
 
@@ -396,9 +396,9 @@ class TestView02:
         ]
 
 
-class TestView03:
-    def test_whois_panel(self, view03, theme):
-        whois = view03.whois_panel()
+class TestView02:
+    def test_whois_panel(self, view02, theme):
+        whois = view02.whois_panel()
         assert type(whois) is Panel
         assert whois.title is None
 
@@ -432,9 +432,9 @@ class TestView03:
         ]
 
 
-class TestView04:
-    def test_domain_panel(self, view04, theme, display_timestamp):
-        domain = view04.domain_panel()
+class TestView03:
+    def test_domain_panel(self, view03, theme, display_timestamp):
+        domain = view03.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("google.com")
 
@@ -514,14 +514,14 @@ class TestView04:
             display_timestamp("2022-08-17T00:35:19Z"),
         ]
 
-    def test_resolutions_panel(self, view04):
-        res = view04.resolutions_panel()
+    def test_resolutions_panel(self, view03):
+        res = view03.resolutions_panel()
         assert res is None
 
 
-class TestView05:
-    def test_domain_panel(self, view05, theme, display_timestamp):
-        domain = view05.domain_panel()
+class TestView04:
+    def test_domain_panel(self, view04, theme, display_timestamp):
+        domain = view04.domain_panel()
         assert type(domain) is Panel
         assert domain.title == Text("tucows.com")
 
@@ -588,9 +588,9 @@ class TestView05:
         ]
 
 
-class TestView06:
-    def test_whois_panel(self, view06, theme):
-        whois = view06.whois_panel()
+class TestView05:
+    def test_whois_panel(self, view05, theme):
+        whois = view05.whois_panel()
         assert type(whois) is Panel
         assert whois.title is None
 
@@ -607,9 +607,9 @@ class TestView06:
         assert content.style == theme.disclaimer
 
 
-class TestView07:
-    def test_resolutions_panel(self, view07, theme, display_timestamp):
-        res = view07.resolutions_panel()
+class TestView06:
+    def test_resolutions_panel(self, view06, theme, display_timestamp):
+        res = view06.resolutions_panel()
         assert type(res) is Panel
 
         # Sections
@@ -825,9 +825,9 @@ class TestView07:
         )
 
 
-class TestView08:
-    def test_resolutions_panel(self, view08, theme, display_timestamp):
-        res = view08.resolutions_panel()
+class TestView07:
+    def test_resolutions_panel(self, view07, theme, display_timestamp):
+        res = view07.resolutions_panel()
         assert type(res) is Panel
 
         # Sections
@@ -903,9 +903,9 @@ class TestView08:
         )
 
 
-class TestView09:
-    def test_resolutions_panel(self, view09, theme, display_timestamp):
-        res = view09.resolutions_panel()
+class TestView08:
+    def test_resolutions_panel(self, view08, theme, display_timestamp):
+        res = view08.resolutions_panel()
         assert type(res) is Panel
 
         # Sections
@@ -1026,9 +1026,9 @@ class TestView09:
         )
 
 
-class TestView10:
-    def test_whois_panel(self, view10, theme):
-        whois = view10.whois_panel()
+class TestView09:
+    def test_whois_panel(self, view09, theme):
+        whois = view09.whois_panel()
         assert type(whois) is Panel
         assert whois.title is None
 
@@ -1045,9 +1045,9 @@ class TestView10:
         assert content.style == theme.disclaimer
 
 
-class TestView11:
-    def test_resolutions_panel(self, view11, theme, display_timestamp):
-        res = view11.resolutions_panel()
+class TestView10:
+    def test_resolutions_panel(self, view10, theme, display_timestamp):
+        res = view10.resolutions_panel()
         assert type(res) is Panel
 
         # Sections
@@ -1091,9 +1091,9 @@ class TestView11:
         ]
 
 
-class TestView12:
-    def test_whois_panel(self, view12, theme):
-        whois = view12.whois_panel()
+class TestView11:
+    def test_whois_panel(self, view11, theme):
+        whois = view11.whois_panel()
         assert type(whois) is Panel
         assert whois.title is None
 
@@ -1156,9 +1156,9 @@ class TestView12:
         ]
 
 
-class TestView13:
-    def test_whois_panel(self, view13, theme):
-        whois = view13.whois_panel()
+class TestView12:
+    def test_whois_panel(self, view12, theme):
+        whois = view12.whois_panel()
         assert type(whois) is Panel
         assert whois.title is None
 
