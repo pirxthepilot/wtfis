@@ -29,11 +29,11 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
-    "pydantic<3",
-    "python-dotenv<2",
-    "requests<3",
-    "rich<14",
-    "shodan<2",
+    "pydantic>=2.9.2,<3",
+    "python-dotenv>=1.0.1,<2",
+    "requests>=2.32.3,<3",
+    "rich>=13.7.1,<14",
+    "shodan>=1.31.0,<2",
 ]
 dynamic = ["version"]
 
