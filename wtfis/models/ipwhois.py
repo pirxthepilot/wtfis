@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Dict
 
-from pydantic import AliasPath, Field
+from pydantic import AliasPath, ConfigDict, Field
 
 from wtfis.models.base import IpGeoAsnBase, IpGeoAsnMapBase
 
@@ -15,6 +15,9 @@ from wtfis.models.base import IpGeoAsnBase, IpGeoAsnMapBase
 class IpWhois(IpGeoAsnBase):
     # Metadata
     source: str = "IPWhois"
+
+    # Config
+    model_config = ConfigDict(populate_by_name=True)
 
     # Results
     ip: str
