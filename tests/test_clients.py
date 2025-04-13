@@ -9,7 +9,6 @@ from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import Shodan, ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -34,11 +33,6 @@ def ip2whois_client():
 @pytest.fixture()
 def ipwhois_client():
     return IpWhoisClient()
-
-
-@pytest.fixture()
-def passivetotal_client():
-    return PTClient("dummyuser", "dummykey")
 
 
 @pytest.fixture()
@@ -143,25 +137,6 @@ class TestIpWhoisClient:
         whois = ipwhois_client.enrich_ips("thisdoesntmatter")
 
         assert whois == IpWhoisMap.model_validate({})
-
-
-class TestPassivetotalClient:
-    def test_init(self, passivetotal_client):
-        assert passivetotal_client.s.auth == ("dummyuser", "dummykey")
-        assert passivetotal_client.name == "Passivetotal"
-
-    @patch.object(requests.Session, "get")
-    def test_get_passive_dns(self, mock_requests_get, test_data, passivetotal_client):
-        mock_resp = MagicMock()
-        mock_resp.status_code = 200
-        mock_resp.json.return_value = json.loads(test_data("pt_passive_dns_gist.json"))
-        mock_requests_get.return_value = mock_resp
-
-        dns = passivetotal_client.get_passive_dns("thisdoesntmatter")
-
-        assert dns["queryValue"] == "gist.github.com"
-        assert dns["queryType"] == "domain"
-        assert dns["totalRecords"] == 30
 
 
 class TestShodanClient:

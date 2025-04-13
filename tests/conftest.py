@@ -83,6 +83,7 @@ def timestamp_text(ts) -> Optional[RenderableType]:
     theme = TestTheme()
     return Text(
         ts,
+        style=theme.timestamp_date,
         spans=[
             Span(10, 11, theme.timestamp_t),
             Span(11, 19, theme.timestamp_time),
