@@ -16,7 +16,6 @@ from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ip2whois import Whois as Ip2Whois
 from wtfis.models.ipwhois import IpWhoisMap
-from wtfis.models.passivetotal import Whois as PTWhois
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import Domain, Resolutions
@@ -43,7 +42,9 @@ def view01(test_data, mock_ipwhois_get):
         entity=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
         resolutions=resolutions,
         geoasn=geoasn_enrich,
-        whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
+        whois=Ip2Whois.model_validate(
+            json.loads(test_data("ip2whois_whois_gist.json"))
+        ),
         shodan=ShodanIpMap.model_validate({}),
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
@@ -349,7 +350,9 @@ def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
         entity=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
         resolutions=resolutions,
         geoasn=geoasn_enrich,
-        whois=PTWhois.model_validate(json.loads(test_data("pt_whois_gist.json"))),
+        whois=Ip2Whois.model_validate(
+            json.loads(test_data("ip2whois_whois_gist.json"))
+        ),
         shodan=ShodanIpMap.model_validate({}),
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
@@ -611,16 +614,7 @@ class TestView01:
         # Content
         assert content.renderables[0] == Text(
             "github.com",
-            spans=[
-                Span(
-                    0,
-                    10,
-                    (
-                        "bold yellow link "
-                        "https://community.riskiq.com/search/github.com/whois"
-                    ),
-                )
-            ],
+            spans=[Span(0, 10, "bold yellow")],
         )
 
         table = content.renderables[1]
@@ -630,14 +624,9 @@ class TestView01:
         assert table.columns[0]._cells == [
             "Registrar:",
             "Organization:",
-            "Name:",
             "Email:",
-            "Phone:",
-            "Street:",
-            "City:",
             "State:",
             "Country:",
-            "Postcode:",
             "Nameservers:",
             "Registered:",
             "Updated:",
@@ -646,44 +635,41 @@ class TestView01:
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert table.columns[1]._cells == [
-            "MarkMonitor Inc.",
-            Text("GitHub, Inc.", spans=[]),
-            "N/A",
-            "abusecomplaints@markmonitor.com",
-            "+1.5555555",
-            "742 Evergreen Terrace",
-            "Gotham",
+            "MarkMonitor, Inc.",
+            Text("GitHub, Inc.", style=theme.whois_org),
+            (
+                "Select Request Email Form at "
+                "https://domains.markmonitor.com/whois/github.com"
+            ),
             "CA",
             "US",
-            "00000",
             Text(
                 (
-                    "dns1.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, "
-                    "dns4.p08.nsone.net, ns-1283.awsdns-32.org, "
-                    "ns-1707.awsdns-21.co.uk, ns-421.awsdns-52.com, "
-                    "ns-520.awsdns-01.net"
+                    "ns-421.awsdns-52.com, ns-1707.awsdns-21.co.uk, ns-1283.awsdns-32.org, "
+                    "dns4.p08.nsone.net, dns2.p08.nsone.net, dns3.p08.nsone.net, "
+                    "ns-520.awsdns-01.net, dns1.p08.nsone.net"
                 ),
                 spans=[
-                    Span(0, 18, theme.nameserver_list),
-                    Span(18, 20, "default"),
-                    Span(20, 38, theme.nameserver_list),
-                    Span(38, 40, "default"),
-                    Span(40, 58, theme.nameserver_list),
-                    Span(58, 60, "default"),
-                    Span(60, 78, theme.nameserver_list),
-                    Span(78, 80, "default"),
-                    Span(80, 101, theme.nameserver_list),
-                    Span(101, 103, "default"),
-                    Span(103, 126, theme.nameserver_list),
-                    Span(126, 128, "default"),
-                    Span(128, 148, theme.nameserver_list),
-                    Span(148, 150, "default"),
-                    Span(150, 170, theme.nameserver_list),
+                    Span(0, 20, theme.nameserver_list),
+                    Span(20, 22, "default"),
+                    Span(22, 45, theme.nameserver_list),
+                    Span(45, 47, "default"),
+                    Span(47, 68, theme.nameserver_list),
+                    Span(68, 70, "default"),
+                    Span(70, 88, theme.nameserver_list),
+                    Span(88, 90, "default"),
+                    Span(90, 108, theme.nameserver_list),
+                    Span(108, 110, "default"),
+                    Span(110, 128, theme.nameserver_list),
+                    Span(128, 130, "default"),
+                    Span(130, 150, theme.nameserver_list),
+                    Span(150, 152, "default"),
+                    Span(152, 170, theme.nameserver_list),
                 ],
             ),
             display_timestamp("2007-10-09T18:20:50Z"),
-            display_timestamp("2020-09-08T09:18:27Z"),
-            display_timestamp("2022-10-09T07:00:00Z"),
+            display_timestamp("2024-09-07T09:16:33Z"),
+            display_timestamp("2026-10-09T00:00:00Z"),
         ]
 
     def test_print(self, view01):

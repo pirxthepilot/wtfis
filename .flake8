@@ -1,4 +1,4 @@
 [flake8]
-max-line-length = 80
+max-line-length = 90
 extend-select = B950
 extend-ignore = E203,E501,E701

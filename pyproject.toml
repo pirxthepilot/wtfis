@@ -9,12 +9,14 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 keywords = [
+    "abuseipdb",
+    "greynoise",
     "ipinfo",
     "osint",
     "passive lookup",
-    "passivetotal",
     "security",
     "shodan",
+    "urlhaus",
     "virustotal",
     "whois",
 ]

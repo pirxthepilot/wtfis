@@ -543,15 +543,10 @@ class BaseView(abc.ABC):
         if self.whois is None:
             return None
 
-        if self.whois.source == "passivetotal":  # PT
-            hyperlink = f"{self.pt_gui_baseurl}/{self.whois.domain}/whois"
-        else:  # VT
-            hyperlink = None
-
         heading = (
             self._gen_heading_text(
                 self.whois.domain,
-                hyperlink=hyperlink,
+                hyperlink=None,
                 type="h2",
             )
             if self.whois.domain

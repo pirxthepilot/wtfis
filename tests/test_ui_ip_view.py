@@ -14,7 +14,6 @@ from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
-from wtfis.models.passivetotal import Whois as PTWhois
 from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import IpAddress
 from wtfis.models.virustotal import Whois as VTWhois
@@ -72,7 +71,7 @@ def view01(
         console=Console(),
         entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         geoasn=geoasn_enrich,
-        whois=PTWhois.model_validate(json.loads(test_data("pt_whois_1.1.1.1.json"))),
+        whois=VTWhois.model_validate(json.loads(test_data("vt_whois_1.1.1.1.json"))),
         shodan=shodan_enrich,
         greynoise=greynoise_enrich,
         abuseipdb=abuseipdb_enrich,
@@ -534,17 +533,8 @@ class TestView01:
 
         # Heading
         assert content.renderables[0] == Text(
-            "1.1.1.0",
-            spans=[
-                Span(
-                    0,
-                    7,
-                    (
-                        f"{theme.heading_h2} link "
-                        "https://community.riskiq.com/search/1.1.1.0/whois"
-                    ),
-                )
-            ],
+            "one.one",
+            spans=[Span(0, 7, theme.heading_h2)],
         )
 
         # Table
@@ -559,20 +549,46 @@ class TestView01:
             "Email:",
             "Phone:",
             "Street:",
+            "City:",
+            "Country:",
+            "Postcode:",
+            "Nameservers:",
+            "DNSSEC:",
             "Registered:",
             "Updated:",
+            "Expires:",
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
         assert [str(c) for c in table.columns[1]._cells] == [
-            "APNIC",
-            "APNIC Research and Development",
-            "APNIC Research and Development",
-            "helpdesk@apnic.net",
-            "+61-7-38583100",
-            "6 cordelia st",
-            "2011-08-10T23:12:35Z",
-            "2020-07-15T13:10:57Z",
+            "One.com A/S - ONE",
+            "One.com A/S",
+            "REDACTED FOR PRIVACY",
+            (
+                "Please query the RDDS service of the Registrar of Record identified in "
+                "this output for information on how to contact the Registrant, Admin, or "
+                "Tech contact of the queried domain name."
+            ),
+            "REDACTED FOR PRIVACY",
+            "REDACTED FOR PRIVACY",
+            "REDACTED FOR PRIVACY",
+            "dk",
+            "REDACTED FOR PRIVACY",
+            (
+                "* a response from the service that a domain name is 'available', does not "
+                "guarantee that is able to be registered,, * we may restrict, suspend or "
+                "terminate your access to the service at any time, and, * the copying, "
+                "compilation, repackaging, dissemination or other use of the information "
+                "provided by the service is not permitted, without our express written "
+                "consent., this information has been prepared and published in order to "
+                "represent administrative and technical management of the tld., we may "
+                "discontinue or amend any part or the whole of these terms of service from "
+                "time to time at our absolute discretion."
+            ),
+            "signedDelegation",
+            "2015-05-20T12:15:44Z",
+            "2021-07-04T12:15:49Z",
+            "2022-05-20T12:15:44Z",
         ]
 
     def test_print(self, view01):
