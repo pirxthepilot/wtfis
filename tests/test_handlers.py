@@ -8,8 +8,8 @@ from rich.console import Console
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
-from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
+from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
