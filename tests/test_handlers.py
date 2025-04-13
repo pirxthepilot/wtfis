@@ -8,8 +8,8 @@ from rich.console import Console
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -27,7 +27,7 @@ def generate_domain_handler(max_resolutions=3):
         progress=MagicMock(),
         vt_client=VTClient("dummykey"),
         ip_geoasn_client=IpWhoisClient(),
-        whois_client=PTClient("dummyuser", "dummykey"),
+        whois_client=Ip2WhoisClient("dummykey"),
         shodan_client=ShodanClient("dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),
@@ -43,7 +43,7 @@ def generate_ip_handler():
         progress=MagicMock(),
         vt_client=VTClient("dummykey"),
         ip_geoasn_client=IpWhoisClient(),
-        whois_client=PTClient("dummyuser", "dummykey"),
+        whois_client=Ip2WhoisClient("dummykey"),
         shodan_client=ShodanClient("dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),
@@ -232,16 +232,16 @@ class TestDomainHandler:
         mock_resp.status_code = 401
         mock_requests_get.return_value = mock_resp
 
-        with pytest.raises(SystemExit) as e:
-            handler._fetch_whois()
-
-        capture = capsys.readouterr()
-
-        assert (
-            capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        handler._fetch_whois()
+        assert handler.warnings[0].startswith(
+            "Could not fetch IP2Whois: 401 Client Error:"
         )
-        assert e.type == SystemExit
-        assert e.value.code == 1
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith(
+            "WARN: Could not fetch IP2Whois: 401 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_vt_resolutions_429_error(self, mock_requests_get, domain_handler, capsys):
@@ -280,12 +280,14 @@ class TestDomainHandler:
 
         handler._fetch_whois()
         assert handler.warnings[0].startswith(
-            "Could not fetch Whois: 429 Client Error:"
+            "Could not fetch IP2Whois: 429 Client Error:"
         )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch Whois: 429 Client Error:")
+        assert capture.out.startswith(
+            "WARN: Could not fetch IP2Whois: 429 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_greynoise_429_error(
@@ -521,16 +523,16 @@ class TestIpAddressHandler:
         mock_resp.status_code = 403
         mock_requests_get.return_value = mock_resp
 
-        with pytest.raises(SystemExit) as e:
-            handler._fetch_whois()
-
-        capture = capsys.readouterr()
-
-        assert (
-            capture.err == "Error fetching data: 403 Client Error: None for url: None\n"
+        handler._fetch_whois()
+        assert handler.warnings[0].startswith(
+            "Could not fetch IP2Whois: 403 Client Error:"
         )
-        assert e.type == SystemExit
-        assert e.value.code == 1
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith(
+            "WARN: Could not fetch IP2Whois: 403 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_ipwhois_validation_error(self, mock_requests_get, ip_handler, capsys):
@@ -587,7 +589,7 @@ class TestIpAddressHandler:
         mock_requests_get.return_value = mock_resp
 
         with pytest.raises(SystemExit) as e:
-            handler._fetch_whois()
+            handler._fetch_vt_ip_address()
 
         capture = capsys.readouterr()
 
