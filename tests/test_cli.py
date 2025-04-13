@@ -19,7 +19,6 @@ from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.passivetotal import PTClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -485,7 +484,7 @@ class TestGenEntityHandler:
         assert entity.progress == progress
         assert isinstance(entity._vt, VTClient)
         assert isinstance(entity._geoasn, IpWhoisClient)
-        assert isinstance(entity._whois, PTClient)
+        assert isinstance(entity._whois, Ip2WhoisClient)
         assert entity._shodan is None
         assert entity._greynoise is None
         assert entity._urlhaus is None
@@ -502,7 +501,7 @@ class TestGenEntityHandler:
             entity = generate_entity_handler(parse_args(), console, progress)
         assert entity.max_resolutions == 5
         assert isinstance(entity._geoasn, IpWhoisClient)
-        assert isinstance(entity._whois, PTClient)
+        assert isinstance(entity._whois, Ip2WhoisClient)
         assert isinstance(entity._shodan, ShodanClient)
         assert isinstance(entity._greynoise, GreynoiseClient)
         assert isinstance(entity._urlhaus, UrlHausClient)
@@ -544,7 +543,7 @@ class TestGenEntityHandler:
         assert entity.progress == progress
         assert isinstance(entity._vt, VTClient)
         assert isinstance(entity._geoasn, IpWhoisClient)
-        assert isinstance(entity._whois, PTClient)
+        assert isinstance(entity._whois, VTClient)
         assert entity._greynoise is None
         assert entity._urlhaus is None
         unset_env_vars()
@@ -558,7 +557,7 @@ class TestGenEntityHandler:
             progress = (simulate_progress(console),)
             entity = generate_entity_handler(parse_args(), console, progress)
         assert isinstance(entity._geoasn, IpWhoisClient)
-        assert isinstance(entity._whois, PTClient)
+        assert isinstance(entity._whois, VTClient)
         assert isinstance(entity._shodan, ShodanClient)
         assert isinstance(entity._greynoise, GreynoiseClient)
         assert isinstance(entity._urlhaus, UrlHausClient)

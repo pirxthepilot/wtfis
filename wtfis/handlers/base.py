@@ -97,7 +97,7 @@ class BaseHandler(abc.ABC):
         # Dataset containers
         self.vt_info: Union[Domain, IpAddress]
         self.geoasn: IpGeoAsnMapType = IpWhoisMap.empty()  # Default to ipwhois
-        self.whois: WhoisBase
+        self.whois: WhoisBase = WhoisBase()
         self.shodan: ShodanIpMap = ShodanIpMap.empty()
         self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()
         self.abuseipdb: AbuseIpDbMap = AbuseIpDbMap.empty()
@@ -135,15 +135,9 @@ class BaseHandler(abc.ABC):
             self.abuseipdb = self._abuseipdb.enrich_ips(*ips)
 
     @common_exception_handler
+    @failopen_exception_handler("_whois")
     def _fetch_whois(self) -> None:
-        # Let continue if rate limited
-        try:
-            self.whois = self._whois.get_whois(self.entity)
-        except HTTPError as e:
-            if e.response.status_code == 429:
-                self.warnings.append(f"Could not fetch Whois: {e}")
-            else:  # pragma: no coverage
-                raise
+        self.whois = self._whois.get_whois(self.entity)
 
     def print_warnings(self):
         for message in self.warnings:

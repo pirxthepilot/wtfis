@@ -24,7 +24,6 @@ The project name is a play on "whois".
 | Service | Used in lookup | Required | Free Tier |
 | --- | --- | --- | --- |
 | [Virustotal](https://virustotal.com) | All | Yes | [Yes](https://www.virustotal.com/gui/join-us) |
-| [Passivetotal](https://community.riskiq.com) | All | No | [Yes](https://community.riskiq.com/registration/)
 | [IP2Whois](https://www.ip2whois.com) | Domain/FQDN | No | [Yes](https://www.ip2location.io/pricing#ip2whois)
 | [IPWhois](https://ipwhois.io) | IP address | No | Yes (no signup) |
 | [Shodan](https://shodan.io) | IP address | No | [No](https://account.shodan.io/billing) |
@@ -45,30 +44,21 @@ The primary source of information. Retrieves:
     * Last n IP addresses (default: 3, max: 10)
     * Latest analysis stats of each IP above
 * [Whois](https://developers.virustotal.com/reference/whois)
-    * Fallback only: if Passivetotal creds are not available
+    * Fallback only: if IP2Whois creds are not available
     * Various whois data about the domain itself
-
-### Passivetotal (RiskIQ)
-
-Optionally used if creds are provided. Retrieves:
-
-* [Whois](https://api.riskiq.net/api/whois_pt/)
-    * Various whois data about the domain itself
-
-Passivetotal is recommended over Virustotal for whois data for a couple of reasons:
-
-* VT whois data format is less consistent
-* PT whois data tends to be of better quality than VT. Also, VT's registrant data is apparently [anonymized](https://developers.virustotal.com/reference/whois).
-* You can save one VT API call by offloading to PT
 
 ### IP2Whois
 
-Optionally used if creds are provided and Passivetotal creds are not supplied. (i.e. second in line for Whois information)
+Optionally used if creds are provided. Retrieves:
 
 * [Whois](https://www.ip2location.io/ip2whois-documentation)
     * Various whois data about the domain itself
 
-As above, IP2Whois is recommended over Virustotal if a Passivetotal account cannot be obtained.
+IP2Whois is recommended over Virustotal for whois data for a couple of reasons:
+
+* VT whois data format is less consistent
+* IP2Whois whois data tends to be of better quality than VT. Also, VT's registrant data is apparently [anonymized](https://developers.virustotal.com/reference/whois).
+* You can save one VT API call by offloading to IP2Whois.
 
 ### IPWhois
 
@@ -132,8 +122,6 @@ brew install wtfis
 wtfis uses these environment variables:
 
 * `VT_API_KEY` (required) - Virustotal API key
-* `PT_API_KEY` (optional) - Passivetotal API key
-* `PT_API_USER` (optional) - Passivetotal API user
 * `IP2WHOIS_API_KEY` (optional) - IP2WHOIS API key
 * `SHODAN_API_KEY` (optional) - Shodan API key
 * `GREYNOISE_API_KEY` (optional) - Greynoise API key
@@ -176,7 +164,7 @@ and you will get results organized by panel, similar to the image above.
 
 Defanged input is accepted (e.g. `api[.]google[.]com`).
 
-If supported by the terminal, the `Analysis` field and (if using PT) headings in the whois panel are clickable hyperlinks that point to the appropriate pages on the VT or PT website.
+If the terminal supports it, certain fields and headings are clickable hyperlinks that point to the respective services' websites.
 
 ### Shodan
 
