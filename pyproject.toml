@@ -62,9 +62,9 @@ disable = true
 [tool.hatch.envs.default]
 dependencies = [
     "bandit",
-    "black~=24.4.2",
-    "flake8>=7.0.0",
-    "flake8-bugbear~=24.4.6",
+    "black~=24.8.0",
+    "flake8>=7.1.2",
+    "flake8-bugbear~=24.12.12",
     "freezegun",
     "isort~=5.13.2",
     "mypy",
@@ -90,9 +90,9 @@ python = ["38", "39", "310", "311", "312", "313"]
 detached = true
 dependencies = [  # Make sure the respective versions are synced with default!
     "bandit",
-    "black~=24.4.2",
-    "flake8>=7.0.0",
-    "flake8-bugbear~=24.4.6",
+    "black~=24.8.0",
+    "flake8>=7.1.2",
+    "flake8-bugbear~=24.12.12",
     "isort~=5.13.2",
 ]
 [tool.hatch.envs.lint.scripts]
