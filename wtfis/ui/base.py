@@ -38,6 +38,7 @@ class BaseView(abc.ABC):
         greynoise: GreynoiseIpMap,
         abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
+        reverse_dns: Optional[str] = None,
     ) -> None:
         self.console = console
         self.entity = entity
@@ -47,6 +48,7 @@ class BaseView(abc.ABC):
         self.greynoise = greynoise
         self.abuseipdb = abuseipdb
         self.urlhaus = urlhaus
+        self.reverse_dns = reverse_dns
         self.theme = Theme()
 
     def _vendors_who_flagged_malicious(self) -> List[str]:
@@ -373,6 +375,10 @@ class BaseView(abc.ABC):
                     ),
                 )
             ]
+            
+        # Reverse DNS (for IP addresses only)
+        if is_ip(self.entity.data.id_) and self.reverse_dns is not None:
+            data += [("Reverse DNS:", self.reverse_dns)]
 
         # Updated (IP and domain)
         data += [("Updated:", Timestamp(attributes.last_modification_date).render)]

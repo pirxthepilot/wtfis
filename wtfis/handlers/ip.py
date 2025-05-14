@@ -2,6 +2,7 @@
 Logic handler for IP address inputs
 """
 
+import socket
 from wtfis.handlers.base import (
     BaseHandler,
     common_exception_handler,
@@ -20,6 +21,14 @@ class IpAddressHandler(BaseHandler):
         if self._urlhaus:
             self.urlhaus = self._urlhaus.enrich_ips(self.entity)
 
+    def _reverse_dns_lookup(self) -> None:
+        """Perform reverse DNS lookup for the IP address to get the PTR record."""
+        try:
+            hostname, _, _ = socket.gethostbyaddr(self.entity)
+            self.reverse_dns = hostname
+        except socket.herror:
+            self.reverse_dns = None
+
     def fetch_data(self):
         task_v = self.progress.add_task("Fetching data from Virustotal")
         self.progress.update(task_v, advance=50)
@@ -32,6 +41,12 @@ class IpAddressHandler(BaseHandler):
         self.progress.update(task_g, advance=50)
         self._fetch_geoasn(self.entity)
         self.progress.update(task_g, completed=100)
+        
+        if not self.skip_rdns:
+            task_r = self.progress.add_task("Performing reverse DNS lookup")
+            self.progress.update(task_r, advance=50)
+            self._reverse_dns_lookup()
+            self.progress.update(task_r, completed=100)
 
         if self._shodan:
             task_s = self.progress.add_task(

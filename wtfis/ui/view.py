@@ -201,9 +201,10 @@ class IpAddressView(BaseView):
         greynoise: GreynoiseIpMap,
         abuseipdb: AbuseIpDbMap,
         urlhaus: UrlHausMap,
+        reverse_dns: Optional[str] = None,
     ) -> None:
         super().__init__(
-            console, entity, geoasn, whois, shodan, greynoise, abuseipdb, urlhaus
+            console, entity, geoasn, whois, shodan, greynoise, abuseipdb, urlhaus, reverse_dns
         )
 
     def ip_panel(self) -> Panel:

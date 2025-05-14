@@ -83,6 +83,9 @@ def parse_args() -> Namespace:
         "-1", "--one-column", help="Display results in one column", action="store_true"
     )
     parser.add_argument(
+        "--no-rdns", help="Skip reverse DNS lookups for IP addresses", action="store_true"
+    )
+    parser.add_argument(
         "-V",
         "--version",
         help="Print version number",
@@ -190,6 +193,7 @@ def generate_entity_handler(
             greynoise_client=greynoise_client,
             abuseipdb_client=abuseipdb_client,
             urlhaus_client=urlhaus_client,
+            skip_rdns=args.no_rdns,
         )
 
     return entity
@@ -224,6 +228,7 @@ def generate_view(
             entity.greynoise,
             entity.abuseipdb,
             entity.urlhaus,
+            reverse_dns=entity.reverse_dns,
         )
     else:
         raise WtfisException("Unsupported entity!")
