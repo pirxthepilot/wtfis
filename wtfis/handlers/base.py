@@ -79,6 +79,7 @@ class BaseHandler(abc.ABC):
         greynoise_client: Optional[GreynoiseClient],
         abuseipdb_client: Optional[AbuseIpDbClient],
         urlhaus_client: Optional[UrlHausClient],
+        skip_rdns: bool = False,
     ):
         # Process-specific
         self.entity = refang(entity)
@@ -102,6 +103,8 @@ class BaseHandler(abc.ABC):
         self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()
         self.abuseipdb: AbuseIpDbMap = AbuseIpDbMap.empty()
         self.urlhaus: UrlHausMap = UrlHausMap.empty()
+        self.reverse_dns: Optional[str] = None
+        self.skip_rdns: bool = skip_rdns
 
         # Warning messages container
         self.warnings: List[str] = []
