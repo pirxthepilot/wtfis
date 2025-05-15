@@ -201,7 +201,7 @@ The `AbuseIPDB` field name is a hyperlink (if terminal-supported) that takes you
 
 ### All enrichments
 
-To enable all possible enrichments, use the `-A` or `-all` flag. This flag is mutually exclusive with the `--use-*` flags.
+Instead of specifying each enrichment flag individually, you can use the `-A` / `--all` flag to enable all of them, where possible. This flag is mutually exclusive with the `--use-*` flags.
 
 ### Display options
 
