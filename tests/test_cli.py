@@ -26,18 +26,12 @@ from wtfis.config import Config, parse_args, parse_env
 from wtfis.exceptions import WtfisException
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
-from wtfis.main import (
-    generate_entity_handler,
-    generate_view,
-    main,
-)
+from wtfis.main import generate_entity_handler, generate_view, main
 from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.view import DomainView, IpAddressView
 
 POSSIBLE_ENV_VARS = [
     "VT_API_KEY",
-    "PT_API_KEY",
-    "PT_API_USER",
     "IP2WHOIS_API_KEY",
     "SHODAN_API_KEY",
     "GREYNOISE_API_KEY",
@@ -135,6 +129,29 @@ def fake_load_dotenv_ip2whois(tmp_path):
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
 
+@pytest.fixture()
+def fake_load_dotenv_all_ok(tmp_path):
+    fake_env_vars = {
+        "VT_API_KEY": "foo",
+        "SHODAN_API_KEY": "hunter2",
+        "GREYNOISE_API_KEY": "bar",
+        "ABUSEIPDB_API_KEY": "dummy",
+        "IP2WHOIS_API_KEY": "alice",
+        "WTFIS_DEFAULTS": "-A",
+    }
+    return fake_load_dotenv(tmp_path, fake_env_vars)
+
+
+@pytest.fixture()
+def fake_load_dotenv_all_invalid(tmp_path):
+    fake_env_vars = {
+        "VT_API_KEY": "foo",
+        "GREYNOISE_API_KEY": "bar",
+        "WTFIS_DEFAULTS": "--all -g",
+    }
+    return fake_load_dotenv(tmp_path, fake_env_vars)
+
+
 class TestArgs:
     def test_basic(self):
         with patch(
@@ -153,6 +170,7 @@ class TestArgs:
             assert args.use_greynoise is False
             assert args.use_urlhaus is False
             assert args.use_abuseipdb is False
+            assert args.all is False
 
     def test_display(self):
         with patch(
@@ -341,6 +359,42 @@ class TestArgs:
         assert e.type == SystemExit
         assert e.value.code == 2
 
+    def test_all_ok(self):
+        os.environ["ABUSEIPDB_API_KEY"] = "foo"
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "1.1.1.1",
+                "-A",
+            ],
+        ):
+            args = parse_args()
+            assert args.all is True
+            assert args.use_abuseipdb is False
+        del os.environ["ABUSEIPDB_API_KEY"]
+
+    def test_all_error(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "1.1.1.1",
+                    "-A -s",
+                ],
+            ):
+                parse_args()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == (
+            "usage: main [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] entity\n"
+            "main: error: argument -A/--all: ignored explicit argument ' -s'\n"
+        )
+        assert e.type == SystemExit
+        assert e.value.code == 2
+
 
 class TestEnvs:
     def test_env_file(self, fake_load_dotenv_1):
@@ -395,7 +449,13 @@ class TestDefaults:
                 assert conf.one_column is True
                 assert conf.use_shodan is True
                 assert conf.use_greynoise is False
+                assert conf.use_abuseipdb is False
                 assert conf.use_urlhaus is False
+                assert conf.vt_api_key == "foo"
+                assert conf.shodan_api_key == "hunter2"
+                assert conf.abuseipdb_api_key == ""
+                assert conf.greynoise_api_key == ""
+                assert conf.ip2whois_api_key == ""
         unset_env_vars()
 
     def test_defaults_2(self, fake_load_dotenv_2):
@@ -456,6 +516,86 @@ class TestDefaults:
                 assert conf.use_urlhaus is False
                 assert conf.use_abuseipdb is True
                 assert conf.abuseipdb_api_key == "dummy"
+        unset_env_vars()
+
+
+class TestAllFlag:
+    def test_1_ok(self, fake_load_dotenv_1):
+        """-A flag in argument"""
+        with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                    "--all",
+                ],
+            ):
+                conf = Config()
+                assert conf.use_shodan is True
+                assert conf.use_greynoise is True
+                assert conf.use_urlhaus is True
+                assert conf.use_abuseipdb is True
+                assert conf.use_urlhaus is True
+        unset_env_vars()
+
+    def test_2_ok(self, fake_load_dotenv_all_ok):
+        """-A flag in config file"""
+        with patch("wtfis.config.load_dotenv", fake_load_dotenv_all_ok):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                ],
+            ):
+                conf = Config()
+                assert conf.use_shodan is True
+                assert conf.use_greynoise is True
+                assert conf.use_urlhaus is True
+                assert conf.use_abuseipdb is True
+                assert conf.use_urlhaus is True
+        unset_env_vars()
+
+    def test_3_error(self, capsys):
+        """Invalid arguments"""
+        with pytest.raises(SystemExit) as e:
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                    "-A",
+                    "-s",
+                ],
+            ):
+                _ = Config()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == (
+            "usage: main [-h]\n"
+            "main: error: --use-* flags are not accepted when the --all/-A flag is set\n"
+        )
+        assert e.type == SystemExit
+        assert e.value.code == 2
+        unset_env_vars()
+
+    @patch("sys.argv", ["main", "www.example.com"])
+    def test_4_error(self, fake_load_dotenv_all_invalid, capsys):
+        """Invalid WTFIS_DEFAULTS options"""
+        with pytest.raises(SystemExit) as e:
+            with patch("wtfis.config.load_dotenv", fake_load_dotenv_all_invalid):
+                _ = Config()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == (
+            "usage: main [-h]\n"
+            "main: error: --use-* flags are not accepted when the --all/-A flag is set\n"
+        )
+        assert e.type == SystemExit
+        assert e.value.code == 2
         unset_env_vars()
 
 

@@ -93,7 +93,9 @@ def parse_args() -> Namespace:
     # Default overrides
     # If a default is set, then setting the flag as an argument _negates_ the effect
     for option in os.environ.get(WTFIS_DEFAULTS_VAR, "").split(" "):
-        if option in ("-s", "--use-shodan"):
+        if option in ("-A", "--all"):
+            parsed.all = not parsed.all
+        elif option in ("-s", "--use-shodan"):
             parsed.use_shodan = not parsed.use_shodan
         elif option in ("-g", "--use-greynoise"):
             parsed.use_greynoise = not parsed.use_greynoise
@@ -140,7 +142,7 @@ class Config:
 
         # Creds
         self.abuseipdb_api_key = os.environ.get(ABUSEIPDB_API_KEY_VAR, "")
-        self.greynoise_api_key = os.environ.get(GREYNOISE_API_KEY_VAR, "") 
+        self.greynoise_api_key = os.environ.get(GREYNOISE_API_KEY_VAR, "")
         self.ip2whois_api_key = os.environ.get(IP2WHOIS_API_KEY_VAR, "")
         self.shodan_api_key = os.environ.get(SHODAN_API_KEY_VAR, "")
         self.vt_api_key = os.environ.get(VT_API_KEY_VAR, "")
@@ -163,11 +165,15 @@ class Config:
 
     @property
     def use_abuseipdb(self) -> bool:
-        return (self.args.use_abuseipdb or self.args.all) and bool(self.abuseipdb_api_key)
+        return (self.args.use_abuseipdb or self.args.all) and bool(
+            self.abuseipdb_api_key
+        )
 
     @property
     def use_greynoise(self) -> bool:
-        return (self.args.use_greynoise or self.args.all) and bool(self.greynoise_api_key)
+        return (self.args.use_greynoise or self.args.all) and bool(
+            self.greynoise_api_key
+        )
 
     @property
     def use_shodan(self) -> bool:
