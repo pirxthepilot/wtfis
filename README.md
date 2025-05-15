@@ -136,19 +136,20 @@ Alternatively, create a file in your home directory `~/.env.wtfis` with the abov
 ## Usage
 
 ```
-usage: wtfis [-h] [-m N] [-s] [-g] [-a] [-u] [-n] [-1] [-V] entity
+usage: wtfis [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] entity
 
 positional arguments:
   entity                Hostname, domain or IP
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
-  -m N, --max-resolutions N
-                        Maximum number of resolutions to show (default: 3)
+  -A, --all             Enable all possible enrichments
   -s, --use-shodan      Use Shodan to enrich IPs
   -g, --use-greynoise   Enable Greynoise for IPs
   -a, --use-abuseipdb   Enable AbuseIPDB for IPs
   -u, --use-urlhaus     Enable URLhaus for IPs and domains
+  -m N, --max-resolutions N
+                        Maximum number of resolutions to show (default: 3)
   -n, --no-color        Show output without colors
   -1, --one-column      Display results in one column
   -V, --version         Print version number
@@ -197,6 +198,10 @@ Use the `-a` or `--use-abuseipdb` flag to enable AbuseIPDB enrichment for hostna
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-abuseipdb.png?raw=true)
 
 The `AbuseIPDB` field name is a hyperlink (if terminal-supported) that takes you to the specific AbuseIPDB database page for your query.
+
+### All enrichments
+
+Instead of specifying each enrichment flag individually, you can use the `-A` / `--all` flag to enable all of them, where possible. This flag is mutually exclusive with the `--use-*` flags.
 
 ### Display options
 
