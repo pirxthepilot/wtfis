@@ -557,19 +557,20 @@ class TestAllFlag:
                 assert conf.use_urlhaus is True
         unset_env_vars()
 
-    def test_3_error(self, capsys):
+    def test_3_error(self, fake_load_dotenv_1, capsys):
         """Invalid arguments"""
         with pytest.raises(SystemExit) as e:
-            with patch(
-                "sys.argv",
-                [
-                    "main",
-                    "www.example.com",
-                    "-A",
-                    "-s",
-                ],
-            ):
-                _ = Config()
+            with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
+                with patch(
+                    "sys.argv",
+                    [
+                        "main",
+                        "www.example.com",
+                        "-A",
+                        "-s",
+                    ],
+                ):
+                    _ = Config()
 
         capture = capsys.readouterr()
 
@@ -581,12 +582,18 @@ class TestAllFlag:
         assert e.value.code == 2
         unset_env_vars()
 
-    @patch("sys.argv", ["main", "www.example.com"])
     def test_4_error(self, fake_load_dotenv_all_invalid, capsys):
         """Invalid WTFIS_DEFAULTS options"""
         with pytest.raises(SystemExit) as e:
             with patch("wtfis.config.load_dotenv", fake_load_dotenv_all_invalid):
-                _ = Config()
+                with patch(
+                    "sys.argv",
+                    [
+                        "main",
+                        "www.example.com",
+                    ],
+                ):
+                    _ = Config()
 
         capture = capsys.readouterr()
 
