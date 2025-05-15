@@ -375,13 +375,15 @@ class TestArgs:
         del os.environ["ABUSEIPDB_API_KEY"]
 
     def test_all_error(self, capsys):
+        os.environ["SHODAN_API_KEY"] = "foo"
         with pytest.raises(SystemExit) as e:
             with patch(
                 "sys.argv",
                 [
                     "main",
                     "1.1.1.1",
-                    "-A -s",
+                    "-A",
+                    "-s",
                 ],
             ):
                 parse_args()
@@ -389,11 +391,12 @@ class TestArgs:
         capture = capsys.readouterr()
 
         assert capture.err == (
-            "usage: main [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] entity\n"
-            "main: error: argument -A/--all: ignored explicit argument ' -s'\n"
+            "usage: main [-h]\n"
+            "main: error: --use-* flags are not accepted when the --all/-A flag is set\n"
         )
         assert e.type == SystemExit
         assert e.value.code == 2
+        del os.environ["SHODAN_API_KEY"]
 
 
 class TestEnvs:
