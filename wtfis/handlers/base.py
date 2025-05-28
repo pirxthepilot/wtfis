@@ -1,6 +1,6 @@
 import abc
-from typing import Callable, List, Optional, Union
 from dataclasses import dataclass
+from typing import Callable, List, Optional, Union
 
 from pydantic import ValidationError
 from requests.exceptions import (

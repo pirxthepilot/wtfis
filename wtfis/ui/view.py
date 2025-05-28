@@ -1,5 +1,5 @@
-from typing import List, Optional, Tuple, Union
 from dataclasses import dataclass
+from typing import List, Optional, Tuple, Union
 
 from rich.columns import Columns
 from rich.console import Group, RenderableType

@@ -2,8 +2,8 @@
 Logic handler for domain and hostname inputs
 """
 
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
 
 from requests.exceptions import HTTPError
 
