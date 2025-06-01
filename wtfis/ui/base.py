@@ -1,6 +1,6 @@
 import abc
 from dataclasses import dataclass
-from typing import Any, Generator, List, Optional, Tuple, Union, ClassVar
+from typing import Any, ClassVar, Generator, List, Optional, Tuple, Union
 
 from rich.console import Console, Group, RenderableType, group
 from rich.panel import Panel
