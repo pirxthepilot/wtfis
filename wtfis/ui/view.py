@@ -1,46 +1,25 @@
+from dataclasses import dataclass
 from typing import List, Optional, Tuple, Union
 
 from rich.columns import Columns
-from rich.console import Console, Group, RenderableType
+from rich.console import Group, RenderableType
 from rich.padding import Padding
 from rich.panel import Panel
 from rich.text import Text
 
-from wtfis.models.abuseipdb import AbuseIpDbMap
-from wtfis.models.base import WhoisBase
-from wtfis.models.greynoise import GreynoiseIpMap
-from wtfis.models.shodan import ShodanIpMap
-from wtfis.models.types import IpGeoAsnMapType
-from wtfis.models.urlhaus import UrlHausMap
-from wtfis.models.virustotal import Domain, IpAddress, Resolutions
+from wtfis.models.virustotal import Resolutions
 from wtfis.ui.base import BaseView
 from wtfis.utils import Timestamp, smart_join
 
 
+@dataclass
 class DomainView(BaseView):
     """
     Handler for FQDN and domain lookup output
     """
 
-    def __init__(
-        self,
-        console: Console,
-        entity: Domain,
-        resolutions: Optional[Resolutions],
-        geoasn: IpGeoAsnMapType,
-        whois: WhoisBase,
-        shodan: ShodanIpMap,
-        greynoise: GreynoiseIpMap,
-        abuseipdb: AbuseIpDbMap,
-        urlhaus: UrlHausMap,
-        max_resolutions: int = 3,
-    ) -> None:
-        super().__init__(
-            console, entity, geoasn, whois, shodan, greynoise, abuseipdb, urlhaus
-        )
-
-        self.resolutions = resolutions
-        self.max_resolutions = max_resolutions
+    resolutions: Optional[Resolutions]
+    max_resolutions: int = 3
 
     def domain_panel(self) -> Panel:
         content = [self._gen_vt_section()]  # VT section
@@ -190,21 +169,6 @@ class IpAddressView(BaseView):
     """
     Handler for IP Address lookup output
     """
-
-    def __init__(
-        self,
-        console: Console,
-        entity: IpAddress,
-        geoasn: IpGeoAsnMapType,
-        whois: WhoisBase,
-        shodan: ShodanIpMap,
-        greynoise: GreynoiseIpMap,
-        abuseipdb: AbuseIpDbMap,
-        urlhaus: UrlHausMap,
-    ) -> None:
-        super().__init__(
-            console, entity, geoasn, whois, shodan, greynoise, abuseipdb, urlhaus
-        )
 
     def ip_panel(self) -> Panel:
         content = [self._gen_vt_section()]  # VT section

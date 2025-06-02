@@ -2,18 +2,11 @@
 Logic handler for domain and hostname inputs
 """
 
+from dataclasses import dataclass
 from typing import Optional
 
 from requests.exceptions import HTTPError
-from rich.console import Console
-from rich.progress import Progress
 
-from wtfis.clients.abuseipdb import AbuseIpDbClient
-from wtfis.clients.greynoise import GreynoiseClient
-from wtfis.clients.shodan import ShodanClient
-from wtfis.clients.types import IpGeoAsnClientType, IpWhoisClientType
-from wtfis.clients.urlhaus import UrlHausClient
-from wtfis.clients.virustotal import VTClient
 from wtfis.handlers.base import (
     BaseHandler,
     common_exception_handler,
@@ -22,36 +15,14 @@ from wtfis.handlers.base import (
 from wtfis.models.virustotal import Resolutions
 
 
+@dataclass
 class DomainHandler(BaseHandler):
-    def __init__(
-        self,
-        entity: str,
-        console: Console,
-        progress: Progress,
-        vt_client: VTClient,
-        ip_geoasn_client: IpGeoAsnClientType,
-        whois_client: IpWhoisClientType,
-        shodan_client: Optional[ShodanClient],
-        greynoise_client: Optional[GreynoiseClient],
-        abuseipdb_client: Optional[AbuseIpDbClient],
-        urlhaus_client: Optional[UrlHausClient],
-        max_resolutions: int = 0,
-    ):
-        super().__init__(
-            entity,
-            console,
-            progress,
-            vt_client,
-            ip_geoasn_client,
-            whois_client,
-            shodan_client,
-            greynoise_client,
-            abuseipdb_client,
-            urlhaus_client,
-        )
+    max_resolutions: int = 0
+
+    def __post_init__(self):
+        super().__post_init__()
 
         # Extended attributes
-        self.max_resolutions = max_resolutions
         self.resolutions: Optional[Resolutions] = None
 
     @common_exception_handler

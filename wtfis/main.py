@@ -106,13 +106,13 @@ def generate_view(
         view: BaseView = DomainView(
             console,
             entity.vt_info,
-            entity.resolutions,
             entity.geoasn,
             entity.whois,
             entity.shodan,
             entity.greynoise,
             entity.abuseipdb,
             entity.urlhaus,
+            entity.resolutions,
             max_resolutions=config.max_resolutions,
         )
     elif isinstance(entity, IpAddressHandler) and isinstance(entity.vt_info, IpAddress):

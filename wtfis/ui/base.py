@@ -1,5 +1,6 @@
 import abc
-from typing import Any, Generator, List, Optional, Tuple, Union
+from dataclasses import dataclass
+from typing import Any, ClassVar, Generator, List, Optional, Tuple, Union
 
 from rich.console import Console, Group, RenderableType, group
 from rich.panel import Panel
@@ -18,35 +19,26 @@ from wtfis.ui.theme import Theme
 from wtfis.utils import Timestamp, is_ip, smart_join
 
 
+@dataclass
 class BaseView(abc.ABC):
     """
     Handles the look of the output
     """
 
-    vt_gui_baseurl_domain = "https://virustotal.com/gui/domain"
-    vt_gui_baseurl_ip = "https://virustotal.com/gui/ip-address"
-    pt_gui_baseurl = "https://community.riskiq.com/search"
-    shodan_gui_baseurl = "https://www.shodan.io/host"
+    console: Console
+    entity: Any
+    geoasn: IpGeoAsnMapType
+    whois: Optional[WhoisBase]
+    shodan: ShodanIpMap
+    greynoise: GreynoiseIpMap
+    abuseipdb: AbuseIpDbMap
+    urlhaus: UrlHausMap
 
-    def __init__(
-        self,
-        console: Console,
-        entity: Any,
-        geoasn: IpGeoAsnMapType,
-        whois: Optional[WhoisBase],
-        shodan: ShodanIpMap,
-        greynoise: GreynoiseIpMap,
-        abuseipdb: AbuseIpDbMap,
-        urlhaus: UrlHausMap,
-    ) -> None:
-        self.console = console
-        self.entity = entity
-        self.geoasn = geoasn
-        self.whois = whois
-        self.shodan = shodan
-        self.greynoise = greynoise
-        self.abuseipdb = abuseipdb
-        self.urlhaus = urlhaus
+    vt_gui_baseurl_domain: ClassVar[str] = "https://virustotal.com/gui/domain"
+    vt_gui_baseurl_ip: ClassVar[str] = "https://virustotal.com/gui/ip-address"
+    shodan_gui_baseurl: ClassVar[str] = "https://www.shodan.io/host"
+
+    def __post_init__(self) -> None:
         self.theme = Theme()
 
     def _vendors_who_flagged_malicious(self) -> List[str]:

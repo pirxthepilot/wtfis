@@ -1,4 +1,5 @@
 import abc
+from dataclasses import dataclass
 from typing import Callable, List, Optional, Union
 
 from pydantic import ValidationError
@@ -66,33 +67,31 @@ def failopen_exception_handler(client_attr_name: str) -> Callable:
     return inner
 
 
+@dataclass
 class BaseHandler(abc.ABC):
-    def __init__(
-        self,
-        entity: str,
-        console: Console,
-        progress: Progress,
-        vt_client: VTClient,
-        ip_geoasn_client: IpGeoAsnClientType,
-        whois_client: IpWhoisClientType,
-        shodan_client: Optional[ShodanClient],
-        greynoise_client: Optional[GreynoiseClient],
-        abuseipdb_client: Optional[AbuseIpDbClient],
-        urlhaus_client: Optional[UrlHausClient],
-    ):
+    entity: str
+    console: Console
+    progress: Progress
+    vt_client: VTClient
+    ip_geoasn_client: IpGeoAsnClientType
+    whois_client: IpWhoisClientType
+    shodan_client: Optional[ShodanClient]
+    greynoise_client: Optional[GreynoiseClient]
+    abuseipdb_client: Optional[AbuseIpDbClient]
+    urlhaus_client: Optional[UrlHausClient]
+
+    def __post_init__(self):
         # Process-specific
-        self.entity = refang(entity)
-        self.console = console
-        self.progress = progress
+        self.entity = refang(self.entity)
 
         # Clients
-        self._vt = vt_client
-        self._geoasn = ip_geoasn_client
-        self._whois = whois_client
-        self._shodan = shodan_client
-        self._greynoise = greynoise_client
-        self._abuseipdb = abuseipdb_client
-        self._urlhaus = urlhaus_client
+        self._vt = self.vt_client
+        self._geoasn = self.ip_geoasn_client
+        self._whois = self.whois_client
+        self._shodan = self.shodan_client
+        self._greynoise = self.greynoise_client
+        self._abuseipdb = self.abuseipdb_client
+        self._urlhaus = self.urlhaus_client
 
         # Dataset containers
         self.vt_info: Union[Domain, IpAddress]
