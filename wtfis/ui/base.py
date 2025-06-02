@@ -36,7 +36,6 @@ class BaseView(abc.ABC):
 
     vt_gui_baseurl_domain: ClassVar[str] = "https://virustotal.com/gui/domain"
     vt_gui_baseurl_ip: ClassVar[str] = "https://virustotal.com/gui/ip-address"
-    pt_gui_baseurl: ClassVar[str] = "https://community.riskiq.com/search"
     shodan_gui_baseurl: ClassVar[str] = "https://www.shodan.io/host"
 
     def __post_init__(self) -> None:
