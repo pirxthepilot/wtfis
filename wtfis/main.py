@@ -1,5 +1,5 @@
 import os
-from typing import Union, Optional
+from typing import Optional, Union
 
 from rich.console import Console
 from rich.progress import Progress, TaskID
