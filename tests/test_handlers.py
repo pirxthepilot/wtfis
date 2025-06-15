@@ -13,8 +13,10 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
+from wtfis.handlers.base import ErrorAndExit
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
+from wtfis.main import fetch_data
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.virustotal import Resolutions
@@ -24,7 +26,6 @@ def generate_domain_handler(max_resolutions=3):
     return DomainHandler(
         entity="www.example[.]com",
         console=Console(),
-        progress=MagicMock(),
         vt_client=VTClient("dummykey"),
         ip_geoasn_client=IpWhoisClient(),
         whois_client=Ip2WhoisClient("dummykey"),
@@ -40,7 +41,6 @@ def generate_ip_handler():
     return IpAddressHandler(
         entity="1[.]1[.]1[.]1",
         console=Console(),
-        progress=MagicMock(),
         vt_client=VTClient("dummykey"),
         ip_geoasn_client=IpWhoisClient(),
         whois_client=Ip2WhoisClient("dummykey"),
@@ -81,7 +81,7 @@ class TestDomainHandler:
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
 
-        handler.fetch_data()
+        fetch_data(MagicMock(), handler)
         handler._fetch_vt_domain.assert_called_once()
         handler._fetch_vt_resolutions.assert_called_once()
         handler._fetch_geoasn.assert_called_once()
@@ -101,7 +101,7 @@ class TestDomainHandler:
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
 
-        handler.fetch_data()
+        fetch_data(MagicMock(), handler)
         handler._fetch_vt_domain.assert_called_once()
         handler._fetch_vt_resolutions.assert_not_called()
         handler._fetch_geoasn.assert_not_called()
@@ -114,7 +114,7 @@ class TestDomainHandler:
         assert handler.geoasn.root == {}
 
     @patch.object(requests.Session, "get")
-    def test_vt_http_error(self, mock_requests_get, domain_handler, capsys):
+    def test_vt_http_error(self, mock_requests_get, domain_handler):
         """
         Test a requests HTTPError from the VT client. This also tests the
         common_exception_handler decorator.
@@ -126,24 +126,20 @@ class TestDomainHandler:
         mock_requests_get.return_value = mock_resp
 
         # Thorough test of first _fetch_* method
-        with pytest.raises(SystemExit) as e:
+        with pytest.raises(ErrorAndExit) as e:
             handler._fetch_vt_domain()
 
-        capture = capsys.readouterr()
-
         assert (
-            capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+            e.value.args[0] == "Error fetching data: 401 Client Error: None for url: None"
         )
-        assert e.type == SystemExit
-        assert e.value.code == 1
+        assert e.type is ErrorAndExit  # ruff E721
 
         # Extra: just make sure program exits correctly
-        with pytest.raises(SystemExit) as e:
+        with pytest.raises(ErrorAndExit) as e:
             handler._fetch_vt_resolutions()
-        assert e.value.code == 1
 
     @patch.object(requests.Session, "get")
-    def test_vt_validation_error(self, mock_requests_get, domain_handler, capsys):
+    def test_vt_validation_error(self, mock_requests_get, domain_handler):
         """
         Test a pydantic data model ValidationError from the VT client. This also tests
         the common_exception_handler decorator.
@@ -157,23 +153,19 @@ class TestDomainHandler:
             mock_requests_get.return_value = mock_resp
 
             # Thorough test of first _fetch_* method
-            with pytest.raises(SystemExit) as e:
+            with pytest.raises(ErrorAndExit) as e:
                 handler._fetch_vt_domain()
 
-            capture = capsys.readouterr()
-
-            assert capture.err.startswith(
+            assert e.value.args[0].startswith(
                 "Data model validation error: 1 validation error for Domain\ndata\n"
                 "  Field required [type=missing, input_value={'intentionally': "
                 "'wrong data'}, input_type=dict]\n"
             )
-            assert e.type == SystemExit
-            assert e.value.code == 1
+            assert e.type is ErrorAndExit
 
             # Extra: just make sure program exits correctly
-            with pytest.raises(SystemExit) as e:
+            with pytest.raises(ErrorAndExit) as e:
                 handler._fetch_vt_resolutions()
-            assert e.value.code == 1
 
     @patch.object(requests.Session, "get")
     def test_ipwhois_http_error(
@@ -201,7 +193,7 @@ class TestDomainHandler:
         )
 
     @patch.object(requests.Session, "get")
-    def test_ipwhois_validation_error(self, mock_requests_get, domain_handler, capsys):
+    def test_ipwhois_validation_error(self, mock_requests_get, domain_handler):
         handler = domain_handler()
         mock_resp = requests.models.Response()
 
@@ -213,16 +205,13 @@ class TestDomainHandler:
             }
             mock_requests_get.return_value = mock_resp
 
-            with pytest.raises(SystemExit) as e:
+            with pytest.raises(ErrorAndExit) as e:
                 handler._fetch_geoasn("1.2.3.4")
 
-            capture = capsys.readouterr()
-
-            assert capture.err.startswith(
+            assert e.value.args[0].startswith(
                 "Data model validation error: 9 validation errors for IpWhois\n"
             )
-            assert e.type == SystemExit
-            assert e.value.code == 1
+            assert e.type is ErrorAndExit
 
     @patch.object(requests.Session, "get")
     def test_whois_http_error(self, mock_requests_get, domain_handler, capsys):
@@ -390,7 +379,7 @@ class TestDomainHandler:
 
     @patch.object(requests.Session, "get")
     def test_greynoise_validation_error(
-        self, mock_requests_get, domain_handler, capsys
+        self, mock_requests_get, domain_handler
     ):
         handler = domain_handler()
         mock_resp = requests.models.Response()
@@ -400,16 +389,13 @@ class TestDomainHandler:
             mock_resp_json.return_value = {"intentionally": "wrong data"}
             mock_requests_get.return_value = mock_resp
 
-            with pytest.raises(SystemExit) as e:
+            with pytest.raises(ErrorAndExit) as e:
                 handler._fetch_greynoise("1.2.3.4")
 
-            capture = capsys.readouterr()
-
-            assert capture.err.startswith(
+            assert e.value.args[0].startswith(
                 "Data model validation error: 5 validation errors for GreynoiseIp\n"
             )
-            assert e.type == SystemExit
-            assert e.value.code == 1
+            assert e.type is ErrorAndExit
 
     @patch.object(requests.Session, "post")
     def test_urlhaus_http_error(self, mock_requests_post, domain_handler, capsys):
@@ -442,7 +428,7 @@ class TestIpAddressHandler:
         handler._fetch_urlhaus = MagicMock()
         handler._fetch_abuseipdb = MagicMock()
 
-        handler.fetch_data()
+        fetch_data(MagicMock(), handler)
         handler._fetch_vt_ip_address.assert_called_once()
         handler._fetch_geoasn.assert_called_once()
         handler._fetch_whois.assert_called_once()
@@ -452,7 +438,7 @@ class TestIpAddressHandler:
         handler._fetch_abuseipdb.assert_called_once()
 
     @patch.object(requests.Session, "get")
-    def test_vt_http_error(self, mock_requests_get, ip_handler, capsys):
+    def test_vt_http_error(self, mock_requests_get, ip_handler):
         handler = ip_handler()
         mock_resp = requests.models.Response()
 
@@ -460,19 +446,16 @@ class TestIpAddressHandler:
         mock_requests_get.return_value = mock_resp
 
         # Thorough test of first _fetch_* method
-        with pytest.raises(SystemExit) as e:
+        with pytest.raises(ErrorAndExit) as e:
             handler._fetch_vt_ip_address()
 
-        capture = capsys.readouterr()
-
         assert (
-            capture.err == "Error fetching data: 404 Client Error: None for url: None\n"
+            e.value.args[0] == "Error fetching data: 404 Client Error: None for url: None"
         )
-        assert e.type == SystemExit
-        assert e.value.code == 1
+        assert e.type is ErrorAndExit
 
     @patch.object(requests.Session, "get")
-    def test_vt_validation_error(self, mock_requests_get, ip_handler, capsys):
+    def test_vt_validation_error(self, mock_requests_get, ip_handler):
         handler = ip_handler()
         mock_resp = requests.models.Response()
 
@@ -482,18 +465,15 @@ class TestIpAddressHandler:
             mock_requests_get.return_value = mock_resp
 
             # Thorough test of first _fetch_* method
-            with pytest.raises(SystemExit) as e:
+            with pytest.raises(ErrorAndExit) as e:
                 handler._fetch_vt_ip_address()
 
-            capture = capsys.readouterr()
-
-            assert capture.err.startswith(
+            assert e.value.args[0].startswith(
                 "Data model validation error: 1 validation error for IpAddress\ndata\n"
                 "  Field required [type=missing, input_value={'intentionally': "
                 "'wrong data'}, input_type=dict]\n"
             )
-            assert e.type == SystemExit
-            assert e.value.code == 1
+            assert e.type is ErrorAndExit
 
     @patch.object(requests.Session, "get")
     def test_ipwhois_http_error(self, mock_requests_get, ip_handler, capsys):
@@ -535,7 +515,7 @@ class TestIpAddressHandler:
         )
 
     @patch.object(requests.Session, "get")
-    def test_ipwhois_validation_error(self, mock_requests_get, ip_handler, capsys):
+    def test_ipwhois_validation_error(self, mock_requests_get, ip_handler):
         handler = ip_handler()
         mock_resp = requests.models.Response()
 
@@ -547,16 +527,13 @@ class TestIpAddressHandler:
             }
             mock_requests_get.return_value = mock_resp
 
-            with pytest.raises(SystemExit) as e:
+            with pytest.raises(ErrorAndExit) as e:
                 handler._fetch_geoasn("1.2.3.4")
 
-            capture = capsys.readouterr()
-
-            assert capture.err.startswith(
+            assert e.value.args[0].startswith(
                 "Data model validation error: 9 validation errors for IpWhois\n"
             )
-            assert e.type == SystemExit
-            assert e.value.code == 1
+            assert e.type is ErrorAndExit
 
     @patch.object(requests.Session, "get")
     def test_shodan_api_error(self, mock_requests_get, ip_handler, capsys):
@@ -578,7 +555,7 @@ class TestIpAddressHandler:
         assert capture.out.startswith("WARN: Could not fetch Shodan: Invalid API key")
 
     @patch.object(requests.Session, "get")
-    def test_greynoise_http_error(self, mock_requests_get, ip_handler, capsys):
+    def test_greynoise_http_error(self, mock_requests_get, ip_handler):
         """
         Test Greynoise HTTP error that results in a SystemExit
         """
@@ -588,16 +565,13 @@ class TestIpAddressHandler:
         mock_resp.status_code = 401
         mock_requests_get.return_value = mock_resp
 
-        with pytest.raises(SystemExit) as e:
+        with pytest.raises(ErrorAndExit) as e:
             handler._fetch_vt_ip_address()
 
-        capture = capsys.readouterr()
-
         assert (
-            capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+            e.value.args[0] == "Error fetching data: 401 Client Error: None for url: None"
         )
-        assert e.type == SystemExit
-        assert e.value.code == 1
+        assert e.type is ErrorAndExit
 
     @patch.object(requests.Session, "get")
     def test_greynoise_429_error(self, mock_requests_get, ip_handler, capsys):
@@ -677,7 +651,7 @@ class TestIpAddressHandler:
         )
 
     @patch.object(requests.Session, "get")
-    def test_greynoise_validation_error(self, mock_requests_get, ip_handler, capsys):
+    def test_greynoise_validation_error(self, mock_requests_get, ip_handler):
         handler = ip_handler()
         mock_resp = requests.models.Response()
 
@@ -686,16 +660,13 @@ class TestIpAddressHandler:
             mock_resp_json.return_value = {"intentionally": "wrong data"}
             mock_requests_get.return_value = mock_resp
 
-            with pytest.raises(SystemExit) as e:
+            with pytest.raises(ErrorAndExit) as e:
                 handler._fetch_greynoise("1.2.3.4")
 
-            capture = capsys.readouterr()
-
-            assert capture.err.startswith(
+            assert e.value.args[0].startswith(
                 "Data model validation error: 5 validation errors for GreynoiseIp\n"
             )
-            assert e.type == SystemExit
-            assert e.value.code == 1
+            assert e.type is ErrorAndExit
 
     @patch.object(requests.Session, "post")
     def test_urlhaus_http_error(self, mock_requests_post, ip_handler, capsys):

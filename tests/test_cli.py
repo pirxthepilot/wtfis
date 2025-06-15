@@ -618,13 +618,11 @@ class TestGenEntityHandler:
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
             conf = Config()
             console = Console()
-            progress = (simulate_progress(console),)
-            entity = generate_entity_handler(conf, console, progress)
+            entity = generate_entity_handler(conf, console)
         assert isinstance(entity, DomainHandler)
         assert entity.entity == "www.example.com"
         assert entity.max_resolutions == 3
         assert entity.console == console
-        assert entity.progress == progress
         assert isinstance(entity._vt, VTClient)
         assert isinstance(entity._geoasn, IpWhoisClient)
         assert isinstance(entity._whois, Ip2WhoisClient)
@@ -640,8 +638,7 @@ class TestGenEntityHandler:
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
             conf = Config()
             console = Console()
-            progress = (simulate_progress(console),)
-            entity = generate_entity_handler(conf, console, progress)
+            entity = generate_entity_handler(conf, console)
         assert entity.max_resolutions == 5
         assert isinstance(entity._geoasn, IpWhoisClient)
         assert isinstance(entity._whois, Ip2WhoisClient)
@@ -656,8 +653,7 @@ class TestGenEntityHandler:
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_vt_whois):
             conf = Config()
             console = Console()
-            progress = (simulate_progress(console),)
-            entity = generate_entity_handler(conf, console, progress)
+            entity = generate_entity_handler(conf, console)
         assert isinstance(entity._whois, VTClient)
         unset_env_vars()
 
@@ -667,8 +663,7 @@ class TestGenEntityHandler:
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_ip2whois):
             conf = Config()
             console = Console()
-            progress = (simulate_progress(console),)
-            entity = generate_entity_handler(conf, console, progress)
+            entity = generate_entity_handler(conf, console)
         assert isinstance(entity._whois, Ip2WhoisClient)
         unset_env_vars()
 
@@ -678,12 +673,10 @@ class TestGenEntityHandler:
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
             conf = Config()
             console = Console()
-            progress = (simulate_progress(console),)
-            entity = generate_entity_handler(conf, console, progress)
+            entity = generate_entity_handler(conf, console)
         assert isinstance(entity, IpAddressHandler)
         assert entity.entity == "1.1.1.1"
         assert entity.console == console
-        assert entity.progress == progress
         assert isinstance(entity._vt, VTClient)
         assert isinstance(entity._geoasn, IpWhoisClient)
         assert isinstance(entity._whois, VTClient)
@@ -697,8 +690,7 @@ class TestGenEntityHandler:
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
             conf = Config()
             console = Console()
-            progress = (simulate_progress(console),)
-            entity = generate_entity_handler(conf, console, progress)
+            entity = generate_entity_handler(conf, console)
         assert isinstance(entity._geoasn, IpWhoisClient)
         assert isinstance(entity._whois, VTClient)
         assert isinstance(entity._shodan, ShodanClient)
@@ -717,7 +709,6 @@ class TestGenView:
         entity = DomainHandler(
             entity=MagicMock(),
             console=MagicMock(),
-            progress=MagicMock(),
             vt_client=MagicMock(),
             ip_geoasn_client=MagicMock(),
             whois_client=MagicMock(),
@@ -740,7 +731,6 @@ class TestGenView:
         entity = IpAddressHandler(
             entity=MagicMock(),
             console=MagicMock(),
-            progress=MagicMock(),
             vt_client=MagicMock(),
             ip_geoasn_client=MagicMock(),
             whois_client=MagicMock(),
@@ -778,7 +768,7 @@ class TestMain:
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
             m_conf.return_value = Config()
             main()
-        m_handler.assert_called_once_with(m_conf(), m_console(), m_progress())
+        m_handler.assert_called_once_with(m_conf(), m_console())
         m_handler().fetch_data.assert_called_once_with()
         m_handler().print_warnings.assert_called_once_with()
         m_view.assert_called_once_with(m_conf(), m_console(), m_handler())

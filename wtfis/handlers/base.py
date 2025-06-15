@@ -11,7 +11,6 @@ from requests.exceptions import (
     Timeout,
 )
 from rich.console import Console
-from rich.progress import Progress
 from shodan.exception import APIError
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
@@ -29,22 +28,22 @@ from wtfis.models.types import IpGeoAsnMapType
 from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.theme import Theme
-from wtfis.utils import error_and_exit, refang
+from wtfis.utils import refang
+
+
+class ErrorAndExit(Exception): ...
 
 
 def common_exception_handler(func: Callable) -> Callable:
     """Decorator for handling common fetch errors"""
 
     def inner(*args, **kwargs) -> None:
-        progress: Progress = args[0].progress  # args[0] is the method's self input
         try:
             func(*args, **kwargs)
         except (APIError, ConnectionError, HTTPError, JSONDecodeError, Timeout) as e:
-            progress.stop()
-            error_and_exit(f"Error fetching data: {e}")
+            raise ErrorAndExit(f"Error fetching data: {e}") from e
         except ValidationError as e:
-            progress.stop()
-            error_and_exit(f"Data model validation error: {e}")
+            raise ErrorAndExit(f"Data model validation error: {e}") from e
 
     return inner
 
@@ -71,7 +70,6 @@ def failopen_exception_handler(client_attr_name: str) -> Callable:
 class BaseHandler(abc.ABC):
     entity: str
     console: Console
-    progress: Progress
     vt_client: VTClient
     ip_geoasn_client: IpGeoAsnClientType
     whois_client: IpWhoisClientType
