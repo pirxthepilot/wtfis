@@ -149,8 +149,6 @@ def fetch_data(
                     progress.update(task, advance=adv)
                 elif isinstance(x, int):
                     progress.update(task, advance=x)
-                else:
-                    progress.update(task)
             _finish_task()
         except ErrorAndExit as e:
             progress.stop()
