@@ -1,8 +1,8 @@
 import os
-from typing import Union
+from typing import Union, Optional
 
 from rich.console import Console
-from rich.progress import Progress
+from rich.progress import Progress, TaskID
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
@@ -130,19 +130,19 @@ def generate_view(
 
 
 def fetch_data(
-        progress: Progress,
-        entity: BaseHandler,
-        ):
+    progress: Progress,
+    entity: BaseHandler,
+):
 
     def _finish_task():
         if task is not None:
             progress.update(task, completed=100)
 
-    task = None
+    task: Optional[TaskID] = None
     with progress:
         try:
             for x in entity.fetch_data():
-                if isinstance(x, tuple):    # (str, int)
+                if isinstance(x, tuple):  # (str, int)
                     _finish_task()
                     descr, adv = x
                     task = progress.add_task(descr)

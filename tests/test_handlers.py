@@ -130,7 +130,8 @@ class TestDomainHandler:
             handler._fetch_vt_domain()
 
         assert (
-            e.value.args[0] == "Error fetching data: 401 Client Error: None for url: None"
+            e.value.args[0]
+            == "Error fetching data: 401 Client Error: None for url: None"
         )
         assert e.type is ErrorAndExit  # ruff E721
 
@@ -378,9 +379,7 @@ class TestDomainHandler:
         )
 
     @patch.object(requests.Session, "get")
-    def test_greynoise_validation_error(
-        self, mock_requests_get, domain_handler
-    ):
+    def test_greynoise_validation_error(self, mock_requests_get, domain_handler):
         handler = domain_handler()
         mock_resp = requests.models.Response()
 
@@ -450,7 +449,8 @@ class TestIpAddressHandler:
             handler._fetch_vt_ip_address()
 
         assert (
-            e.value.args[0] == "Error fetching data: 404 Client Error: None for url: None"
+            e.value.args[0]
+            == "Error fetching data: 404 Client Error: None for url: None"
         )
         assert e.type is ErrorAndExit
 
@@ -569,7 +569,8 @@ class TestIpAddressHandler:
             handler._fetch_vt_ip_address()
 
         assert (
-            e.value.args[0] == "Error fetching data: 401 Client Error: None for url: None"
+            e.value.args[0]
+            == "Error fetching data: 401 Client Error: None for url: None"
         )
         assert e.type is ErrorAndExit
 
