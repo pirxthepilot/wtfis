@@ -2,7 +2,7 @@ import os
 from typing import Union
 
 from rich.console import Console
-from rich.progress import Progress, TaskID
+from rich.progress import Progress
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
@@ -133,12 +133,12 @@ def fetch_data(
         progress: Progress,
         entity: BaseHandler,
         ):
-    task: TaskID = None
 
     def _finish_task():
         if task is not None:
             progress.update(task, completed=100)
 
+    task = None
     with progress:
         try:
             for x in entity.fetch_data():

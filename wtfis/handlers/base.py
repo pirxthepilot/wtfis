@@ -104,7 +104,7 @@ class BaseHandler(abc.ABC):
         self.warnings: List[str] = []
 
     @abc.abstractmethod
-    def fetch_data(self) -> None:
+    def fetch_data(self):
         """Main method that controls what get fetched"""
         return NotImplemented  # type: ignore  # pragma: no coverage
 
