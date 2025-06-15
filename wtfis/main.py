@@ -147,7 +147,7 @@ def fetch_data(
                     descr, adv = x
                     task = progress.add_task(descr)
                     progress.update(task, advance=adv)
-                elif isinstance(x, int):
+                elif isinstance(x, int) and task is not None:
                     progress.update(task, advance=x)
             _finish_task()
         except ErrorAndExit as e:
