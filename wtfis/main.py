@@ -13,8 +13,9 @@ from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.config import Config
 from wtfis.exceptions import WtfisException
-from wtfis.handlers.base import BaseHandler, ErrorAndExit
+from wtfis.handlers.base import BaseHandler
 from wtfis.handlers.domain import DomainHandler
+from wtfis.handlers.exceptions import HandlerException
 from wtfis.handlers.ip import IpAddressHandler
 from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.base import BaseView
@@ -150,7 +151,7 @@ def fetch_data(
                 elif isinstance(x, int) and task is not None:
                     progress.update(task, advance=x)
             _finish_task()
-        except ErrorAndExit as e:
+        except HandlerException as e:
             progress.stop()
             error_and_exit(str(e))
 

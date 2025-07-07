@@ -13,8 +13,8 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
-from wtfis.handlers.base import ErrorAndExit
 from wtfis.handlers.domain import DomainHandler
+from wtfis.handlers.exceptions import HandlerException
 from wtfis.handlers.ip import IpAddressHandler
 from wtfis.main import fetch_data
 from wtfis.models.greynoise import GreynoiseIpMap
@@ -126,17 +126,17 @@ class TestDomainHandler:
         mock_requests_get.return_value = mock_resp
 
         # Thorough test of first _fetch_* method
-        with pytest.raises(ErrorAndExit) as e:
+        with pytest.raises(HandlerException) as e:
             handler._fetch_vt_domain()
 
         assert (
             e.value.args[0]
             == "Error fetching data: 401 Client Error: None for url: None"
         )
-        assert e.type is ErrorAndExit  # ruff E721
+        assert e.type is HandlerException  # ruff E721
 
         # Extra: just make sure program exits correctly
-        with pytest.raises(ErrorAndExit) as e:
+        with pytest.raises(HandlerException) as e:
             handler._fetch_vt_resolutions()
 
     @patch.object(requests.Session, "get")
@@ -154,7 +154,7 @@ class TestDomainHandler:
             mock_requests_get.return_value = mock_resp
 
             # Thorough test of first _fetch_* method
-            with pytest.raises(ErrorAndExit) as e:
+            with pytest.raises(HandlerException) as e:
                 handler._fetch_vt_domain()
 
             assert e.value.args[0].startswith(
@@ -162,10 +162,10 @@ class TestDomainHandler:
                 "  Field required [type=missing, input_value={'intentionally': "
                 "'wrong data'}, input_type=dict]\n"
             )
-            assert e.type is ErrorAndExit
+            assert e.type is HandlerException
 
             # Extra: just make sure program exits correctly
-            with pytest.raises(ErrorAndExit) as e:
+            with pytest.raises(HandlerException) as e:
                 handler._fetch_vt_resolutions()
 
     @patch.object(requests.Session, "get")
@@ -206,13 +206,13 @@ class TestDomainHandler:
             }
             mock_requests_get.return_value = mock_resp
 
-            with pytest.raises(ErrorAndExit) as e:
+            with pytest.raises(HandlerException) as e:
                 handler._fetch_geoasn("1.2.3.4")
 
             assert e.value.args[0].startswith(
                 "Data model validation error: 9 validation errors for IpWhois\n"
             )
-            assert e.type is ErrorAndExit
+            assert e.type is HandlerException
 
     @patch.object(requests.Session, "get")
     def test_whois_http_error(self, mock_requests_get, domain_handler, capsys):
@@ -388,13 +388,13 @@ class TestDomainHandler:
             mock_resp_json.return_value = {"intentionally": "wrong data"}
             mock_requests_get.return_value = mock_resp
 
-            with pytest.raises(ErrorAndExit) as e:
+            with pytest.raises(HandlerException) as e:
                 handler._fetch_greynoise("1.2.3.4")
 
             assert e.value.args[0].startswith(
                 "Data model validation error: 5 validation errors for GreynoiseIp\n"
             )
-            assert e.type is ErrorAndExit
+            assert e.type is HandlerException
 
     @patch.object(requests.Session, "post")
     def test_urlhaus_http_error(self, mock_requests_post, domain_handler, capsys):
@@ -445,14 +445,14 @@ class TestIpAddressHandler:
         mock_requests_get.return_value = mock_resp
 
         # Thorough test of first _fetch_* method
-        with pytest.raises(ErrorAndExit) as e:
+        with pytest.raises(HandlerException) as e:
             handler._fetch_vt_ip_address()
 
         assert (
             e.value.args[0]
             == "Error fetching data: 404 Client Error: None for url: None"
         )
-        assert e.type is ErrorAndExit
+        assert e.type is HandlerException
 
     @patch.object(requests.Session, "get")
     def test_vt_validation_error(self, mock_requests_get, ip_handler):
@@ -465,7 +465,7 @@ class TestIpAddressHandler:
             mock_requests_get.return_value = mock_resp
 
             # Thorough test of first _fetch_* method
-            with pytest.raises(ErrorAndExit) as e:
+            with pytest.raises(HandlerException) as e:
                 handler._fetch_vt_ip_address()
 
             assert e.value.args[0].startswith(
@@ -473,7 +473,7 @@ class TestIpAddressHandler:
                 "  Field required [type=missing, input_value={'intentionally': "
                 "'wrong data'}, input_type=dict]\n"
             )
-            assert e.type is ErrorAndExit
+            assert e.type is HandlerException
 
     @patch.object(requests.Session, "get")
     def test_ipwhois_http_error(self, mock_requests_get, ip_handler, capsys):
@@ -527,13 +527,13 @@ class TestIpAddressHandler:
             }
             mock_requests_get.return_value = mock_resp
 
-            with pytest.raises(ErrorAndExit) as e:
+            with pytest.raises(HandlerException) as e:
                 handler._fetch_geoasn("1.2.3.4")
 
             assert e.value.args[0].startswith(
                 "Data model validation error: 9 validation errors for IpWhois\n"
             )
-            assert e.type is ErrorAndExit
+            assert e.type is HandlerException
 
     @patch.object(requests.Session, "get")
     def test_shodan_api_error(self, mock_requests_get, ip_handler, capsys):
@@ -565,14 +565,14 @@ class TestIpAddressHandler:
         mock_resp.status_code = 401
         mock_requests_get.return_value = mock_resp
 
-        with pytest.raises(ErrorAndExit) as e:
+        with pytest.raises(HandlerException) as e:
             handler._fetch_vt_ip_address()
 
         assert (
             e.value.args[0]
             == "Error fetching data: 401 Client Error: None for url: None"
         )
-        assert e.type is ErrorAndExit
+        assert e.type is HandlerException
 
     @patch.object(requests.Session, "get")
     def test_greynoise_429_error(self, mock_requests_get, ip_handler, capsys):
@@ -661,13 +661,13 @@ class TestIpAddressHandler:
             mock_resp_json.return_value = {"intentionally": "wrong data"}
             mock_requests_get.return_value = mock_resp
 
-            with pytest.raises(ErrorAndExit) as e:
+            with pytest.raises(HandlerException) as e:
                 handler._fetch_greynoise("1.2.3.4")
 
             assert e.value.args[0].startswith(
                 "Data model validation error: 5 validation errors for GreynoiseIp\n"
             )
-            assert e.type is ErrorAndExit
+            assert e.type is HandlerException
 
     @patch.object(requests.Session, "post")
     def test_urlhaus_http_error(self, mock_requests_post, ip_handler, capsys):

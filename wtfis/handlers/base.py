@@ -19,6 +19,7 @@ from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.types import IpGeoAsnClientType, IpWhoisClientType
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
+from wtfis.handlers.exceptions import HandlerException
 from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
@@ -31,9 +32,6 @@ from wtfis.ui.theme import Theme
 from wtfis.utils import refang
 
 
-class ErrorAndExit(Exception): ...
-
-
 def common_exception_handler(func: Callable) -> Callable:
     """Decorator for handling common fetch errors"""
 
@@ -41,9 +39,9 @@ def common_exception_handler(func: Callable) -> Callable:
         try:
             func(*args, **kwargs)
         except (APIError, ConnectionError, HTTPError, JSONDecodeError, Timeout) as e:
-            raise ErrorAndExit(f"Error fetching data: {e}") from e
+            raise HandlerException(f"Error fetching data: {e}") from e
         except ValidationError as e:
-            raise ErrorAndExit(f"Data model validation error: {e}") from e
+            raise HandlerException(f"Data model validation error: {e}") from e
 
     return inner
 
