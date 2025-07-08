@@ -1,6 +1,6 @@
 import abc
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Union
+from typing import Callable, Generator, List, Optional, Tuple, Union
 
 from pydantic import ValidationError
 from requests.exceptions import (
@@ -102,7 +102,7 @@ class BaseHandler(abc.ABC):
         self.warnings: List[str] = []
 
     @abc.abstractmethod
-    def fetch_data(self):
+    def fetch_data(self) -> Generator[Tuple[str, int] | int, None, None]:
         """Main method that controls what get fetched"""
         return NotImplemented  # type: ignore  # pragma: no coverage
 
