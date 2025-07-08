@@ -102,7 +102,7 @@ class BaseHandler(abc.ABC):
         self.warnings: List[str] = []
 
     @abc.abstractmethod
-    def fetch_data(self) -> Generator[Tuple[str, int] | int, None, None]:
+    def fetch_data(self) -> Generator[Union[Tuple[str, int], int], None, None]:
         """Main method that controls what get fetched"""
         return NotImplemented  # type: ignore  # pragma: no coverage
 
