@@ -164,6 +164,10 @@ class TestDomainHandler:
         assert e.type is SystemExit  # ruff E721
         assert e.value.code == 1
 
+        # Extra: just make sure program exits correctly
+        with pytest.raises(HandlerException) as e:
+            handler._fetch_vt_resolutions()
+
     @patch.object(requests.Session, "get")
     def test_vt_validation_error(self, mock_requests_get, domain_handler):
         """
@@ -221,6 +225,10 @@ class TestDomainHandler:
             )
             assert e.type is SystemExit
             assert e.value.code == 1
+
+            # Extra: just make sure program exits correctly
+            with pytest.raises(HandlerException) as e:
+                handler._fetch_vt_resolutions()
 
     @patch.object(requests.Session, "get")
     def test_ipwhois_http_error(
