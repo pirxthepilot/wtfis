@@ -13,8 +13,8 @@ from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
-from wtfis.handlers.domain import DomainHandler
 from wtfis.exceptions import HandlerException
+from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
 from wtfis.main import fetch_data
 from wtfis.models.greynoise import GreynoiseIpMap
