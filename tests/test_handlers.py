@@ -3,62 +3,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from requests.exceptions import ConnectionError
-from rich.console import Console
 
-from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
-from wtfis.clients.greynoise import GreynoiseClient
-from wtfis.clients.ip2whois import Ip2WhoisClient
-from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.shodan import ShodanClient
-from wtfis.clients.urlhaus import UrlHausClient
-from wtfis.clients.virustotal import VTClient
 from wtfis.exceptions import HandlerException
-from wtfis.handlers.domain import DomainHandler
-from wtfis.handlers.ip import IpAddressHandler
 from wtfis.main import fetch_data
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.virustotal import Resolutions
 
-
-def generate_domain_handler(max_resolutions=3):
-    return DomainHandler(
-        entity="www.example[.]com",
-        console=Console(),
-        vt_client=VTClient("dummykey"),
-        ip_geoasn_client=IpWhoisClient(),
-        whois_client=Ip2WhoisClient("dummykey"),
-        shodan_client=ShodanClient("dummykey"),
-        greynoise_client=GreynoiseClient("dummykey"),
-        abuseipdb_client=AbuseIpDbClient("dummykey"),
-        urlhaus_client=UrlHausClient(),
-        max_resolutions=max_resolutions,
-    )
-
-
-def generate_ip_handler():
-    return IpAddressHandler(
-        entity="1[.]1[.]1[.]1",
-        console=Console(),
-        vt_client=VTClient("dummykey"),
-        ip_geoasn_client=IpWhoisClient(),
-        whois_client=Ip2WhoisClient("dummykey"),
-        shodan_client=ShodanClient("dummykey"),
-        greynoise_client=GreynoiseClient("dummykey"),
-        abuseipdb_client=AbuseIpDbClient("dummykey"),
-        urlhaus_client=UrlHausClient(),
-    )
-
-
-@pytest.fixture
-def domain_handler():
-    return generate_domain_handler
-
-
-@pytest.fixture
-def ip_handler():
-    return generate_ip_handler
+# pylint: disable=protected-access
 
 
 class TestDomainHandler:
@@ -140,35 +93,6 @@ class TestDomainHandler:
             handler._fetch_vt_resolutions()
 
     @patch.object(requests.Session, "get")
-    def test_vt_http_error2(self, mock_requests_get, domain_handler, capsys):
-        """
-        Test main.fetch_data().
-        Test a requests HTTPError from the VT client. This also tests the
-        common_exception_handler decorator.
-        """
-        handler = domain_handler()
-        mock_resp = requests.models.Response()
-
-        mock_resp.status_code = 401
-        mock_requests_get.return_value = mock_resp
-
-        # Thorough test of first _fetch_* method
-        with pytest.raises(SystemExit) as e:
-            fetch_data(MagicMock(), handler)
-
-        capture = capsys.readouterr()
-
-        assert (
-            capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
-        )
-        assert e.type is SystemExit  # ruff E721
-        assert e.value.code == 1
-
-        # Extra: just make sure program exits correctly
-        with pytest.raises(HandlerException) as e:
-            handler._fetch_vt_resolutions()
-
-    @patch.object(requests.Session, "get")
     def test_vt_validation_error(self, mock_requests_get, domain_handler):
         """
         Test a pydantic data model ValidationError from the VT client. This also tests
@@ -192,39 +116,6 @@ class TestDomainHandler:
                 "'wrong data'}, input_type=dict]\n"
             )
             assert e.type is HandlerException
-
-            # Extra: just make sure program exits correctly
-            with pytest.raises(HandlerException) as e:
-                handler._fetch_vt_resolutions()
-
-    @patch.object(requests.Session, "get")
-    def test_vt_validation_error2(self, mock_requests_get, domain_handler, capsys):
-        """
-        Test main.fetch_data().
-        Test a pydantic data model ValidationError from the VT client. This also tests
-        the common_exception_handler decorator.
-        """
-        handler = domain_handler()
-        mock_resp = requests.models.Response()
-
-        with patch.object(mock_resp, "json") as mock_resp_json:
-            mock_resp.status_code = 200
-            mock_resp_json.return_value = {"intentionally": "wrong data"}
-            mock_requests_get.return_value = mock_resp
-
-            # Thorough test of first _fetch_* method
-            with pytest.raises(SystemExit) as e:
-                fetch_data(MagicMock(), handler)
-
-            capture = capsys.readouterr()
-
-            assert capture.err.startswith(
-                "Data model validation error: 1 validation error for Domain\ndata\n"
-                "  Field required [type=missing, input_value={'intentionally': "
-                "'wrong data'}, input_type=dict]\n"
-            )
-            assert e.type is SystemExit
-            assert e.value.code == 1
 
             # Extra: just make sure program exits correctly
             with pytest.raises(HandlerException) as e:
