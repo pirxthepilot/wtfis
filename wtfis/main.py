@@ -12,10 +12,9 @@ from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.config import Config
-from wtfis.exceptions import WtfisException
+from wtfis.exceptions import HandlerException, WtfisException
 from wtfis.handlers.base import BaseHandler
 from wtfis.handlers.domain import DomainHandler
-from wtfis.handlers.exceptions import HandlerException
 from wtfis.handlers.ip import IpAddressHandler
 from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.base import BaseView
