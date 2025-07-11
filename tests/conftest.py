@@ -2,9 +2,18 @@ from pathlib import Path
 from typing import Optional
 
 import pytest
-from rich.console import RenderableType
+from rich.console import Console, RenderableType
 from rich.text import Span, Text
 
+from wtfis.clients.abuseipdb import AbuseIpDbClient
+from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2whois import Ip2WhoisClient
+from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.urlhaus import UrlHausClient
+from wtfis.clients.virustotal import VTClient
+from wtfis.handlers.domain import DomainHandler
+from wtfis.handlers.ip import IpAddressHandler
 from wtfis.models.abuseipdb import AbuseIpDb
 from wtfis.models.greynoise import GreynoiseIp
 from wtfis.models.ipwhois import IpWhois
@@ -130,3 +139,42 @@ def mock_urlhaus_get():
 @pytest.fixture(scope="module")
 def display_timestamp():
     return timestamp_text
+
+
+def generate_domain_handler(max_resolutions=3):
+    return DomainHandler(
+        entity="www.example[.]com",
+        console=Console(),
+        vt_client=VTClient("dummykey"),
+        ip_geoasn_client=IpWhoisClient(),
+        whois_client=Ip2WhoisClient("dummykey"),
+        shodan_client=ShodanClient("dummykey"),
+        greynoise_client=GreynoiseClient("dummykey"),
+        abuseipdb_client=AbuseIpDbClient("dummykey"),
+        urlhaus_client=UrlHausClient(),
+        max_resolutions=max_resolutions,
+    )
+
+
+@pytest.fixture
+def domain_handler():
+    return generate_domain_handler
+
+
+def generate_ip_handler():
+    return IpAddressHandler(
+        entity="1[.]1[.]1[.]1",
+        console=Console(),
+        vt_client=VTClient("dummykey"),
+        ip_geoasn_client=IpWhoisClient(),
+        whois_client=Ip2WhoisClient("dummykey"),
+        shodan_client=ShodanClient("dummykey"),
+        greynoise_client=GreynoiseClient("dummykey"),
+        abuseipdb_client=AbuseIpDbClient("dummykey"),
+        urlhaus_client=UrlHausClient(),
+    )
+
+
+@pytest.fixture
+def ip_handler():
+    return generate_ip_handler

@@ -1,8 +1,8 @@
 import os
-from typing import Union
+from typing import Optional, Union
 
 from rich.console import Console
-from rich.progress import Progress
+from rich.progress import Progress, TaskID
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
@@ -12,7 +12,7 @@ from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.config import Config
-from wtfis.exceptions import WtfisException
+from wtfis.exceptions import HandlerException, WtfisException
 from wtfis.handlers.base import BaseHandler
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
@@ -20,13 +20,12 @@ from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.base import BaseView
 from wtfis.ui.progress import get_progress
 from wtfis.ui.view import DomainView, IpAddressView
-from wtfis.utils import is_ip
+from wtfis.utils import error_and_exit, is_ip
 
 
 def generate_entity_handler(
     config: Config,
     console: Console,
-    progress: Progress,
 ) -> BaseHandler:
     # Virustotal client
     vt_client = VTClient(config.vt_api_key)
@@ -68,7 +67,6 @@ def generate_entity_handler(
         entity: BaseHandler = DomainHandler(
             entity=config.entity,
             console=console,
-            progress=progress,
             vt_client=vt_client,
             ip_geoasn_client=ip_geoasn_client,
             whois_client=whois_client,
@@ -83,7 +81,6 @@ def generate_entity_handler(
         entity = IpAddressHandler(
             entity=config.entity,
             console=console,
-            progress=progress,
             vt_client=vt_client,
             ip_geoasn_client=ip_geoasn_client,
             whois_client=whois_client,
@@ -132,6 +129,32 @@ def generate_view(
     return view
 
 
+def fetch_data(
+    progress: Progress,
+    entity: BaseHandler,
+):
+
+    def _finish_task():
+        if task is not None:
+            progress.update(task, completed=100)
+
+    task: Optional[TaskID] = None
+    with progress:
+        try:
+            for x in entity.fetch_data():
+                if isinstance(x, tuple):  # (str, int)
+                    _finish_task()
+                    descr, adv = x
+                    task = progress.add_task(descr)
+                    progress.update(task, advance=adv)
+                elif isinstance(x, int) and task is not None:
+                    progress.update(task, advance=x)
+            _finish_task()
+        except HandlerException as e:
+            progress.stop()
+            error_and_exit(str(e))
+
+
 def main():
     # Load config
     config = Config()
@@ -143,11 +166,10 @@ def main():
     progress = get_progress(console)
 
     # Entity handler
-    entity = generate_entity_handler(config, console, progress)
+    entity = generate_entity_handler(config, console)
 
     # Fetch data
-    with progress:
-        entity.fetch_data()
+    fetch_data(progress, entity)
 
     # Print fetch warnings, if any
     entity.print_warnings()

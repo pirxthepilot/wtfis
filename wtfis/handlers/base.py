@@ -1,6 +1,6 @@
 import abc
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Union
+from typing import Callable, Generator, List, Optional, Tuple, Union
 
 from pydantic import ValidationError
 from requests.exceptions import (
@@ -11,7 +11,6 @@ from requests.exceptions import (
     Timeout,
 )
 from rich.console import Console
-from rich.progress import Progress
 from shodan.exception import APIError
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
@@ -20,6 +19,7 @@ from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.types import IpGeoAsnClientType, IpWhoisClientType
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
+from wtfis.exceptions import HandlerException
 from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
@@ -29,22 +29,19 @@ from wtfis.models.types import IpGeoAsnMapType
 from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.theme import Theme
-from wtfis.utils import error_and_exit, refang
+from wtfis.utils import refang
 
 
 def common_exception_handler(func: Callable) -> Callable:
     """Decorator for handling common fetch errors"""
 
     def inner(*args, **kwargs) -> None:
-        progress: Progress = args[0].progress  # args[0] is the method's self input
         try:
             func(*args, **kwargs)
         except (APIError, ConnectionError, HTTPError, JSONDecodeError, Timeout) as e:
-            progress.stop()
-            error_and_exit(f"Error fetching data: {e}")
+            raise HandlerException(f"Error fetching data: {e}") from e
         except ValidationError as e:
-            progress.stop()
-            error_and_exit(f"Data model validation error: {e}")
+            raise HandlerException(f"Data model validation error: {e}") from e
 
     return inner
 
@@ -71,7 +68,6 @@ def failopen_exception_handler(client_attr_name: str) -> Callable:
 class BaseHandler(abc.ABC):
     entity: str
     console: Console
-    progress: Progress
     vt_client: VTClient
     ip_geoasn_client: IpGeoAsnClientType
     whois_client: IpWhoisClientType
@@ -106,7 +102,7 @@ class BaseHandler(abc.ABC):
         self.warnings: List[str] = []
 
     @abc.abstractmethod
-    def fetch_data(self) -> None:
+    def fetch_data(self) -> Generator[Union[Tuple[str, int], int], None, None]:
         """Main method that controls what get fetched"""
         return NotImplemented  # type: ignore  # pragma: no coverage
 
