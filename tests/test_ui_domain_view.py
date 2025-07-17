@@ -128,7 +128,7 @@ def view05(test_data):
 
 @pytest.fixture()
 def view06(test_data):
-    """exmple.com VT whois. Whois test only. Test empty whois_map."""
+    """example.com VT whois. Whois test only. Test empty whois_map."""
     return DomainView(
         console=Console(),
         entity=MagicMock(),

@@ -260,7 +260,7 @@ $ docker run --env-file=${HOME}/.env.wtfis -it wtfis
 
 Note that each definition must NOT have any spaces before and after the equal sign (`FOO=bar`, not `FOO = bar`).
 
-Altenatively, you can set the environment variables yourself, then run, e.g.:
+Alternatively, you can set the environment variables yourself, then run, e.g.:
 
 ```
 $ docker run -e VT_API_KEY -e SHODAN_API_KEY -it wtfis
