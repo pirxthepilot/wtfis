@@ -16,6 +16,7 @@ ABUSEIPDB_API_KEY_VAR = "ABUSEIPDB_API_KEY"
 GREYNOISE_API_KEY_VAR = "GREYNOISE_API_KEY"
 IP2WHOIS_API_KEY_VAR = "IP2WHOIS_API_KEY"
 SHODAN_API_KEY_VAR = "SHODAN_API_KEY"
+URLHAUS_API_KEY_VAR = "URLHAUS_API_KEY"
 VT_API_KEY_VAR = "VT_API_KEY"
 WTFIS_DEFAULTS_VAR = "WTFIS_DEFAULTS"
 
@@ -117,6 +118,8 @@ def parse_args() -> Namespace:
         argparse.ArgumentParser().error(f"{GREYNOISE_API_KEY_VAR} is not set")
     if parsed.use_abuseipdb and not os.environ.get(ABUSEIPDB_API_KEY_VAR):
         argparse.ArgumentParser().error(f"{ABUSEIPDB_API_KEY_VAR} is not set")
+    if parsed.use_urlhaus and not os.environ.get(URLHAUS_API_KEY_VAR):
+        argparse.ArgumentParser().error(f"{URLHAUS_API_KEY_VAR} is not set")
     if is_ip(parsed.entity) and parsed.max_resolutions != DEFAULT_MAX_RESOLUTIONS:
         argparse.ArgumentParser().error("--max-resolutions is not applicable to IPs")
     if parsed.all and (
@@ -145,6 +148,7 @@ class Config:
         self.greynoise_api_key = os.environ.get(GREYNOISE_API_KEY_VAR, "")
         self.ip2whois_api_key = os.environ.get(IP2WHOIS_API_KEY_VAR, "")
         self.shodan_api_key = os.environ.get(SHODAN_API_KEY_VAR, "")
+        self.urlhaus_api_key = os.environ.get(URLHAUS_API_KEY_VAR, "")
         self.vt_api_key = os.environ.get(VT_API_KEY_VAR, "")
 
     @property

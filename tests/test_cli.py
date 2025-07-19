@@ -39,6 +39,7 @@ POSSIBLE_ENV_VARS = [
     "SHODAN_API_KEY",
     "GREYNOISE_API_KEY",
     "ABUSEIPDB_API_KEY",
+    "URLHAUS_API_KEY",
     "WTFIS_DEFAULTS",
 ]
 
@@ -81,6 +82,7 @@ def fake_load_dotenv_1(tmp_path):
         "SHODAN_API_KEY": "hunter2",
         "GREYNOISE_API_KEY": "upupdowndown",
         "ABUSEIPDB_API_KEY": "dummy",
+        "URLHAUS_API_KEY": "eve",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -221,7 +223,7 @@ class TestArgs:
             capture.err
             == "usage: main [-h]\nmain: error: Maximum --max-resolutions value is 10\n"
         )
-        assert e.type == SystemExit
+        assert e.type is SystemExit
         assert e.value.code == 2
 
     def test_max_resolutions_error_2(self, capsys):
@@ -243,7 +245,7 @@ class TestArgs:
             "usage: main [-h]\nmain: error: --max-resolutions is not "
             "applicable to IPs\n"
         )
-        assert e.type == SystemExit
+        assert e.type is SystemExit
         assert e.value.code == 2
 
     def test_shodan_ok(self):
@@ -277,7 +279,7 @@ class TestArgs:
         assert (
             capture.err == "usage: main [-h]\nmain: error: SHODAN_API_KEY is not set\n"
         )
-        assert e.type == SystemExit
+        assert e.type is SystemExit
         assert e.value.code == 2
 
     def test_greynoise_ok(self):
@@ -312,10 +314,11 @@ class TestArgs:
             capture.err
             == "usage: main [-h]\nmain: error: GREYNOISE_API_KEY is not set\n"
         )
-        assert e.type == SystemExit
+        assert e.type is SystemExit
         assert e.value.code == 2
 
-    def test_urlhaus(self):
+    def test_urlhaus_ok(self):
+        os.environ["URLHAUS_API_KEY"] = "foo"
         with patch(
             "sys.argv",
             [
@@ -326,6 +329,27 @@ class TestArgs:
         ):
             args = parse_args()
             assert args.use_urlhaus is True
+        del os.environ["URLHAUS_API_KEY"]
+
+    def test_urlhaus_error(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                    "-u",
+                ],
+            ):
+                parse_args()
+
+        capture = capsys.readouterr()
+
+        assert (
+            capture.err == "usage: main [-h]\nmain: error: URLHAUS_API_KEY is not set\n"
+        )
+        assert e.type is SystemExit
+        assert e.value.code == 2
 
     def test_abuseipdb_ok(self):
         os.environ["ABUSEIPDB_API_KEY"] = "foo"
@@ -359,7 +383,7 @@ class TestArgs:
             capture.err
             == "usage: main [-h]\nmain: error: ABUSEIPDB_API_KEY is not set\n"
         )
-        assert e.type == SystemExit
+        assert e.type is SystemExit
         assert e.value.code == 2
 
     def test_all_ok(self):
@@ -397,7 +421,7 @@ class TestArgs:
             "usage: main [-h]\n"
             "main: error: --use-* flags are not accepted when the --all/-A flag is set\n"
         )
-        assert e.type == SystemExit
+        assert e.type is SystemExit
         assert e.value.code == 2
         del os.environ["SHODAN_API_KEY"]
 
@@ -434,7 +458,7 @@ class TestEnvs:
             f"Env file {Path().home() / '.env.wtfis'} was not found either. "
             "Did you forget?\n"
         )
-        assert e.type == SystemExit
+        assert e.type is SystemExit
         assert e.value.code == 1
 
 
@@ -584,7 +608,7 @@ class TestAllFlag:
             "usage: main [-h]\n"
             "main: error: --use-* flags are not accepted when the --all/-A flag is set\n"
         )
-        assert e.type == SystemExit
+        assert e.type is SystemExit
         assert e.value.code == 2
         unset_env_vars()
 
@@ -607,7 +631,7 @@ class TestAllFlag:
             "usage: main [-h]\n"
             "main: error: --use-* flags are not accepted when the --all/-A flag is set\n"
         )
-        assert e.type == SystemExit
+        assert e.type is SystemExit
         assert e.value.code == 2
         unset_env_vars()
 

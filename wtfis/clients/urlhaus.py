@@ -13,12 +13,18 @@ class UrlHausClient(BaseRequestsClient, BaseDomainEnricherClient, BaseIpEnricher
 
     baseurl = "https://urlhaus-api.abuse.ch/v1"
 
+    def __init__(self, api_key: str) -> None:
+        super().__init__()
+        self.api_key = api_key
+
     @property
     def name(self) -> str:
         return "URLhaus"
 
     def _get_host(self, host: str) -> UrlHaus:
-        return UrlHaus.model_validate(self._post("/host", {"host": host}))
+        data = {"host": host}
+        headers = {"Auth-Key": self.api_key}
+        return UrlHaus.model_validate(self._post("/host", data=data, headers=headers))
 
     def _enrich(self, *entities: str) -> UrlHausMap:
         """Method is the same whether input is a domain or IP"""
