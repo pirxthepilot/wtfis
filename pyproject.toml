@@ -116,7 +116,7 @@ profile = "black"
 # mypy
 [tool.mypy]
 plugins = ["pydantic.mypy"]
-
+check_untyped_defs = true
 ignore_missing_imports = true
 no_implicit_optional = true
 warn_unreachable = true

@@ -28,7 +28,7 @@ The project name is a play on "whois".
 | [IPWhois](https://ipwhois.io) | IP address | No | Yes (no signup) |
 | [Shodan](https://shodan.io) | IP address | No | [No](https://account.shodan.io/billing) |
 | [Greynoise](https://greynoise.io) | IP address | No | [Yes](https://www.greynoise.io/plans/community)
-| [URLhaus](https://urlhaus.abuse.ch/) | All | No | Yes (no signup)
+| [URLhaus](https://urlhaus.abuse.ch/) | All | No | [Yes](https://urlhaus-api.abuse.ch/#auth_key)
 | [AbuseIPDB](https://www.abuseipdb.com/)| IP address | No | [Yes](https://www.abuseipdb.com/register?plan=free)
 
 ### Virustotal
@@ -126,6 +126,7 @@ wtfis uses these environment variables:
 * `SHODAN_API_KEY` (optional) - Shodan API key
 * `GREYNOISE_API_KEY` (optional) - Greynoise API key
 * `ABUSEIPDB_API_KEY` (optional) - AbuseIPDB API key
+* `URLHAUS_API_KEY` (optional) - URLhaus API key
 * `WTFIS_DEFAULTS` (optional) - Default arguments
 
 Set these using your own method.

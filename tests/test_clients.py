@@ -42,7 +42,7 @@ def shodan_client():
 
 @pytest.fixture()
 def urlhaus_client():
-    return UrlHausClient()
+    return UrlHausClient("dummykey")
 
 
 @pytest.fixture()

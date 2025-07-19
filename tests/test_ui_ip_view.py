@@ -61,7 +61,7 @@ def view01(
     abuseipdb_enrich = abuseipdb_client.enrich_ips(ip)
 
     urlhaus_pool = json.loads(test_data("urlhaus_1.1.1.1.json"))
-    urlhaus_client = UrlHausClient()
+    urlhaus_client = UrlHausClient("dummykey")
     urlhaus_client._get_host = MagicMock(
         side_effect=lambda ip: mock_urlhaus_get(ip, urlhaus_pool)
     )

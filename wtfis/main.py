@@ -1,4 +1,3 @@
-import os
 from typing import Optional, Union
 
 from rich.console import Console
@@ -45,9 +44,8 @@ def generate_entity_handler(
     else:
         whois_client = vt_client
 
-    shodan_client = (
-        ShodanClient(os.environ["SHODAN_API_KEY"]) if config.use_shodan else None
-    )
+    # Shodan client (optional)
+    shodan_client = ShodanClient(config.shodan_api_key) if config.use_shodan else None
 
     # Greynoise client (optional)
     greynoise_client = (
@@ -60,7 +58,9 @@ def generate_entity_handler(
     )
 
     # URLhaus client (optional)
-    urlhaus_client = UrlHausClient() if config.use_urlhaus else None
+    urlhaus_client = (
+        UrlHausClient(config.urlhaus_api_key) if config.use_urlhaus else None
+    )
 
     # Domain / FQDN handler
     if not is_ip(config.entity):

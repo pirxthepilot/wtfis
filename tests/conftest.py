@@ -151,7 +151,7 @@ def generate_domain_handler(max_resolutions=3):
         shodan_client=ShodanClient("dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),
-        urlhaus_client=UrlHausClient(),
+        urlhaus_client=UrlHausClient("dummykey"),
         max_resolutions=max_resolutions,
     )
 
@@ -171,7 +171,7 @@ def generate_ip_handler():
         shodan_client=ShodanClient("dummykey"),
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),
-        urlhaus_client=UrlHausClient(),
+        urlhaus_client=UrlHausClient("dummykey"),
     )
 
 

@@ -339,7 +339,7 @@ def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
     geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
 
     urlhaus_pool = json.loads(test_data("urlhaus_gist.json"))
-    urlhaus_client = UrlHausClient()
+    urlhaus_client = UrlHausClient("dummykey")
     urlhaus_client._get_host = MagicMock(
         side_effect=lambda domain: mock_urlhaus_get(domain, urlhaus_pool)
     )

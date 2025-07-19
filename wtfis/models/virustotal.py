@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from pydantic import BaseModel, Field, RootModel, field_validator, model_validator
 
@@ -64,7 +64,7 @@ class DomainAttributes(BaseAttributes):
     @field_validator("categories", mode="before")
     @classmethod
     def transform_categories(cls, v):
-        cats = set()
+        cats: Set[str] = set()
         for category in v.values():
             for delimiter in [", ", ",", "/", " / "]:
                 if delimiter in category:
