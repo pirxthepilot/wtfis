@@ -6,9 +6,17 @@ import argparse
 import os
 from argparse import Namespace
 from pathlib import Path
+from typing import Optional, Union
 
 from dotenv import load_dotenv
 
+from wtfis.clients.abuseipdb import AbuseIpDbClient
+from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2whois import Ip2WhoisClient
+from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.urlhaus import UrlHausClient
+from wtfis.clients.virustotal import VTClient
 from wtfis.utils import error_and_exit, is_ip
 from wtfis.version import get_version
 
@@ -168,21 +176,45 @@ class Config:
         return self.args.one_column
 
     @property
-    def use_abuseipdb(self) -> bool:
-        return (self.args.use_abuseipdb or self.args.all) and bool(
-            self.abuseipdb_api_key
-        )
+    def vt_client(self) -> VTClient:
+        return VTClient(self.vt_api_key)
 
     @property
-    def use_greynoise(self) -> bool:
-        return (self.args.use_greynoise or self.args.all) and bool(
-            self.greynoise_api_key
-        )
+    def ip_geoasn_client(self) -> IpWhoisClient:
+        # IP geolocation and ASN client selector
+        # TODO: add more options
+        return IpWhoisClient()
 
     @property
-    def use_shodan(self) -> bool:
-        return (self.args.use_shodan or self.args.all) and bool(self.shodan_api_key)
+    def whois_client(self) -> Union[Ip2WhoisClient, VTClient]:
+        # Whois client selector
+        # Order of use based on set envvars:
+        #    1. IP2Whois (Domain only)
+        #    2. Virustotal (fallback)
+        if self.ip2whois_api_key and not is_ip(self.entity):
+            return Ip2WhoisClient(self.ip2whois_api_key)
+        return self.vt_client
 
     @property
-    def use_urlhaus(self) -> bool:
-        return self.args.use_urlhaus or self.args.all
+    def abuseipdb_client(self) -> Optional[AbuseIpDbClient]:
+        if (self.args.use_abuseipdb or self.args.all) and bool(self.abuseipdb_api_key):
+            return AbuseIpDbClient(self.abuseipdb_api_key)
+        return None
+
+    @property
+    def greynoise_client(self) -> Optional[GreynoiseClient]:
+        if (self.args.use_greynoise or self.args.all) and bool(self.greynoise_api_key):
+            return GreynoiseClient(self.greynoise_api_key)
+        return None
+
+    @property
+    def shodan_client(self) -> Optional[ShodanClient]:
+        if (self.args.use_shodan or self.args.all) and bool(self.shodan_api_key):
+            return ShodanClient(self.shodan_api_key)
+        return None
+
+    @property
+    def urlhaus_client(self) -> Optional[UrlHausClient]:
+        if self.args.use_urlhaus or self.args.all and bool(self.urlhaus_api_key):
+            return UrlHausClient(self.urlhaus_api_key)
+        return None

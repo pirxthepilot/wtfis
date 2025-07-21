@@ -142,6 +142,7 @@ def fake_load_dotenv_all_ok(tmp_path):
         "GREYNOISE_API_KEY": "bar",
         "ABUSEIPDB_API_KEY": "dummy",
         "IP2WHOIS_API_KEY": "alice",
+        "URLHAUS_API_KEY": "eve",
         "WTFIS_DEFAULTS": "-A",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
@@ -477,10 +478,10 @@ class TestDefaults:
                 assert conf.max_resolutions == 3
                 assert conf.no_color is False
                 assert conf.one_column is True
-                assert conf.use_shodan is True
-                assert conf.use_greynoise is False
-                assert conf.use_abuseipdb is False
-                assert conf.use_urlhaus is False
+                assert isinstance(conf.shodan_client, ShodanClient)
+                assert conf.greynoise_client is None
+                assert conf.abuseipdb_client is None
+                assert conf.urlhaus_client is None
                 assert conf.vt_api_key == "foo"
                 assert conf.shodan_api_key == "hunter2"
                 assert conf.abuseipdb_api_key == ""
@@ -503,9 +504,9 @@ class TestDefaults:
                 assert conf.max_resolutions == 3
                 assert conf.no_color is False
                 assert conf.one_column is True
-                assert conf.use_shodan is False
-                assert conf.use_greynoise is False
-                assert conf.use_urlhaus is False
+                assert conf.shodan_client is None
+                assert conf.greynoise_client is None
+                assert conf.urlhaus_client is None
         unset_env_vars()
 
     def test_defaults_3(self, fake_load_dotenv_3):
@@ -522,9 +523,9 @@ class TestDefaults:
                 assert conf.max_resolutions == 3
                 assert conf.no_color is True
                 assert conf.one_column is False
-                assert conf.use_shodan is False
-                assert conf.use_greynoise is False
-                assert conf.use_urlhaus is False
+                assert conf.shodan_client is None
+                assert conf.greynoise_client is None
+                assert conf.urlhaus_client is None
         unset_env_vars()
 
     def test_defaults_4(self, fake_load_dotenv_4):
@@ -541,10 +542,10 @@ class TestDefaults:
                 assert conf.entity == "1.1.1.1"
                 assert conf.no_color is False
                 assert conf.one_column is False
-                assert conf.use_shodan is False
-                assert conf.use_greynoise is True
-                assert conf.use_urlhaus is False
-                assert conf.use_abuseipdb is True
+                assert conf.shodan_client is None
+                assert conf.urlhaus_client is None
+                assert isinstance(conf.greynoise_client, GreynoiseClient)
+                assert isinstance(conf.abuseipdb_client, AbuseIpDbClient)
                 assert conf.abuseipdb_api_key == "dummy"
         unset_env_vars()
 
@@ -562,11 +563,10 @@ class TestAllFlag:
                 ],
             ):
                 conf = Config()
-                assert conf.use_shodan is True
-                assert conf.use_greynoise is True
-                assert conf.use_urlhaus is True
-                assert conf.use_abuseipdb is True
-                assert conf.use_urlhaus is True
+                assert isinstance(conf.shodan_client, ShodanClient)
+                assert isinstance(conf.greynoise_client, GreynoiseClient)
+                assert isinstance(conf.abuseipdb_client, AbuseIpDbClient)
+                assert isinstance(conf.urlhaus_client, UrlHausClient)
         unset_env_vars()
 
     def test_2_ok(self, fake_load_dotenv_all_ok):
@@ -580,11 +580,10 @@ class TestAllFlag:
                 ],
             ):
                 conf = Config()
-                assert conf.use_shodan is True
-                assert conf.use_greynoise is True
-                assert conf.use_urlhaus is True
-                assert conf.use_abuseipdb is True
-                assert conf.use_urlhaus is True
+                assert isinstance(conf.shodan_client, ShodanClient)
+                assert isinstance(conf.greynoise_client, GreynoiseClient)
+                assert isinstance(conf.abuseipdb_client, AbuseIpDbClient)
+                assert isinstance(conf.urlhaus_client, UrlHausClient)
         unset_env_vars()
 
     def test_3_error(self, fake_load_dotenv_1, capsys):

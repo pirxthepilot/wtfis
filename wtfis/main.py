@@ -1,15 +1,8 @@
-from typing import Optional, Union
+from typing import Optional
 
 from rich.console import Console
 from rich.progress import Progress, TaskID
 
-from wtfis.clients.abuseipdb import AbuseIpDbClient
-from wtfis.clients.greynoise import GreynoiseClient
-from wtfis.clients.ip2whois import Ip2WhoisClient
-from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.shodan import ShodanClient
-from wtfis.clients.urlhaus import UrlHausClient
-from wtfis.clients.virustotal import VTClient
 from wtfis.config import Config
 from wtfis.exceptions import HandlerException, WtfisException
 from wtfis.handlers.base import BaseHandler
@@ -26,54 +19,18 @@ def generate_entity_handler(
     config: Config,
     console: Console,
 ) -> BaseHandler:
-    # Virustotal client
-    vt_client = VTClient(config.vt_api_key)
-
-    # IP geolocation and ASN client selector
-    # TODO: add more options
-    ip_geoasn_client = IpWhoisClient()
-
-    # Whois client selector
-    # Order of use based on set envvars:
-    #    1. IP2Whois (Domain only)
-    #    2. Virustotal (fallback)
-    if config.ip2whois_api_key and not is_ip(config.entity):
-        whois_client: Union[Ip2WhoisClient, VTClient] = Ip2WhoisClient(
-            config.ip2whois_api_key
-        )
-    else:
-        whois_client = vt_client
-
-    # Shodan client (optional)
-    shodan_client = ShodanClient(config.shodan_api_key) if config.use_shodan else None
-
-    # Greynoise client (optional)
-    greynoise_client = (
-        GreynoiseClient(config.greynoise_api_key) if config.use_greynoise else None
-    )
-
-    # AbuseIPDB client (optional)
-    abuseipdb_client = (
-        AbuseIpDbClient(config.abuseipdb_api_key) if config.use_abuseipdb else None
-    )
-
-    # URLhaus client (optional)
-    urlhaus_client = (
-        UrlHausClient(config.urlhaus_api_key) if config.use_urlhaus else None
-    )
-
     # Domain / FQDN handler
     if not is_ip(config.entity):
         entity: BaseHandler = DomainHandler(
             entity=config.entity,
             console=console,
-            vt_client=vt_client,
-            ip_geoasn_client=ip_geoasn_client,
-            whois_client=whois_client,
-            shodan_client=shodan_client,
-            greynoise_client=greynoise_client,
-            abuseipdb_client=abuseipdb_client,
-            urlhaus_client=urlhaus_client,
+            vt_client=config.vt_client,
+            ip_geoasn_client=config.ip_geoasn_client,
+            whois_client=config.whois_client,
+            shodan_client=config.shodan_client,
+            greynoise_client=config.greynoise_client,
+            abuseipdb_client=config.abuseipdb_client,
+            urlhaus_client=config.urlhaus_client,
             max_resolutions=config.max_resolutions,
         )
     # IP address handler
@@ -81,13 +38,13 @@ def generate_entity_handler(
         entity = IpAddressHandler(
             entity=config.entity,
             console=console,
-            vt_client=vt_client,
-            ip_geoasn_client=ip_geoasn_client,
-            whois_client=whois_client,
-            shodan_client=shodan_client,
-            greynoise_client=greynoise_client,
-            abuseipdb_client=abuseipdb_client,
-            urlhaus_client=urlhaus_client,
+            vt_client=config.vt_client,
+            ip_geoasn_client=config.ip_geoasn_client,
+            whois_client=config.whois_client,
+            shodan_client=config.shodan_client,
+            greynoise_client=config.greynoise_client,
+            abuseipdb_client=config.abuseipdb_client,
+            urlhaus_client=config.urlhaus_client,
         )
 
     return entity
