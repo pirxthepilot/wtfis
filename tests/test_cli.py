@@ -18,6 +18,7 @@ from rich.progress import (
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
@@ -35,6 +36,7 @@ from wtfis.ui.view import DomainView, IpAddressView
 
 POSSIBLE_ENV_VARS = [
     "VT_API_KEY",
+    "IP2LOCATION_API_KEY",
     "IP2WHOIS_API_KEY",
     "SHODAN_API_KEY",
     "GREYNOISE_API_KEY",
@@ -78,6 +80,7 @@ def simulate_progress(console):
 def fake_load_dotenv_1(tmp_path):
     fake_env_vars = {
         "VT_API_KEY": "foo",
+        "IP2LOCATION_API_KEY": "foobar",
         "IP2WHOIS_API_KEY": "alice",
         "SHODAN_API_KEY": "hunter2",
         "GREYNOISE_API_KEY": "upupdowndown",
@@ -426,12 +429,44 @@ class TestArgs:
         assert e.value.code == 2
         del os.environ["SHODAN_API_KEY"]
 
+    def test_ip2location_ok(self):
+        os.environ["IP2LOCATION_API_KEY"] = "foo"
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "1.1.1.1",
+                "--geolocation-service",
+                "ip2location",
+            ],
+        ):
+            args = parse_args()
+            assert args.geolocation_service == "ip2location"
+        del os.environ["IP2LOCATION_API_KEY"]
+
+    def test_ip2location_error(self, capsys):
+        with pytest.raises(SystemExit) as e:
+            with patch(
+                "sys.argv",
+                ["main", "1.1.1.1", "--geolocation-service", "ip2location"],
+            ):
+                parse_args()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == (
+            "usage: main [-h]\n" "main: error: IP2LOCATION_API_KEY is not set\n"
+        )
+        assert e.type is SystemExit
+        assert e.value.code == 2
+
 
 class TestEnvs:
     def test_env_file(self, fake_load_dotenv_1):
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
             parse_env()
             assert os.environ["VT_API_KEY"] == "foo"
+            assert os.environ["IP2LOCATION_API_KEY"] == "foobar"
             assert os.environ["IP2WHOIS_API_KEY"] == "alice"
             assert os.environ["SHODAN_API_KEY"] == "hunter2"
             assert os.environ["GREYNOISE_API_KEY"] == "upupdowndown"
@@ -723,6 +758,16 @@ class TestGenEntityHandler:
         assert isinstance(entity._greynoise, GreynoiseClient)
         assert isinstance(entity._urlhaus, UrlHausClient)
         assert isinstance(entity._abuseipdb, AbuseIpDbClient)
+        unset_env_vars()
+
+    @patch("sys.argv", ["main", "1.1.1.1", "--geolocation-service", "ip2location"])
+    def test_handler_ip_3(self, fake_load_dotenv_1):
+        """IP with ip2location geolocation service"""
+        with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
+            conf = Config()
+            console = Console()
+            entity = generate_entity_handler(conf, console)
+        assert isinstance(entity._geoasn, Ip2LocationClient)
         unset_env_vars()
 
 

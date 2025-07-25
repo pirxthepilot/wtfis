@@ -7,6 +7,7 @@ from shodan import APIError
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import Shodan, ShodanClient
@@ -23,6 +24,11 @@ def abuseipdb_client():
 @pytest.fixture()
 def greynoise_client():
     return GreynoiseClient("dummykey")
+
+
+@pytest.fixture()
+def ip2location_client():
+    return Ip2LocationClient("dummykey")
 
 
 @pytest.fixture()
@@ -73,6 +79,36 @@ class TestAbuseIpDbClient:
         assert abuseipdb.num_distinct_users == 123
 
 
+class TestGreynoiseClient:
+    def test_init(self, greynoise_client):
+        assert greynoise_client.name == "Greynoise"
+        assert greynoise_client.api_key == "dummykey"
+
+
+class TestIp2LocationClient:
+    def test_init(self, ip2location_client):
+        assert ip2location_client.name == "IP2Location"
+        assert ip2location_client.api_key == "dummykey"
+
+    @patch.object(requests.Session, "get")
+    def test_enrich_ips(self, mock_requests_get, test_data, ip2location_client):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(
+            test_data("ip2location_1.1.1.1.json")
+        ).get("1.1.1.1")
+        mock_requests_get.return_value = mock_resp
+
+        ip2location = ip2location_client.enrich_ips("1.1.1.1").root["1.1.1.1"]
+
+        assert ip2location.ip == "1.1.1.1"
+        assert ip2location.city == "Brisbane"
+        assert ip2location.region == "Queensland"
+        assert ip2location.country == "Australia"
+        assert ip2location.org == "CloudFlare Inc."
+        assert ip2location.is_proxy is False
+
+
 class TestIp2WhoisClient:
     def test_init(self, ip2whois_client):
         assert ip2whois_client.api_key == "dummykey"
@@ -117,21 +153,15 @@ class TestIp2WhoisClient:
             assert err.value.response.json()["error"]["error_code"] == 10008
 
 
-class TestGreynoiseClient:
-    def test_init(self, greynoise_client):
-        assert greynoise_client.name == "Greynoise"
-        assert greynoise_client.api_key == "dummykey"
-
-
 class TestIpWhoisClient:
     def test_init(self, ipwhois_client):
         assert ipwhois_client.name == "IPWhois"
 
     @patch.object(requests.Session, "get")
-    def test_get_ipwhois(self, mock_requests_get, test_data, ipwhois_client):
+    def test_get_ipwhois(self, mock_requests_get, ipwhois_client):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
-        mock_resp.json.return_value = json.loads(test_data("ipwhois_raw_10.0.0.1.json"))
+        mock_resp.json.return_value = json.loads("{}")
         mock_requests_get.return_value = mock_resp
 
         whois = ipwhois_client.enrich_ips("thisdoesntmatter")

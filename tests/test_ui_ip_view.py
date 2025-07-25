@@ -9,6 +9,7 @@ from rich.text import Span, Text
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
@@ -29,7 +30,7 @@ def view01(
     mock_greynoise_get,
     mock_urlhaus_get,
 ):
-    """1.1.1.1 with PT whois. Complete test of all panels. Also test print()."""
+    """1.1.1.1 with default whois (VT). Complete test of all panels. Also test print()."""
     ip = "1.1.1.1"
 
     geoasn_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
@@ -240,6 +241,29 @@ def view08(test_data, mock_abuseipdb_get):
         shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=abuseipdb_enrich,
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view09(test_data, mock_ip2location_get):
+    """1.1.1.1 with IP2Location. Test the IP2Location only."""
+    ip = "1.1.1.1"
+    geoasn_pool = json.loads(test_data("ip2location_1.1.1.1.json"))
+    geoasn_client = Ip2LocationClient("dummykey")
+    geoasn_client._get_ip2location = MagicMock(
+        side_effect=lambda ip: mock_ip2location_get(ip, geoasn_pool)
+    )
+    geoasn_enrich = geoasn_client.enrich_ips(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=geoasn_enrich,
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
     )
 
@@ -1002,3 +1026,22 @@ class TestAbuseIpDbOnly:
                 Span(19, 33, theme.table_value),
             ],
         )
+
+
+class TestIP2LocationOnly:
+    def test_ip_panel(self, view09):
+        ip = view09.ip_panel()
+
+        ip2location_section = ip.renderable.renderables[2]
+
+        # Title
+        assert ip2location_section.renderables[0] == Text("IP2Location")
+
+        # Table
+        table = ip2location_section.renderables[1]
+        assert str(table.columns[0]._cells[0]) == "ASN:"
+        assert str(table.columns[0]._cells[1]) == "Location:"
+        assert str(table.columns[0]._cells[2]) == "Is Proxy:"
+        assert str(table.columns[1]._cells[0]) == "13335 (CloudFlare Inc.)"
+        assert str(table.columns[1]._cells[1]) == "Brisbane, Queensland, Australia"
+        assert str(table.columns[1]._cells[2]) == "False"

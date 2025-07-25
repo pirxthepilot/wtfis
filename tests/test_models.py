@@ -1,5 +1,6 @@
 import json
 
+from wtfis.models.ip2location import Ip2LocationMap
 from wtfis.models.virustotal import Domain, Resolutions
 
 
@@ -31,3 +32,8 @@ class TestVirustotalModels:
         assert res.data[1].attributes.ip_address_last_analysis_stats.harmless == 82
         assert res.data[1].attributes.ip_address_last_analysis_stats.undetected == 11
         assert res.data[1].attributes.date == 1655835054
+
+
+class TestIp2LocationModels:
+    def test_empty_map(self):
+        assert Ip2LocationMap.empty() == Ip2LocationMap.model_validate({})

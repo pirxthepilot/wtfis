@@ -11,8 +11,6 @@ from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
 from wtfis.models.virustotal import Resolutions
 
-# pylint: disable=protected-access
-
 
 class TestDomainHandler:
     def test_entity_refang(self, domain_handler):
