@@ -47,7 +47,6 @@ class IpGeoAsnBase(BaseModel, abc.ABC):
 
     # Geolocation
     city: Optional[str]
-    continent: Optional[str]
     country: Optional[str]
     region: Optional[str]
 
@@ -56,6 +55,9 @@ class IpGeoAsnBase(BaseModel, abc.ABC):
     org: Optional[str]
     isp: Optional[str]
     domain: Optional[str]
+
+    # Other
+    is_proxy: Optional[bool]
 
 
 class IpGeoAsnMapBase(RootModel, abc.ABC):

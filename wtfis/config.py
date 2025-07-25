@@ -12,9 +12,11 @@ from dotenv import load_dotenv
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
+from wtfis.clients.types import IpGeoAsnClientType
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.utils import error_and_exit, is_ip
@@ -22,11 +24,13 @@ from wtfis.version import get_version
 
 ABUSEIPDB_API_KEY_VAR = "ABUSEIPDB_API_KEY"
 GREYNOISE_API_KEY_VAR = "GREYNOISE_API_KEY"
+IP2LOCATION_API_KEY_VAR = "IP2LOCATION_API_KEY"
 IP2WHOIS_API_KEY_VAR = "IP2WHOIS_API_KEY"
 SHODAN_API_KEY_VAR = "SHODAN_API_KEY"
 URLHAUS_API_KEY_VAR = "URLHAUS_API_KEY"
 VT_API_KEY_VAR = "VT_API_KEY"
 WTFIS_DEFAULTS_VAR = "WTFIS_DEFAULTS"
+GEOLOCATION_SERVICE_VAR = "GEOLOCATION_SERVICE"
 
 
 def parse_env() -> None:
@@ -48,6 +52,11 @@ def parse_env() -> None:
 
 
 def parse_args() -> Namespace:
+    GEOLOCATION_SERVICES = (
+        "ipwhois",
+        "ip2location",
+    )
+    DEFAULT_GEOLOCATION_SERVICE = "ipwhois"
     DEFAULT_MAX_RESOLUTIONS = 3
 
     parser = argparse.ArgumentParser()
@@ -97,10 +106,16 @@ def parse_args() -> Namespace:
         action="version",
         version=get_version(),
     )
+    parser.add_argument(
+        "--geolocation-service",
+        choices=GEOLOCATION_SERVICES,
+        help=f"Geolocation service to use (default: {DEFAULT_GEOLOCATION_SERVICE})",
+    )
     parsed = parser.parse_args()
 
     # Default overrides
-    # If a default is set, then setting the flag as an argument _negates_ the effect
+    # If a default is set, then setting a boolean flag as an argument _negates_ the effect.
+    # Negation does not apply to non-boolean flags (e.g. --max-resolution)
     for option in os.environ.get(WTFIS_DEFAULTS_VAR, "").split(" "):
         if option in ("-A", "--all"):
             parsed.all = not parsed.all
@@ -117,9 +132,21 @@ def parse_args() -> Namespace:
         elif option in ("-1", "--one-column"):
             parsed.one_column = not parsed.one_column
 
-    # Validation
+    # Geolocation service
+    # Commandline flag takes precedence over env file or variable
+    # Set the default here if no service is provided
+    parsed.geolocation_service = (
+        parsed.geolocation_service
+        or os.environ.get(GEOLOCATION_SERVICE_VAR)
+        or DEFAULT_GEOLOCATION_SERVICE
+    )
+
+    # Validations
     if parsed.max_resolutions > 10:
         argparse.ArgumentParser().error("Maximum --max-resolutions value is 10")
+    if is_ip(parsed.entity) and parsed.max_resolutions != DEFAULT_MAX_RESOLUTIONS:
+        argparse.ArgumentParser().error("--max-resolutions is not applicable to IPs")
+
     if parsed.use_shodan and not os.environ.get(SHODAN_API_KEY_VAR):
         argparse.ArgumentParser().error(f"{SHODAN_API_KEY_VAR} is not set")
     if parsed.use_greynoise and not os.environ.get(GREYNOISE_API_KEY_VAR):
@@ -128,8 +155,12 @@ def parse_args() -> Namespace:
         argparse.ArgumentParser().error(f"{ABUSEIPDB_API_KEY_VAR} is not set")
     if parsed.use_urlhaus and not os.environ.get(URLHAUS_API_KEY_VAR):
         argparse.ArgumentParser().error(f"{URLHAUS_API_KEY_VAR} is not set")
-    if is_ip(parsed.entity) and parsed.max_resolutions != DEFAULT_MAX_RESOLUTIONS:
-        argparse.ArgumentParser().error("--max-resolutions is not applicable to IPs")
+
+    if parsed.geolocation_service == "ip2location" and not os.environ.get(
+        IP2LOCATION_API_KEY_VAR
+    ):
+        argparse.ArgumentParser().error(f"{IP2LOCATION_API_KEY_VAR} is not set")
+
     if parsed.all and (
         parsed.use_shodan
         or parsed.use_greynoise
@@ -154,6 +185,7 @@ class Config:
         # Creds
         self.abuseipdb_api_key = os.environ.get(ABUSEIPDB_API_KEY_VAR, "")
         self.greynoise_api_key = os.environ.get(GREYNOISE_API_KEY_VAR, "")
+        self.ip2location_api_key = os.environ.get(IP2LOCATION_API_KEY_VAR, "")
         self.ip2whois_api_key = os.environ.get(IP2WHOIS_API_KEY_VAR, "")
         self.shodan_api_key = os.environ.get(SHODAN_API_KEY_VAR, "")
         self.urlhaus_api_key = os.environ.get(URLHAUS_API_KEY_VAR, "")
@@ -180,9 +212,10 @@ class Config:
         return VTClient(self.vt_api_key)
 
     @property
-    def ip_geoasn_client(self) -> IpWhoisClient:
+    def ip_geoasn_client(self) -> IpGeoAsnClientType:
         # IP geolocation and ASN client selector
-        # TODO: add more options
+        if self.args.geolocation_service == "ip2location":
+            return Ip2LocationClient(self.ip2location_api_key)
         return IpWhoisClient()
 
     @property

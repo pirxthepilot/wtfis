@@ -326,6 +326,7 @@ class TestView01:
             "ASN:",
             "ISP:",
             "Location:",
+            "Domain:",
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
@@ -342,6 +343,7 @@ class TestView01:
                     Span(23, 25, "default"),
                 ],
             ),
+            "cloudflare.com",
         ]
 
         #
@@ -681,6 +683,7 @@ class TestView02:
             "ASN:",
             "ISP:",
             "Location:",
+            "Domain:",
         ]
         assert table.columns[1].style == theme.table_value
         assert table.columns[1].justify == "left"
@@ -694,6 +697,7 @@ class TestView02:
                 "Sydney, New South Wales, Australia",
                 spans=[Span(6, 8, "default"), Span(23, 25, "default")],
             ),
+            "cloudflare.com",
         ]
 
         #

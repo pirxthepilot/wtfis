@@ -163,7 +163,7 @@ class TestDomainHandler:
                 handler._fetch_geoasn("1.2.3.4")
 
             assert e.value.args[0].startswith(
-                "Data model validation error: 9 validation errors for IpWhois\n"
+                "Data model validation error: 8 validation errors for IpWhois\n"
             )
             assert e.type is HandlerException
 
@@ -484,7 +484,7 @@ class TestIpAddressHandler:
                 handler._fetch_geoasn("1.2.3.4")
 
             assert e.value.args[0].startswith(
-                "Data model validation error: 9 validation errors for IpWhois\n"
+                "Data model validation error: 8 validation errors for IpWhois\n"
             )
             assert e.type is HandlerException
 
