@@ -156,6 +156,11 @@ def parse_args() -> Namespace:
     if parsed.use_urlhaus and not os.environ.get(URLHAUS_API_KEY_VAR):
         argparse.ArgumentParser().error(f"{URLHAUS_API_KEY_VAR} is not set")
 
+    if parsed.geolocation_service not in GEOLOCATION_SERVICES:
+        argparse.ArgumentParser().error(
+            f"Invalid geolocation service: {parsed.geolocation_service}. "
+            f"Valid services are: {', '.join(GEOLOCATION_SERVICES)}"
+        )
     if parsed.geolocation_service == "ip2location" and not os.environ.get(
         IP2LOCATION_API_KEY_VAR
     ):

@@ -43,6 +43,7 @@ POSSIBLE_ENV_VARS = [
     "ABUSEIPDB_API_KEY",
     "URLHAUS_API_KEY",
     "WTFIS_DEFAULTS",
+    "GEOLOCATION_SERVICE",
 ]
 
 
@@ -157,6 +158,15 @@ def fake_load_dotenv_all_invalid(tmp_path):
         "VT_API_KEY": "foo",
         "GREYNOISE_API_KEY": "bar",
         "WTFIS_DEFAULTS": "--all -g",
+    }
+    return fake_load_dotenv(tmp_path, fake_env_vars)
+
+
+@pytest.fixture()
+def fake_load_dotenv_geolocation_service_invalid(tmp_path):
+    fake_env_vars = {
+        "VT_API_KEY": "foo",
+        "GEOLOCATION_SERVICE": "invalid_service",
     }
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
@@ -497,6 +507,28 @@ class TestEnvs:
         assert e.type is SystemExit
         assert e.value.code == 1
 
+    @patch("sys.argv", ["main", "1.1.1.1"])
+    def test_geolocation_service_invalid(
+        self, capsys, fake_load_dotenv_geolocation_service_invalid
+    ):
+        with patch(
+            "wtfis.config.load_dotenv", fake_load_dotenv_geolocation_service_invalid
+        ):
+            with pytest.raises(SystemExit) as e:
+                parse_env()
+                parse_args()
+
+        capture = capsys.readouterr()
+
+        assert capture.err == (
+            "usage: main [-h]\n"
+            "main: error: Invalid geolocation service: invalid_service. "
+            "Valid services are: ipwhois, ip2location\n"
+        )
+        assert e.type is SystemExit
+        assert e.value.code == 2
+        unset_env_vars()
+
 
 class TestDefaults:
     def test_defaults_1(self, fake_load_dotenv_2):
@@ -517,6 +549,7 @@ class TestDefaults:
                 assert conf.greynoise_client is None
                 assert conf.abuseipdb_client is None
                 assert conf.urlhaus_client is None
+                assert isinstance(conf.ip_geoasn_client, IpWhoisClient)
                 assert conf.vt_api_key == "foo"
                 assert conf.shodan_api_key == "hunter2"
                 assert conf.abuseipdb_api_key == ""
@@ -542,6 +575,7 @@ class TestDefaults:
                 assert conf.shodan_client is None
                 assert conf.greynoise_client is None
                 assert conf.urlhaus_client is None
+                assert isinstance(conf.ip_geoasn_client, IpWhoisClient)
         unset_env_vars()
 
     def test_defaults_3(self, fake_load_dotenv_3):
