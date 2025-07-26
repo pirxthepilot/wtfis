@@ -24,12 +24,13 @@ The project name is a play on "whois".
 | Service | Used in lookup | Required | Free Tier |
 | --- | --- | --- | --- |
 | [Virustotal](https://virustotal.com) | All | Yes | [Yes](https://www.virustotal.com/gui/join-us) |
-| [IP2Whois](https://www.ip2whois.com) | Domain/FQDN | No | [Yes](https://www.ip2location.io/pricing#ip2whois)
+| [AbuseIPDB](https://www.abuseipdb.com/)| IP address | No | [Yes](https://www.abuseipdb.com/register?plan=free)
+| [Greynoise](https://greynoise.io) | IP address | No | [Yes](https://www.greynoise.io/plans/community)
+| [IP2Location](https://www.ip2location.io) | IP address | No | [Yes](https://www.ip2location.io/pricing)
+| [IP2Whois](https://www.ip2whois.com) | Domain/FQDN | No | [Yes](https://www.ip2location.io/pricing)
 | [IPWhois](https://ipwhois.io) | IP address | No | Yes (no signup) |
 | [Shodan](https://shodan.io) | IP address | No | [No](https://account.shodan.io/billing) |
-| [Greynoise](https://greynoise.io) | IP address | No | [Yes](https://www.greynoise.io/plans/community)
 | [URLhaus](https://urlhaus.abuse.ch/) | All | No | [Yes](https://urlhaus-api.abuse.ch/#auth_key)
-| [AbuseIPDB](https://www.abuseipdb.com/)| IP address | No | [Yes](https://www.abuseipdb.com/register?plan=free)
 
 ### Virustotal
 
@@ -46,6 +47,23 @@ The primary source of information. Retrieves:
 * [Whois](https://developers.virustotal.com/reference/whois)
     * Fallback only: if IP2Whois creds are not available
     * Various whois data about the domain itself
+
+### AbuseIPDB
+
+[AbuseIPDB](https://www.abuseipdb.com/) is a crowd-sourced database of reported malicious IP addresses. Through its API wtfis shows:
+
+* Abuse confidence score (0-100)
+* Number of reports
+
+### IP2Location
+
+Alternative Geolocation and ASN lookup source for IP addresses (default is IPWhois). Retrieves:
+
+* Geolocation
+* ASN and Org
+* Is Proxy (true or false)
+
+IP2Whois and IP2Location are different features from the same service, so you only need to sign up once. The API key can then be used for both lookups.
 
 ### IP2Whois
 
@@ -64,17 +82,10 @@ IP2Whois is recommended over Virustotal for whois data for a couple of reasons:
 
 Default Geolocation and ASN lookup source for IP addresses. Retrieves:
 
-* ASN, Org, ISP and Geolocation
+* Geolocation
+* ASN, Org and ISP
 
 IPWhois should not be confused with IP2Whois, which provides domain Whois data.
-
-### Shodan
-
-GETs data from the `/shodan/host/{ip}` endpoint (see [doc](https://developer.shodan.io/api)). For each IP, retrieves:
-
-* List of open ports and services
-* Operating system (if available)
-* Tags (assigned by Shodan)
 
 ### Greynoise
 
@@ -87,6 +98,14 @@ More information about the datasets [here](https://docs.greynoise.io/docs/unders
 
 In addition, the API also returns Greynoise's [classification](https://docs.greynoise.io/docs/understanding-greynoise-classifications) of an IP (if available). Possible values are **benign**, **malicious**, and **unknown**.
 
+### Shodan
+
+GETs data from the `/shodan/host/{ip}` endpoint (see [doc](https://developer.shodan.io/api)). For each IP, retrieves:
+
+* List of open ports and services
+* Operating system (if available)
+* Tags (assigned by Shodan)
+
 ### URLhaus
 
 [URLhaus](https://urlhaus.abuse.ch/) is a crowd-sourced database of reported malicious URLs. This enrichment provides insight on whether the queried hostname or IP is being or was used for malware distribution via HTTP or HTTPS. Data that is provided include:
@@ -94,13 +113,6 @@ In addition, the API also returns Greynoise's [classification](https://docs.grey
 * Count of currently online and total malware URLs
 * Whether the hostname or IP is currently in the [DNSBL](https://www.dnsbl.info/) and [SURBL](https://www.surbl.org/) public blocklists
 * All tags that have been assigned to the URL throughout its history in the URLhaus database
-
-### AbuseIPDB
-
-[AbuseIPDB](https://www.abuseipdb.com/) is a crowd-sourced database of reported malicious IP addresses. Through its API wtfis shows:
-
-* Abuse confidence score (0-100)
-* Number of reports
 
 
 ## Install
@@ -122,12 +134,14 @@ brew install wtfis
 wtfis uses these environment variables:
 
 * `VT_API_KEY` (required) - Virustotal API key
-* `IP2WHOIS_API_KEY` (optional) - IP2WHOIS API key
-* `SHODAN_API_KEY` (optional) - Shodan API key
-* `GREYNOISE_API_KEY` (optional) - Greynoise API key
 * `ABUSEIPDB_API_KEY` (optional) - AbuseIPDB API key
+* `IP2LOCATION_API_KEY` (optional) - IP2Location API key
+* `IP2WHOIS_API_KEY` (optional) - IP2Whois API key
+* `GREYNOISE_API_KEY` (optional) - Greynoise API key
+* `SHODAN_API_KEY` (optional) - Shodan API key
 * `URLHAUS_API_KEY` (optional) - URLhaus API key
 * `WTFIS_DEFAULTS` (optional) - Default arguments
+* `GEOLOCATION_SERVICE` (optional) - Which Geolocation and ASN lookup service to use. Can either be `ipwhois` or `ip2location`
 
 Set these using your own method.
 
@@ -137,7 +151,7 @@ Alternatively, create a file in your home directory `~/.env.wtfis` with the abov
 ## Usage
 
 ```
-usage: wtfis [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] entity
+usage: wtfis [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] [--geolocation-service {ipwhois,ip2location}] entity
 
 positional arguments:
   entity                Hostname, domain or IP
@@ -154,6 +168,8 @@ options:
   -n, --no-color        Show output without colors
   -1, --one-column      Display results in one column
   -V, --version         Print version number
+  --geolocation-service {ipwhois,ip2location}
+                        Geolocation service to use (default: ipwhois)
 ```
 
 Basically:
@@ -168,29 +184,9 @@ Defanged input is accepted (e.g. `api[.]google[.]com`).
 
 If the terminal supports it, certain fields and headings are clickable hyperlinks that point to the respective services' websites.
 
-### Shodan
+### All enrichments
 
-Shodan can be used to show an IP's open ports or services, and OS in some results. Invoke with the `-s` or `--use-shodan` flag.
-
-![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-shodan.png?raw=true)
-
-If supported by the terminal, the `Services` field is a clickable hyperlink that takes you to the Shodan web interface.
-
-### Greynoise
-
-To enable Greynoise, invoke with the `-g` or `--use-greynoise` flag. Because the API quota is quite low (50 requests per week as of March 2023), this lookup is off by default.
-
-![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-greynoise.png?raw=true)
-
-The `GreyNoise` field name is also a hyperlink (if terminal-supported) that points to the IP entry in the Greynoise web interface, where more context is shown.
-
-### URLhaus
-
-Use the `-u` or `--use-urlhaus` flag to enable URLhaus enrichment for hostnames, domains and IPs.
-
-![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-urlhaus.png?raw=true)
-
-The `Malware URLs` field name is a hyperlink (if terminal-supported) that takes you to the specific URLhaus database page for your query.
+Instead of specifying each enrichment flag individually, you can use the `-A` / `--all` flag to enable all of them, where possible. This flag is mutually exclusive with the `--use-*` flags.
 
 ### AbuseIPDB
 
@@ -200,9 +196,29 @@ Use the `-a` or `--use-abuseipdb` flag to enable AbuseIPDB enrichment for hostna
 
 The `AbuseIPDB` field name is a hyperlink (if terminal-supported) that takes you to the specific AbuseIPDB database page for your query.
 
-### All enrichments
+### Greynoise
 
-Instead of specifying each enrichment flag individually, you can use the `-A` / `--all` flag to enable all of them, where possible. This flag is mutually exclusive with the `--use-*` flags.
+To enable Greynoise, invoke with the `-g` or `--use-greynoise` flag. Because the API quota is quite low (50 requests per week as of March 2023), this lookup is off by default.
+
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-greynoise.png?raw=true)
+
+The `GreyNoise` field name is also a hyperlink (if terminal-supported) that points to the IP entry in the Greynoise web interface, where more context is shown.
+
+### Shodan
+
+Shodan can be used to show an IP's open ports or services, and OS in some results. Invoke with the `-s` or `--use-shodan` flag.
+
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-shodan.png?raw=true)
+
+If supported by the terminal, the `Services` field is a clickable hyperlink that takes you to the Shodan web interface.
+
+### URLhaus
+
+Use the `-u` or `--use-urlhaus` flag to enable URLhaus enrichment for hostnames, domains and IPs.
+
+![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-urlhaus.png?raw=true)
+
+The `Malware URLs` field name is a hyperlink (if terminal-supported) that takes you to the specific URLhaus database page for your query.
 
 ### Display options
 
@@ -233,6 +249,23 @@ $ wtfis example.com -s
 then Shodan will NOT be used.
 
 Note that maximum resolutions (`-m N, --max-resolutions N`) cannot be defined in defaults at the moment.
+
+
+### Changing the IP geolocation and ASN service
+
+The recommended way to change this is by setting the `GEOLOCATION_SERVICE` variable. For example, to use IP2Location:
+
+```
+GEOLOCATION_SERVICE=ip2location
+```
+
+Alternatively, set the `--geolocation-service` at command invocation:
+
+```
+$ wtfis --geolocation-service=ip2location 1.1.1.1
+```
+
+If both of the above are set, the commandline flag takes precedence.
 
 
 ## Docker

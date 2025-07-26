@@ -9,6 +9,7 @@ from rich.text import Span, Text
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
@@ -357,6 +358,33 @@ def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=urlhaus_enrich,
+    )
+
+
+@pytest.fixture()
+def view15(test_data, mock_ip2location_get):
+    """Same as view01() but with IP2Location data. Test IP2Location only."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_gist.json"))
+    )
+
+    geoasn_pool = json.loads(test_data("ip2location_gist.json"))
+    geoasn_client = Ip2LocationClient("dummykey")
+    geoasn_client._get_ip2location = MagicMock(
+        side_effect=lambda ip: mock_ip2location_get(ip, geoasn_pool)
+    )
+    geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
+
+    return DomainView(
+        console=Console(),
+        entity=MagicMock(),
+        resolutions=resolutions,
+        geoasn=geoasn_enrich,
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
     )
 
 
@@ -1634,3 +1662,69 @@ class TestView14:
                 ],
             ),
         ]
+
+
+class TestIP2LocationOnly:
+    def test_resolutions_panel(self, view15, theme):
+        res = view15.resolutions_panel()
+
+        #
+        # IP 1
+        #
+
+        ip1 = res.renderable.renderables[1]
+        group = ip1.renderables
+
+        # Heading
+        assert group[0] == Text("13.234.210.38", spans=[Span(0, 13, theme.heading_h2)])
+
+        # Table
+        table = group[1]
+        assert str(table.columns[0]._cells[2]) == "ASN:"
+        assert str(table.columns[0]._cells[3]) == "Location:"
+        assert str(table.columns[0]._cells[4]) == "Is Proxy:"
+        assert str(table.columns[1]._cells[2]) == "36459 (GitHub Inc.)"
+        assert (
+            str(table.columns[1]._cells[3])
+            == "San Francisco, California, United States of America"
+        )
+        assert str(table.columns[1]._cells[4]) == "False"
+
+        #
+        # IP 2
+        #
+
+        ip2 = res.renderable.renderables[3]
+        group = ip2.renderables
+
+        # Heading
+        assert group[0] == Text("192.30.255.113", spans=[Span(0, 14, theme.heading_h2)])
+
+        # Table
+        table = group[1]
+        assert str(table.columns[0]._cells[2]) == "ASN:"
+        assert str(table.columns[0]._cells[3]) == "Location:"
+        assert str(table.columns[0]._cells[4]) == "Is Proxy:"
+        assert str(table.columns[1]._cells[2]) == "8075 (Microsoft Corporation)"
+        assert (
+            str(table.columns[1]._cells[3])
+            == "London, England, United Kingdom of Great Britain and Northern Ireland"
+        )
+        assert str(table.columns[1]._cells[4]) == "False"
+
+        #
+        # IP 3
+        #
+
+        ip3 = res.renderable.renderables[5]
+        group = ip3.renderables
+
+        # Heading
+        assert group[0] == Text("13.234.176.102", spans=[Span(0, 14, theme.heading_h2)])
+
+        # Table
+        table = group[1]
+        assert str(table.columns[0]._cells[2]) == "ASN:"
+        assert str(table.columns[0]._cells[3]) == "Location:"
+        assert str(table.columns[1]._cells[2]) == "8075 (Microsoft Corporation)"
+        assert str(table.columns[1]._cells[3]) == "Gavle, Gavleborgs lan, Sweden"
