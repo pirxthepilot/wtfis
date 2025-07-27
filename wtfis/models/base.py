@@ -46,18 +46,23 @@ class IpGeoAsnBase(BaseModel, abc.ABC):
     ip: str
 
     # Geolocation
-    city: Optional[str]
-    country: Optional[str]
-    region: Optional[str]
+    city: Optional[str] = None
+    country: Optional[str] = None
+    region: Optional[str] = None
 
     # ASN
-    asn: Optional[str]
-    org: Optional[str]
-    isp: Optional[str]
-    domain: Optional[str]
+    asn: Optional[str] = None
+    org: Optional[str] = None
+    isp: Optional[str] = None
 
     # Other
-    is_proxy: Optional[bool]
+    domain: Optional[str] = None
+    hostname: Optional[str] = None
+    is_proxy: Optional[LaxStr] = None  # Cast bool to str
+    is_anycast: Optional[LaxStr] = None  # Cast bool to str
+
+    # Meta
+    link: Optional[str] = None
 
 
 class IpGeoAsnMapBase(RootModel, abc.ABC):

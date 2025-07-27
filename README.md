@@ -28,6 +28,7 @@ The project name is a play on "whois".
 | [Greynoise](https://greynoise.io) | IP address | No | [Yes](https://www.greynoise.io/plans/community)
 | [IP2Location](https://www.ip2location.io) | IP address | No | [Yes](https://www.ip2location.io/pricing)
 | [IP2Whois](https://www.ip2whois.com) | Domain/FQDN | No | [Yes](https://www.ip2location.io/pricing)
+| [IPinfo](https://ipinfo.io) | IP Address | No | Yes (no signup)
 | [IPWhois](https://ipwhois.io) | IP address | No | Yes (no signup) |
 | [Shodan](https://shodan.io) | IP address | No | [No](https://account.shodan.io/billing) |
 | [URLhaus](https://urlhaus.abuse.ch/) | All | No | [Yes](https://urlhaus-api.abuse.ch/#auth_key)
@@ -61,7 +62,7 @@ Alternative Geolocation and ASN lookup source for IP addresses (default is IPWho
 
 * Geolocation
 * ASN and Org
-* Is Proxy (true or false)
+* Proxy (True or False)
 
 IP2Whois and IP2Location are different features from the same service, so you only need to sign up once. The API key can then be used for both lookups.
 
@@ -78,12 +79,22 @@ IP2Whois is recommended over Virustotal for whois data for a couple of reasons:
 * IP2Whois whois data tends to be of better quality than VT. Also, VT's registrant data is apparently [anonymized](https://developers.virustotal.com/reference/whois).
 * You can save one VT API call by offloading to IP2Whois.
 
+### IPinfo
+
+Another alternative Geolocation and ASN lookup source for IP addresses. Retrieves:
+
+* Geolocation
+* ASN and Org
+* Hostname
+* Anycast (true or false)
+
 ### IPWhois
 
 Default Geolocation and ASN lookup source for IP addresses. Retrieves:
 
 * Geolocation
 * ASN, Org and ISP
+* Domain
 
 IPWhois should not be confused with IP2Whois, which provides domain Whois data.
 
@@ -129,6 +140,7 @@ To install via [`brew`](https://brew.sh):
 brew install wtfis
 ```
 
+
 ## Setup
 
 wtfis uses these environment variables:
@@ -140,18 +152,18 @@ wtfis uses these environment variables:
 * `GREYNOISE_API_KEY` (optional) - Greynoise API key
 * `SHODAN_API_KEY` (optional) - Shodan API key
 * `URLHAUS_API_KEY` (optional) - URLhaus API key
-* `WTFIS_DEFAULTS` (optional) - Default arguments
-* `GEOLOCATION_SERVICE` (optional) - Which Geolocation and ASN lookup service to use. Can either be `ipwhois` or `ip2location`
+* `WTFIS_DEFAULTS` (optional) - Default boolean arguments
+* `GEOLOCATION_SERVICE` (optional) - Geolocation / ASN lookup service to use
 
 Set these using your own method.
 
-Alternatively, create a file in your home directory `~/.env.wtfis` with the above declarations. See [.env.wtfis.example](./.env.wtfis.example) for a template. **NOTE: Don't forget to `chmod 400` the file!**
+Alternatively, create a file in your home directory `~/.env.wtfis` with the above options. See [.env.wtfis.example](./.env.wtfis.example) for a template. **NOTE: Don't forget to `chmod 400` the file!**
 
 
 ## Usage
 
 ```
-usage: wtfis [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] [--geolocation-service {ipwhois,ip2location}] entity
+usage: wtfis [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] [--geolocation-service {ip2location,ipinfo,ipwhois}] entity
 
 positional arguments:
   entity                Hostname, domain or IP
@@ -168,7 +180,7 @@ options:
   -n, --no-color        Show output without colors
   -1, --one-column      Display results in one column
   -V, --version         Print version number
-  --geolocation-service {ipwhois,ip2location}
+  --geolocation-service {ip2location,ipinfo,ipwhois}
                         Geolocation service to use (default: ipwhois)
 ```
 
@@ -251,18 +263,18 @@ then Shodan will NOT be used.
 Note that maximum resolutions (`-m N, --max-resolutions N`) cannot be defined in defaults at the moment.
 
 
-### Changing the IP geolocation and ASN service
+### Changing the IP geolocation and ASN provider
 
-The recommended way to change this is by setting the `GEOLOCATION_SERVICE` variable. For example, to use IP2Location:
+The recommended way to change this is by setting the `GEOLOCATION_SERVICE` variable. For example, to use IPinfo:
 
 ```
-GEOLOCATION_SERVICE=ip2location
+GEOLOCATION_SERVICE=ipinfo
 ```
 
 Alternatively, set the `--geolocation-service` at command invocation:
 
 ```
-$ wtfis --geolocation-service=ip2location 1.1.1.1
+$ wtfis --geolocation-service=ipinfo 1.1.1.1
 ```
 
 If both of the above are set, the commandline flag takes precedence.

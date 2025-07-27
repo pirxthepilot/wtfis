@@ -65,22 +65,22 @@ class DomainView(BaseView):
             # IP geolocation and ASN
             geoasn = self._get_geoasn_enrichment(attributes.ip_address)
             if geoasn:
+                asn_field: Union[Text, str] = (
+                    self._gen_linked_field_name("ASN", hyperlink=geoasn.link)
+                    if geoasn.link
+                    else "ASN:"
+                )
                 asn = self._gen_asn_text(geoasn.asn, geoasn.org)
                 data += [
-                    ("ASN:", asn),
+                    (asn_field, asn),
                     ("ISP:", geoasn.isp),
                     (
                         "Location:",
                         smart_join(geoasn.city, geoasn.region, geoasn.country),
                     ),
-                    (
-                        "Is Proxy:",
-                        (
-                            str(geoasn.is_proxy)
-                            if isinstance(geoasn.is_proxy, bool)
-                            else None
-                        ),
-                    ),
+                    ("Hostname:", geoasn.hostname),
+                    ("Proxy:", geoasn.is_proxy),
+                    ("Anycast:", geoasn.is_anycast),
                 ]
 
             # Shodan

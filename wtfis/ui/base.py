@@ -385,16 +385,20 @@ class BaseView(abc.ABC):
 
         if enrich:
             section_title = enrich.source
+            asn_field: Union[Text, str] = (
+                self._gen_linked_field_name("ASN", hyperlink=enrich.link)
+                if enrich.link
+                else "ASN:"
+            )
             asn = self._gen_asn_text(enrich.asn, enrich.org)
             data += [
-                ("ASN:", asn),
+                (asn_field, asn),
                 ("ISP:", enrich.isp),
                 ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
                 ("Domain:", enrich.domain),
-                (
-                    "Is Proxy:",
-                    str(enrich.is_proxy) if isinstance(enrich.is_proxy, bool) else None,
-                ),
+                ("Hostname:", enrich.hostname),
+                ("Proxy:", enrich.is_proxy),
+                ("Anycast:", enrich.is_anycast),
             ]
             return self._gen_section(
                 self._gen_table(*data), self._gen_heading_text(section_title)
