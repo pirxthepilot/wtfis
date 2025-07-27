@@ -385,7 +385,7 @@ class BaseView(abc.ABC):
 
         if enrich:
             section_title = enrich.source
-            asn_field = (
+            asn_field: Union[Text, str] = (
                 self._gen_linked_field_name("ASN", hyperlink=enrich.link)
                 if enrich.link
                 else "ASN:"

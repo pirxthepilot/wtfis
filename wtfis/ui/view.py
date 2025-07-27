@@ -65,9 +65,14 @@ class DomainView(BaseView):
             # IP geolocation and ASN
             geoasn = self._get_geoasn_enrichment(attributes.ip_address)
             if geoasn:
+                asn_field: Union[Text, str] = (
+                    self._gen_linked_field_name("ASN", hyperlink=geoasn.link)
+                    if geoasn.link
+                    else "ASN:"
+                )
                 asn = self._gen_asn_text(geoasn.asn, geoasn.org)
                 data += [
-                    ("ASN:", asn),
+                    (asn_field, asn),
                     ("ISP:", geoasn.isp),
                     (
                         "Location:",
