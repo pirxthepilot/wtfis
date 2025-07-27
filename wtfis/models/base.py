@@ -58,7 +58,8 @@ class IpGeoAsnBase(BaseModel, abc.ABC):
     # Other
     domain: Optional[str] = None
     hostname: Optional[str] = None
-    is_proxy: Optional[bool] = None
+    is_proxy: Optional[LaxStr] = None  # Cast bool to str
+    anycast: Optional[LaxStr] = None  # Cast bool to str
 
     # Meta
     link: Optional[str] = None

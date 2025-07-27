@@ -10,6 +10,7 @@ from rich.text import Span, Text
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2location import Ip2LocationClient
+from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
@@ -372,6 +373,33 @@ def view15(test_data, mock_ip2location_get):
     geoasn_client = Ip2LocationClient("dummykey")
     geoasn_client._get_ip2location = MagicMock(
         side_effect=lambda ip: mock_ip2location_get(ip, geoasn_pool)
+    )
+    geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
+
+    return DomainView(
+        console=Console(),
+        entity=MagicMock(),
+        resolutions=resolutions,
+        geoasn=geoasn_enrich,
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view16(test_data, mock_ipinfo_get):
+    """Same as view01() but with IPInfo data. Test IPInfo only."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_gist.json"))
+    )
+
+    geoasn_pool = json.loads(test_data("ipinfo_gist.json"))
+    geoasn_client = IpInfoClient()
+    geoasn_client._get_ipinfo = MagicMock(
+        side_effect=lambda ip: mock_ipinfo_get(ip, geoasn_pool)
     )
     geoasn_enrich = geoasn_client.enrich_ips(*resolutions.ip_list(3))
 
@@ -1680,14 +1708,12 @@ class TestIP2LocationOnly:
 
         # Table
         table = group[1]
+        assert len(table.columns[0]._cells) == 5
         assert str(table.columns[0]._cells[2]) == "ASN:"
         assert str(table.columns[0]._cells[3]) == "Location:"
         assert str(table.columns[0]._cells[4]) == "Is Proxy:"
-        assert str(table.columns[1]._cells[2]) == "36459 (GitHub Inc.)"
-        assert (
-            str(table.columns[1]._cells[3])
-            == "San Francisco, California, United States of America"
-        )
+        assert str(table.columns[1]._cells[2]) == "16509 (Amazon.com Inc.)"
+        assert str(table.columns[1]._cells[3]) == "Mumbai, Maharashtra, India"
         assert str(table.columns[1]._cells[4]) == "False"
 
         #
@@ -1702,13 +1728,14 @@ class TestIP2LocationOnly:
 
         # Table
         table = group[1]
+        assert len(table.columns[0]._cells) == 5
         assert str(table.columns[0]._cells[2]) == "ASN:"
         assert str(table.columns[0]._cells[3]) == "Location:"
         assert str(table.columns[0]._cells[4]) == "Is Proxy:"
-        assert str(table.columns[1]._cells[2]) == "8075 (Microsoft Corporation)"
+        assert str(table.columns[1]._cells[2]) == "36459 (GitHub Inc.)"
         assert (
             str(table.columns[1]._cells[3])
-            == "London, England, United Kingdom of Great Britain and Northern Ireland"
+            == "San Francisco, California, United States of America"
         )
         assert str(table.columns[1]._cells[4]) == "False"
 
@@ -1724,7 +1751,78 @@ class TestIP2LocationOnly:
 
         # Table
         table = group[1]
+        assert len(table.columns[0]._cells) == 5
         assert str(table.columns[0]._cells[2]) == "ASN:"
         assert str(table.columns[0]._cells[3]) == "Location:"
-        assert str(table.columns[1]._cells[2]) == "8075 (Microsoft Corporation)"
-        assert str(table.columns[1]._cells[3]) == "Gavle, Gavleborgs lan, Sweden"
+        assert str(table.columns[0]._cells[4]) == "Is Proxy:"
+        assert str(table.columns[1]._cells[2]) == "16509 (Amazon.com Inc.)"
+        assert str(table.columns[1]._cells[3]) == "Mumbai, Maharashtra, India"
+        assert str(table.columns[1]._cells[4]) == "False"
+
+
+class TestIPInfoOnly:
+    def test_resolutions_panel(self, view16, theme):
+        res = view16.resolutions_panel()
+
+        #
+        # IP 1
+        #
+
+        ip1 = res.renderable.renderables[1]
+        group = ip1.renderables
+
+        # Heading
+        assert group[0] == Text("13.234.210.38", spans=[Span(0, 13, theme.heading_h2)])
+
+        # Table
+        table = group[1]
+        assert len(table.columns[0]._cells) == 5
+        assert str(table.columns[0]._cells[2]) == "ASN:"
+        assert str(table.columns[0]._cells[3]) == "Location:"
+        assert str(table.columns[0]._cells[4]) == "Hostname:"
+        assert str(table.columns[1]._cells[2]) == "16509 (Amazon.com, Inc.)"
+        assert str(table.columns[1]._cells[3]) == "Mumbai, Maharashtra, IN"
+        assert (
+            str(table.columns[1]._cells[4])
+            == "ec2-13-234-210-38.ap-south-1.compute.amazonaws.com"
+        )
+
+        #
+        # IP 2
+        #
+
+        ip2 = res.renderable.renderables[3]
+        group = ip2.renderables
+
+        # Heading
+        assert group[0] == Text("192.30.255.113", spans=[Span(0, 14, theme.heading_h2)])
+
+        # Table
+        table = group[1]
+        assert len(table.columns[0]._cells) == 4
+        assert str(table.columns[0]._cells[2]) == "ASN:"
+        assert str(table.columns[0]._cells[3]) == "Location:"
+        assert str(table.columns[1]._cells[2]) == "36459 (GitHub, Inc.)"
+        assert str(table.columns[1]._cells[3]) == "Seattle, Washington, US"
+
+        #
+        # IP 3
+        #
+        ip3 = res.renderable.renderables[5]
+        group = ip3.renderables
+
+        # Heading
+        assert group[0] == Text("13.234.176.102", spans=[Span(0, 14, theme.heading_h2)])
+
+        # Table
+        table = group[1]
+        assert len(table.columns[0]._cells) == 5
+        assert str(table.columns[0]._cells[2]) == "ASN:"
+        assert str(table.columns[0]._cells[3]) == "Location:"
+        assert str(table.columns[0]._cells[4]) == "Hostname:"
+        assert str(table.columns[1]._cells[2]) == "16509 (Amazon.com, Inc.)"
+        assert str(table.columns[1]._cells[3]) == "Mumbai, Maharashtra, IN"
+        assert (
+            str(table.columns[1]._cells[4])
+            == "ec2-13-234-176-102.ap-south-1.compute.amazonaws.com"
+        )

@@ -5,7 +5,7 @@ API doc: https://ipwhois.io/documentation
 
 from __future__ import annotations
 
-from typing import Dict
+from typing import Dict, Optional
 
 from pydantic import AliasPath, ConfigDict, Field
 
@@ -20,14 +20,12 @@ class IpWhois(IpGeoAsnBase):
     model_config = ConfigDict(populate_by_name=True)
 
     # Results
-    ip: str
-    city: str
-    region: str
-    country: str
-    asn: str = Field(validation_alias=AliasPath("connection", "asn"))
-    org: str = Field(validation_alias=AliasPath("connection", "org"))
-    isp: str = Field(validation_alias=AliasPath("connection", "isp"))
-    domain: str = Field(validation_alias=AliasPath("connection", "domain"))
+    asn: Optional[str] = Field(None, validation_alias=AliasPath("connection", "asn"))
+    org: Optional[str] = Field(None, validation_alias=AliasPath("connection", "org"))
+    isp: Optional[str] = Field(None, validation_alias=AliasPath("connection", "isp"))
+    domain: Optional[str] = Field(
+        None, validation_alias=AliasPath("connection", "domain")
+    )
 
 
 class IpWhoisMap(IpGeoAsnMapBase):  # type: ignore[override]

@@ -17,6 +17,7 @@ from wtfis.handlers.ip import IpAddressHandler
 from wtfis.models.abuseipdb import AbuseIpDb
 from wtfis.models.greynoise import GreynoiseIp
 from wtfis.models.ip2location import Ip2Location
+from wtfis.models.ipinfo import IpInfo
 from wtfis.models.ipwhois import IpWhois
 from wtfis.models.shodan import ShodanIp
 from wtfis.models.urlhaus import UrlHaus
@@ -78,6 +79,11 @@ def ip2location_get(ip, pool) -> Ip2Location:
     return Ip2Location.model_validate(pool[ip])
 
 
+def ipinfo_get(ip, pool) -> IpInfo:
+    """Mock replacement for IpInfoClient().get_ip()"""
+    return IpInfo.model_validate(pool[ip])
+
+
 def ipwhois_get(ip, pool) -> IpWhois:
     """Mock replacement for IpWhoisClient().get_ipwhois()"""
     return IpWhois.model_validate(pool[ip])
@@ -130,6 +136,11 @@ def mock_greynoise_get():
 @pytest.fixture(scope="module")
 def mock_ip2location_get():
     return ip2location_get
+
+
+@pytest.fixture(scope="module")
+def mock_ipinfo_get():
+    return ipinfo_get
 
 
 @pytest.fixture(scope="module")

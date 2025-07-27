@@ -9,6 +9,7 @@ from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
+from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import Shodan, ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
@@ -34,6 +35,11 @@ def ip2location_client():
 @pytest.fixture()
 def ip2whois_client():
     return Ip2WhoisClient("dummykey")
+
+
+@pytest.fixture()
+def ipinfo_client():
+    return IpInfoClient()
 
 
 @pytest.fixture()
@@ -106,7 +112,7 @@ class TestIp2LocationClient:
         assert ip2location.region == "Queensland"
         assert ip2location.country == "Australia"
         assert ip2location.org == "CloudFlare Inc."
-        assert ip2location.is_proxy is False
+        assert ip2location.is_proxy == "False"
 
 
 class TestIp2WhoisClient:
@@ -151,6 +157,30 @@ class TestIp2WhoisClient:
             with pytest.raises(requests.exceptions.HTTPError) as err:
                 ip2whois_client.get_whois("thisdoesntmatter")
             assert err.value.response.json()["error"]["error_code"] == 10008
+
+
+class TestIpInfoClient:
+    def test_init(self, ipinfo_client):
+        assert ipinfo_client.name == "IPinfo"
+
+    @patch.object(requests.Session, "get")
+    def test_enrich_ips(self, mock_requests_get, test_data, ipinfo_client):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(test_data("ipinfo_1.1.1.1.json")).get(
+            "1.1.1.1"
+        )
+        mock_requests_get.return_value = mock_resp
+
+        ipinfo = ipinfo_client.enrich_ips("1.1.1.1").root["1.1.1.1"]
+
+        assert ipinfo.ip == "1.1.1.1"
+        assert ipinfo.city == "Brisbane"
+        assert ipinfo.region == "Queensland"
+        assert ipinfo.country == "AU"
+        assert ipinfo.org == "Cloudflare, Inc."
+        assert ipinfo.anycast == "True"
+        assert ipinfo.link == "https://ipinfo.io/1.1.1.1"
 
 
 class TestIpWhoisClient:

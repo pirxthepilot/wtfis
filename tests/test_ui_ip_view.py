@@ -10,6 +10,7 @@ from rich.text import Span, Text
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2location import Ip2LocationClient
+from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
@@ -253,6 +254,29 @@ def view09(test_data, mock_ip2location_get):
     geoasn_client = Ip2LocationClient("dummykey")
     geoasn_client._get_ip2location = MagicMock(
         side_effect=lambda ip: mock_ip2location_get(ip, geoasn_pool)
+    )
+    geoasn_enrich = geoasn_client.enrich_ips(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=geoasn_enrich,
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view10(test_data, mock_ipinfo_get):
+    """1.1.1.1 with IPInfo. Test IPInfo only."""
+    ip = "1.1.1.1"
+    geoasn_pool = json.loads(test_data("ipinfo_1.1.1.1.json"))
+    geoasn_client = IpInfoClient()
+    geoasn_client._get_ipinfo = MagicMock(
+        side_effect=lambda ip: mock_ipinfo_get(ip, geoasn_pool)
     )
     geoasn_enrich = geoasn_client.enrich_ips(ip)
 
@@ -1045,3 +1069,22 @@ class TestIP2LocationOnly:
         assert str(table.columns[1]._cells[0]) == "13335 (CloudFlare Inc.)"
         assert str(table.columns[1]._cells[1]) == "Brisbane, Queensland, Australia"
         assert str(table.columns[1]._cells[2]) == "False"
+
+
+class TestIPInfoOnly:
+    def test_ip_panel(self, view10):
+        ip = view10.ip_panel()
+
+        ipinfo_section = ip.renderable.renderables[2]
+
+        # Table
+        table = ipinfo_section.renderables[1]
+        assert len(table.columns[0]._cells) == 4
+        assert str(table.columns[0]._cells[0]) == "ASN:"
+        assert str(table.columns[0]._cells[1]) == "Location:"
+        assert str(table.columns[0]._cells[2]) == "Hostname:"
+        assert str(table.columns[0]._cells[3]) == "Anycast:"
+        assert str(table.columns[1]._cells[0]) == "13335 (Cloudflare, Inc.)"
+        assert str(table.columns[1]._cells[1]) == "Brisbane, Queensland, AU"
+        assert str(table.columns[1]._cells[2]) == "one.one.one.one"
+        assert str(table.columns[1]._cells[3]) == "True"

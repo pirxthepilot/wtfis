@@ -6,7 +6,7 @@ API doc: https://ipinfo.io/developers
 from __future__ import annotations
 
 import re
-from typing import Dict, Optional
+from typing import Dict
 
 from pydantic import ConfigDict, model_validator
 
@@ -19,16 +19,6 @@ class IpInfo(IpGeoAsnBase):
 
     # Config
     model_config = ConfigDict(populate_by_name=True)
-
-    # Results
-    ip: str
-    city: Optional[str]
-    region: Optional[str]
-    country: Optional[str]
-    asn: Optional[str]
-    org: Optional[str]
-    hostname: Optional[str]
-    link: Optional[str]
 
     @model_validator(mode="before")
     @classmethod
