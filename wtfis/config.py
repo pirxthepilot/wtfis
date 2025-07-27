@@ -14,6 +14,7 @@ from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
+from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.types import IpGeoAsnClientType
@@ -53,8 +54,9 @@ def parse_env() -> None:
 
 def parse_args() -> Namespace:
     GEOLOCATION_SERVICES = (
-        "ipwhois",
         "ip2location",
+        "ipinfo",
+        "ipwhois",
     )
     DEFAULT_GEOLOCATION_SERVICE = "ipwhois"
     DEFAULT_MAX_RESOLUTIONS = 3
@@ -221,6 +223,8 @@ class Config:
         # IP geolocation and ASN client selector
         if self.args.geolocation_service == "ip2location":
             return Ip2LocationClient(self.ip2location_api_key)
+        if self.args.geolocation_service == "ipinfo":
+            return IpInfoClient()
         return IpWhoisClient()
 
     @property

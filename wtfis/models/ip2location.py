@@ -26,8 +26,6 @@ class Ip2Location(IpGeoAsnBase):
     country: Optional[str] = Field(None, alias="country_name")
     asn: Optional[str]
     org: Optional[str] = Field(None, alias="as")
-    isp: Optional[str] = None
-    domain: Optional[str] = None
     is_proxy: Optional[bool]
 
 
