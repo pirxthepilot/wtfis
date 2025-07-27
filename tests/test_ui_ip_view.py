@@ -1065,7 +1065,7 @@ class TestIP2LocationOnly:
         table = ip2location_section.renderables[1]
         assert str(table.columns[0]._cells[0]) == "ASN:"
         assert str(table.columns[0]._cells[1]) == "Location:"
-        assert str(table.columns[0]._cells[2]) == "Is Proxy:"
+        assert str(table.columns[0]._cells[2]) == "Proxy:"
         assert str(table.columns[1]._cells[0]) == "13335 (CloudFlare Inc.)"
         assert str(table.columns[1]._cells[1]) == "Brisbane, Queensland, Australia"
         assert str(table.columns[1]._cells[2]) == "False"

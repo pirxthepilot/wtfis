@@ -6,11 +6,11 @@ API doc: https://ipinfo.io/developers
 from __future__ import annotations
 
 import re
-from typing import Dict
+from typing import Dict, Optional
 
-from pydantic import ConfigDict, model_validator
+from pydantic import AliasPath, ConfigDict, Field, model_validator
 
-from wtfis.models.base import IpGeoAsnBase, IpGeoAsnMapBase
+from wtfis.models.base import IpGeoAsnBase, IpGeoAsnMapBase, LaxStr
 
 
 class IpInfo(IpGeoAsnBase):
@@ -19,6 +19,9 @@ class IpInfo(IpGeoAsnBase):
 
     # Config
     model_config = ConfigDict(populate_by_name=True)
+
+    # Other
+    is_anycast: Optional[LaxStr] = Field(None, validation_alias=AliasPath("anycast"))
 
     @model_validator(mode="before")
     @classmethod

@@ -1711,7 +1711,7 @@ class TestIP2LocationOnly:
         assert len(table.columns[0]._cells) == 5
         assert str(table.columns[0]._cells[2]) == "ASN:"
         assert str(table.columns[0]._cells[3]) == "Location:"
-        assert str(table.columns[0]._cells[4]) == "Is Proxy:"
+        assert str(table.columns[0]._cells[4]) == "Proxy:"
         assert str(table.columns[1]._cells[2]) == "16509 (Amazon.com Inc.)"
         assert str(table.columns[1]._cells[3]) == "Mumbai, Maharashtra, India"
         assert str(table.columns[1]._cells[4]) == "False"
@@ -1731,7 +1731,7 @@ class TestIP2LocationOnly:
         assert len(table.columns[0]._cells) == 5
         assert str(table.columns[0]._cells[2]) == "ASN:"
         assert str(table.columns[0]._cells[3]) == "Location:"
-        assert str(table.columns[0]._cells[4]) == "Is Proxy:"
+        assert str(table.columns[0]._cells[4]) == "Proxy:"
         assert str(table.columns[1]._cells[2]) == "36459 (GitHub Inc.)"
         assert (
             str(table.columns[1]._cells[3])
@@ -1754,7 +1754,7 @@ class TestIP2LocationOnly:
         assert len(table.columns[0]._cells) == 5
         assert str(table.columns[0]._cells[2]) == "ASN:"
         assert str(table.columns[0]._cells[3]) == "Location:"
-        assert str(table.columns[0]._cells[4]) == "Is Proxy:"
+        assert str(table.columns[0]._cells[4]) == "Proxy:"
         assert str(table.columns[1]._cells[2]) == "16509 (Amazon.com Inc.)"
         assert str(table.columns[1]._cells[3]) == "Mumbai, Maharashtra, India"
         assert str(table.columns[1]._cells[4]) == "False"

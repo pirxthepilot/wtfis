@@ -53,7 +53,7 @@ class TestIpInfoModels:
             json.loads(test_data("ipinfo_1.1.1.1.json")).get("1.1.1.1")
         )
         assert ipinfo.hostname == "one.one.one.one"
-        assert ipinfo.anycast == "True"
+        assert ipinfo.is_anycast == "True"
         assert ipinfo.link == "https://ipinfo.io/1.1.1.1"
 
     def test_empty_map(self):

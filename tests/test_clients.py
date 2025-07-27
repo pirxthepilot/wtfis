@@ -179,7 +179,7 @@ class TestIpInfoClient:
         assert ipinfo.region == "Queensland"
         assert ipinfo.country == "AU"
         assert ipinfo.org == "Cloudflare, Inc."
-        assert ipinfo.anycast == "True"
+        assert ipinfo.is_anycast == "True"
         assert ipinfo.link == "https://ipinfo.io/1.1.1.1"
 
 

@@ -397,8 +397,8 @@ class BaseView(abc.ABC):
                 ("Location:", smart_join(enrich.city, enrich.region, enrich.country)),
                 ("Domain:", enrich.domain),
                 ("Hostname:", enrich.hostname),
-                ("Is Proxy:", enrich.is_proxy),
-                ("Anycast:", enrich.anycast),
+                ("Proxy:", enrich.is_proxy),
+                ("Anycast:", enrich.is_anycast),
             ]
             return self._gen_section(
                 self._gen_table(*data), self._gen_heading_text(section_title)

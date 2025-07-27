@@ -79,8 +79,8 @@ class DomainView(BaseView):
                         smart_join(geoasn.city, geoasn.region, geoasn.country),
                     ),
                     ("Hostname:", geoasn.hostname),
-                    ("Is Proxy:", geoasn.is_proxy),
-                    ("Anycast:", geoasn.anycast),
+                    ("Proxy:", geoasn.is_proxy),
+                    ("Anycast:", geoasn.is_anycast),
                 ]
 
             # Shodan
