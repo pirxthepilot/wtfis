@@ -1,25 +1,35 @@
 from typing import Optional
 
-from shodan import Shodan
+from requests.exceptions import HTTPError
 
-from wtfis.clients.base import BaseClient, BaseIpEnricherClient
+from wtfis.clients.base import BaseIpEnricherClient, BaseRequestsClient
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
 
 
-class ShodanClient(BaseClient, BaseIpEnricherClient):
+class ShodanClient(BaseRequestsClient, BaseIpEnricherClient):
     """
     Shodan client
     """
 
+    baseurl = "https://api.shodan.io/shodan"
+
     def __init__(self, api_key: str) -> None:
-        self.s = Shodan(api_key)
+        super().__init__()
+        self.api_key = api_key
 
     @property
     def name(self) -> str:
         return "Shodan"
 
     def _get_ip(self, ip: str) -> Optional[ShodanIp]:
-        return ShodanIp.model_validate(self.s.host(ip, minify=False))
+        params = {"key": self.api_key}
+        try:
+            return ShodanIp.model_validate(self._get(f"/host/{ip}", params=params))
+        except HTTPError as e:
+            # 404 means the IP is invalid or not in Shodan; we don't want to raise an error
+            if e.response.status_code == 404:
+                return None
+            raise e
 
     def enrich_ips(self, *ips: str) -> ShodanIpMap:
         shodan_map = {}

@@ -11,7 +11,6 @@ from requests.exceptions import (
     Timeout,
 )
 from rich.console import Console
-from shodan.exception import APIError
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
@@ -38,7 +37,7 @@ def common_exception_handler(func: Callable) -> Callable:
     def inner(*args, **kwargs) -> None:
         try:
             func(*args, **kwargs)
-        except (APIError, ConnectionError, HTTPError, JSONDecodeError, Timeout) as e:
+        except (ConnectionError, HTTPError, JSONDecodeError, Timeout) as e:
             raise HandlerException(f"Error fetching data: {e}") from e
         except ValidationError as e:
             raise HandlerException(f"Data model validation error: {e}") from e
@@ -55,7 +54,7 @@ def failopen_exception_handler(client_attr_name: str) -> Callable:
             warnings: List[str] = args[0].warnings
             try:
                 func(*args, **kwargs)
-            except (APIError, RequestException) as e:
+            except RequestException as e:
                 # Add warning
                 warnings.append(f"Could not fetch {client.name}: {e}")
 

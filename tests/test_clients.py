@@ -2,7 +2,6 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
-from shodan import APIError
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
@@ -11,10 +10,11 @@ from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
-from wtfis.clients.shodan import Shodan, ShodanClient
+from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
 from wtfis.models.ipwhois import IpWhoisMap
+from wtfis.models.shodan import ShodanIpMap
 
 
 @pytest.fixture()
@@ -201,30 +201,54 @@ class TestIpWhoisClient:
 
 class TestShodanClient:
     def test_init(self, shodan_client):
-        assert shodan_client.s.api_key == "dummykey"
+        assert shodan_client.api_key == "dummykey"
         assert shodan_client.name == "Shodan"
 
-    @patch.object(Shodan, "host")
-    def test_get_ip_apierror_invalid_key(self, mock_shodan_host, shodan_client):
-        """Test invalid API key APIError"""
-        mock_shodan_host.side_effect = APIError("Invalid API key")
+    @patch.object(requests.Session, "get")
+    def test_enrich_ips_ok(self, mock_requests_get, test_data, shodan_client):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(test_data("shodan_1.1.1.1.json"))[
+            "1.1.1.1"
+        ]
+        mock_requests_get.return_value = mock_resp
 
-        with pytest.raises(APIError) as e:
+        shodan = shodan_client.enrich_ips("thisdoesntmatter").root["1.1.1.1"]
+
+        assert len(shodan.data) == 13
+        assert shodan.ports == [
+            161,
+            2082,
+            2083,
+            69,
+            2086,
+            2087,
+            80,
+            8880,
+            8080,
+            53,
+            8443,
+            443,
+        ]
+        assert shodan.tags == []
+
+    @patch.object(requests.Session, "get")
+    def test_enrich_ips_404(self, mock_requests_get, shodan_client):
+        mock_resp = requests.models.Response()
+        mock_resp.status_code = 404
+        mock_requests_get.return_value = mock_resp
+        assert shodan_client.enrich_ips("thisdoesntmatter") == ShodanIpMap.empty()
+
+    @patch.object(requests.Session, "get")
+    def test_enrich_ips_401(self, mock_requests_get, shodan_client):
+        mock_resp = requests.models.Response()
+        mock_resp.status_code = 401
+        mock_requests_get.return_value = mock_resp
+
+        with pytest.raises(requests.exceptions.HTTPError) as err:
             shodan_client.enrich_ips("thisdoesntmatter")
 
-        assert e.type == APIError
-        assert str(e.value) == "Invalid API key"
-
-    @patch.object(Shodan, "host")
-    def test_get_ip_apierror_other(self, mock_shodan_host, shodan_client):
-        """Test other invalid API key APIError"""
-        mock_shodan_host.side_effect = APIError("Some other error")
-
-        with pytest.raises(APIError) as e:
-            shodan_client.enrich_ips("thisdoesntmatter")
-
-        assert e.type == APIError
-        assert str(e.value) == "Some other error"
+        assert err.value.response.status_code == 401
 
 
 class TestUrlhausClient:
