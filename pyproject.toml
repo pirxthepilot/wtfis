@@ -37,7 +37,6 @@ dependencies = [
     "python-dotenv>=1.1.0,<2; python_version >= '3.9'",
     "requests>=2.32.3,<3",
     "rich>=14.0.0,<15",
-    "shodan>=1.31.0,<2",
 ]
 dynamic = ["version"]
 
