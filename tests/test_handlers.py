@@ -487,7 +487,7 @@ class TestIpAddressHandler:
             assert e.type is HandlerException
 
     @patch.object(requests.Session, "get")
-    def test_shodan_api_error(self, mock_requests_get, ip_handler, capsys):
+    def test_shodan_http_error(self, mock_requests_get, ip_handler, capsys):
         """
         Test fail open behavior of Shodan on invalid API key
         """
@@ -495,15 +495,16 @@ class TestIpAddressHandler:
         mock_resp = requests.models.Response()
 
         mock_resp.status_code = 401
-        mock_resp._content = b"<html>"
         mock_requests_get.return_value = mock_resp
 
         handler._fetch_shodan("1.2.3.4")
-        assert handler.warnings[0].startswith("Could not fetch Shodan: Invalid API key")
+        assert handler.warnings[0].startswith(
+            "Could not fetch Shodan: 401 Client Error:"
+        )
 
         handler.print_warnings()
         capture = capsys.readouterr()
-        assert capture.out.startswith("WARN: Could not fetch Shodan: Invalid API key")
+        assert capture.out.startswith("WARN: Could not fetch Shodan: 401 Client Error:")
 
     @patch.object(requests.Session, "get")
     def test_greynoise_http_error(self, mock_requests_get, ip_handler):
