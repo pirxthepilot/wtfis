@@ -948,9 +948,9 @@ class TestFetchData:
 
             assert capture.err.startswith(
                 "Data model validation error: "
-                #"1 validation error for Domain\ndata\n"
-                #"  Field required [type=missing, input_value={'intentionally': "
-                #"'wrong data'}, input_type=dict]\n"
+                # "1 validation error for Domain\ndata\n"
+                # "  Field required [type=missing, input_value={'intentionally': "
+                # "'wrong data'}, input_type=dict]\n"
                 "Object missing required field `data`\n"
             )
             assert e.type is SystemExit

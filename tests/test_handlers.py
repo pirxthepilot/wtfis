@@ -110,9 +110,9 @@ class TestDomainHandler:
 
             assert e.value.args[0].startswith(
                 "Data model validation error: "
-                #"1 validation error for Domain\ndata\n"
-                #"  Field required [type=missing, input_value={'intentionally': "
-                #"'wrong data'}, input_type=dict]\n"
+                # "1 validation error for Domain\ndata\n"
+                # "  Field required [type=missing, input_value={'intentionally': "
+                # "'wrong data'}, input_type=dict]\n"
                 "Object missing required field `data`"
             )
             assert e.type is HandlerException
@@ -164,7 +164,7 @@ class TestDomainHandler:
 
             assert e.value.args[0].startswith(
                 "Data model validation error: "
-                #"1 validation error for IpWhois\n"
+                # "1 validation error for IpWhois\n"
                 "Object missing required field `ip`"
             )
             assert e.type is HandlerException
@@ -348,7 +348,7 @@ class TestDomainHandler:
 
             assert e.value.args[0].startswith(
                 "Data model validation error: "
-                #"5 validation errors for GreynoiseIp\n"
+                # "5 validation errors for GreynoiseIp\n"
                 "Object missing required field `ip`"
             )
             assert e.type is HandlerException
@@ -427,9 +427,9 @@ class TestIpAddressHandler:
 
             assert e.value.args[0].startswith(
                 "Data model validation error: "
-                #"1 validation error for IpAddress\ndata\n"
-                #"  Field required [type=missing, input_value={'intentionally': "
-                #"'wrong data'}, input_type=dict]\n"
+                # "1 validation error for IpAddress\ndata\n"
+                # "  Field required [type=missing, input_value={'intentionally': "
+                # "'wrong data'}, input_type=dict]\n"
                 "Object missing required field `data`"
             )
             assert e.type is HandlerException
@@ -491,7 +491,7 @@ class TestIpAddressHandler:
 
             assert e.value.args[0].startswith(
                 "Data model validation error: "
-                #"1 validation error for IpWhois\n"
+                # "1 validation error for IpWhois\n"
                 "Object missing required field `ip`"
             )
             assert e.type is HandlerException
@@ -628,7 +628,7 @@ class TestIpAddressHandler:
 
             assert e.value.args[0].startswith(
                 "Data model validation error: "
-                #"5 validation errors for GreynoiseIp\n"
+                # "5 validation errors for GreynoiseIp\n"
                 "Object missing required field `ip`"
             )
             assert e.type is HandlerException

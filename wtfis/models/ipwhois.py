@@ -14,7 +14,7 @@ from wtfis.models.base import IpGeoAsnBase, MapBase
 
 
 def path2str(d: dict, *path) -> Optional[str]:
-    'd[path0][path1]...[pathN] or None'
+    "d[path0][path1]...[pathN] or None"
     v = None
     try:
         for p in path:
