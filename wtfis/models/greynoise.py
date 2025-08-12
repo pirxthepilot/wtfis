@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
+import json
+from typing import Optional
 
-from pydantic import BaseModel, RootModel
+import msgspec
+
+from .base import MapBase
+
+# pylint: disable=too-few-public-methods
 
 
-class GreynoiseIp(BaseModel):
+class GreynoiseIp(msgspec.Struct):
     ip: str
     noise: bool
     riot: bool
@@ -15,10 +20,10 @@ class GreynoiseIp(BaseModel):
     name: Optional[str] = None
     last_seen: Optional[str] = None
 
+    @staticmethod
+    def model_validate(d: dict) -> "GreynoiseIp":
+        obj: GreynoiseIp = msgspec.json.decode(json.dumps(d), type=GreynoiseIp)
+        return obj
 
-class GreynoiseIpMap(RootModel):
-    root: Dict[str, GreynoiseIp]
 
-    @classmethod
-    def empty(cls) -> GreynoiseIpMap:
-        return cls.model_validate({})
+GreynoiseIpMap = MapBase[GreynoiseIp]

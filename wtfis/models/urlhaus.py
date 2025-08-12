@@ -1,16 +1,22 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Set
+import json
+from functools import cached_property
+from typing import List, Optional, Set
 
-from pydantic import BaseModel, RootModel, field_validator
+import msgspec
+
+from .base import MapBase
+
+# pylint: disable=too-few-public-methods
 
 
-class Blacklists(BaseModel):
+class Blacklists(msgspec.Struct):
     spamhaus_dbl: str
     surbl: str
 
 
-class Url(BaseModel):
+class Url(msgspec.Struct, dict=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
     id: str
     urlhaus_reference: str
     url: str
@@ -18,30 +24,29 @@ class Url(BaseModel):
     date_added: str
     threat: str
     reporter: str
-    larted: bool
-    takedown_time_seconds: Optional[int]
+    _larted: str = msgspec.field(name="larted")
+    _takedown_time_seconds: Optional[str] = msgspec.field(name="takedown_time_seconds")
     tags: List[str] = []
 
-    @field_validator("larted", mode="before")
-    @classmethod
-    def convert_larted(cls, v):
-        """Cast larted to bool"""
-        mapping = {"true": True, "false": False}
-        return mapping[v.lower()]
+    mapping = {"true": True, "false": False}
 
-    @field_validator("tags", mode="before")
-    @classmethod
-    def handle_none_tags(cls, v):
-        """Turn NoneType tags into an empty list"""
-        return [] if v is None else v
+    @cached_property
+    def larted(self) -> bool:
+        return self.mapping[self._larted.lower()]
+
+    @cached_property
+    def takedown_time_seconds(self) -> Optional[int]:
+        if self._takedown_time_seconds is not None:
+            return int(self._takedown_time_seconds)
+        return self._takedown_time_seconds
 
 
-class UrlHaus(BaseModel):
+class UrlHaus(msgspec.Struct, dict=True):  # type: ignore[call-arg]
     query_status: str
     urlhaus_reference: Optional[str] = None
     host: Optional[str] = None
     firstseen: Optional[str] = None
-    url_count: Optional[int] = None
+    _url_count: Optional[str] = msgspec.field(name="url_count", default=None)
     blacklists: Optional[Blacklists] = None
     urls: List[Url] = []
     _online_url_count: Optional[int] = None
@@ -49,13 +54,11 @@ class UrlHaus(BaseModel):
 
     # Extracted fields
 
-    @field_validator("url_count", mode="before")
-    @classmethod
-    def convert_url_count(cls, v):
-        """Cast url_count to int"""
-        return int(v) if v else None
+    @cached_property
+    def url_count(self) -> Optional[int]:
+        return int(self._url_count) if self._url_count else None
 
-    @property
+    @cached_property
     def online_url_count(self) -> int:
         if not self._online_url_count:
             self._online_url_count = (
@@ -65,7 +68,7 @@ class UrlHaus(BaseModel):
             )
         return self._online_url_count
 
-    @property
+    @cached_property
     def tags(self) -> List[str]:
         if not self._tags:
             for url in self.urls:
@@ -73,10 +76,10 @@ class UrlHaus(BaseModel):
                     self._tags.add(tag)
         return sorted(self._tags)
 
+    @staticmethod
+    def model_validate(d: dict) -> "UrlHaus":
+        obj: UrlHaus = msgspec.json.decode(json.dumps(d), type=UrlHaus)
+        return obj
 
-class UrlHausMap(RootModel):
-    root: Dict[str, UrlHaus]
 
-    @classmethod
-    def empty(cls) -> UrlHausMap:
-        return cls.model_validate({})
+UrlHausMap = MapBase[UrlHaus]

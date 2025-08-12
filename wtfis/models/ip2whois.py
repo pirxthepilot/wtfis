@@ -1,53 +1,77 @@
+import json
+from functools import cached_property
 from typing import List, Optional
 
-from pydantic import Field, field_validator, model_validator
+import msgspec
 
 from wtfis.models.base import WhoisBase
 
+# pylint: disable=too-few-public-methods
 
-class Whois(WhoisBase):
-    source: str = "ip2whois"
-    domain: str = ""
-    registrar: Optional[str] = None
+
+class Registrant(msgspec.Struct):
     organization: Optional[str] = None
     name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
-    street: Optional[str] = Field(None, alias="street_address")
+    street: Optional[str] = msgspec.field(name="street_address", default=None)
     city: Optional[str] = None
-    state: Optional[str] = Field(None, alias="region")
+    state: Optional[str] = msgspec.field(name="region", default=None)
     country: Optional[str] = None
-    postal_code: Optional[str] = Field(None, alias="zip_code")
-    name_servers: List[str] = Field([], alias="nameservers")
-    date_created: Optional[str] = Field(None, alias="create_date")
-    date_changed: Optional[str] = Field(None, alias="update_date")
-    date_expires: Optional[str] = Field(None, alias="expire_date")
+    postal_code: Optional[str] = msgspec.field(name="zip_code", default=None)
+
+
+class Registrar(msgspec.Struct):
+    name: Optional[str] = None
+
+
+class WhoisMsg(msgspec.Struct, dict=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
+    domain: str = ""
+    _registrar: Optional[Registrar] = msgspec.field(name="registrar", default=None)
+    registrant: Optional[Registrant] = None
+    name_servers: List[str] = msgspec.field(name="nameservers", default_factory=list)
+    date_created: Optional[str] = msgspec.field(name="create_date", default=None)
+    date_changed: Optional[str] = msgspec.field(name="update_date", default=None)
+    date_expires: Optional[str] = msgspec.field(name="expire_date", default=None)
     whois_server: Optional[str] = None
     dnssec: Optional[str] = None
 
-    @model_validator(mode="before")
-    @classmethod
-    def extract_registrant(cls, v):
-        """Surface registrant fields to root level"""
-        registrant = v.pop("registrant", {})
-        if not registrant:
-            return v
-        for field in [
-            "organization",
-            "name",
-            "email",
-            "phone",
-            "street_address",
-            "city",
-            "region",
-            "country",
-            "zip_code",
-        ]:
-            v[field] = registrant.get(field)
-        return v
+    @cached_property
+    def registrar(self) -> Optional[str]:
+        if self._registrar:
+            return self._registrar.name
+        return None
 
-    @field_validator("registrar", mode="before")
-    @classmethod
-    def transform_registrar(cls, v):
-        """Convert registrar from dict to simply registrar.name"""
-        return v.get("name") if v else v
+
+class Whois(WhoisBase):
+    source = "ip2whois"
+
+    @staticmethod
+    def model_validate(d: dict) -> "Whois":
+        obj: WhoisMsg = msgspec.json.decode(json.dumps(d), type=WhoisMsg)
+        whois = Whois()
+        if r := obj.registrant:
+            for name in [
+                "organization",
+                "name",
+                "email",
+                "phone",
+                "street",
+                "city",
+                "state",
+                "country",
+                "postal_code",
+            ]:
+                setattr(whois, name, getattr(r, name))
+        for name in [
+            "domain",
+            "registrar",
+            "name_servers",
+            "date_created",
+            "date_changed",
+            "date_expires",
+            "whois_server",
+            "dnssec",
+        ]:
+            setattr(whois, name, getattr(obj, name))
+        return whois

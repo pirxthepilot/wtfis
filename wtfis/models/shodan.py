@@ -1,21 +1,24 @@
 from __future__ import annotations
 
+import json
 from collections import defaultdict, namedtuple
-from typing import Dict, List, Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, RootModel
+import msgspec
 
-from wtfis.models.base import LaxStr
+from .base import MapBase
+
+# pylint: disable=too-few-public-methods
 
 
-class PortData(BaseModel):
+class PortData(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
     port: int
     product: Optional[str] = None
     transport: str
 
 
-class ShodanIp(BaseModel):
-    asn: Optional[LaxStr] = None
+class ShodanIp(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]
+    asn: Optional[str] = None
     city: Optional[str] = None
     country_code: str
     country_name: str
@@ -43,10 +46,10 @@ class ShodanIp(BaseModel):
             result["Other"] = unknown
         return result
 
+    @staticmethod
+    def model_validate(d: dict) -> "ShodanIp":
+        obj: ShodanIp = msgspec.json.decode(json.dumps(d), type=ShodanIp)
+        return obj
 
-class ShodanIpMap(RootModel):
-    root: Dict[str, ShodanIp]
 
-    @classmethod
-    def empty(cls) -> ShodanIpMap:
-        return cls.model_validate({})
+ShodanIpMap = MapBase[ShodanIp]
