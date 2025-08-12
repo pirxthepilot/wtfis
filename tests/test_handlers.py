@@ -62,7 +62,7 @@ class TestDomainHandler:
         handler._fetch_urlhaus.assert_called_once()
 
         assert handler.geoasn == IpWhoisMap.model_validate({})
-        assert handler.geoasn.root == {}
+        assert handler.geoasn == {}
 
     @patch.object(requests.Session, "get")
     def test_vt_http_error(self, mock_requests_get, domain_handler):
@@ -93,7 +93,7 @@ class TestDomainHandler:
     @patch.object(requests.Session, "get")
     def test_vt_validation_error(self, mock_requests_get, domain_handler):
         """
-        Test a pydantic data model ValidationError from the VT client. This also tests
+        Test ValidationError from the VT client. This also tests
         the common_exception_handler decorator.
         """
         handler = domain_handler()
@@ -109,9 +109,11 @@ class TestDomainHandler:
                 handler._fetch_vt_domain()
 
             assert e.value.args[0].startswith(
-                "Data model validation error: 1 validation error for Domain\ndata\n"
-                "  Field required [type=missing, input_value={'intentionally': "
-                "'wrong data'}, input_type=dict]\n"
+                "Data model validation error: "
+                #"1 validation error for Domain\ndata\n"
+                #"  Field required [type=missing, input_value={'intentionally': "
+                #"'wrong data'}, input_type=dict]\n"
+                "Object missing required field `data`"
             )
             assert e.type is HandlerException
 
@@ -161,7 +163,9 @@ class TestDomainHandler:
                 handler._fetch_geoasn("1.2.3.4")
 
             assert e.value.args[0].startswith(
-                "Data model validation error: 1 validation error for IpWhois\n"
+                "Data model validation error: "
+                #"1 validation error for IpWhois\n"
+                "Object missing required field `ip`"
             )
             assert e.type is HandlerException
 
@@ -343,7 +347,9 @@ class TestDomainHandler:
                 handler._fetch_greynoise("1.2.3.4")
 
             assert e.value.args[0].startswith(
-                "Data model validation error: 5 validation errors for GreynoiseIp\n"
+                "Data model validation error: "
+                #"5 validation errors for GreynoiseIp\n"
+                "Object missing required field `ip`"
             )
             assert e.type is HandlerException
 
@@ -420,9 +426,11 @@ class TestIpAddressHandler:
                 handler._fetch_vt_ip_address()
 
             assert e.value.args[0].startswith(
-                "Data model validation error: 1 validation error for IpAddress\ndata\n"
-                "  Field required [type=missing, input_value={'intentionally': "
-                "'wrong data'}, input_type=dict]\n"
+                "Data model validation error: "
+                #"1 validation error for IpAddress\ndata\n"
+                #"  Field required [type=missing, input_value={'intentionally': "
+                #"'wrong data'}, input_type=dict]\n"
+                "Object missing required field `data`"
             )
             assert e.type is HandlerException
 
@@ -482,7 +490,9 @@ class TestIpAddressHandler:
                 handler._fetch_geoasn("1.2.3.4")
 
             assert e.value.args[0].startswith(
-                "Data model validation error: 1 validation error for IpWhois\n"
+                "Data model validation error: "
+                #"1 validation error for IpWhois\n"
+                "Object missing required field `ip`"
             )
             assert e.type is HandlerException
 
@@ -617,7 +627,9 @@ class TestIpAddressHandler:
                 handler._fetch_greynoise("1.2.3.4")
 
             assert e.value.args[0].startswith(
-                "Data model validation error: 5 validation errors for GreynoiseIp\n"
+                "Data model validation error: "
+                #"5 validation errors for GreynoiseIp\n"
+                "Object missing required field `ip`"
             )
             assert e.type is HandlerException
 
