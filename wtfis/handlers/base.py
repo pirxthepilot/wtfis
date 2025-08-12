@@ -2,8 +2,8 @@ import abc
 from dataclasses import dataclass
 from typing import Callable, Generator, List, Optional, Tuple, Union
 
-from pydantic import ValidationError
-from requests.exceptions import (
+from msgspec import ValidationError
+from requests.exceptions import (  # pylint: disable=redefined-builtin
     ConnectionError,
     HTTPError,
     JSONDecodeError,
