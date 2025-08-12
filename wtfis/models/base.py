@@ -1,25 +1,18 @@
 from __future__ import annotations
 
-import abc
-import sys
-from typing import List, Mapping, Optional
+from functools import cached_property
+from typing import ClassVar, Dict, List, Optional, TypeVar
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, RootModel
-from pydantic.v1.validators import str_validator
+import msgspec
 
-if sys.version_info >= (3, 9):
-    from typing import Annotated
-else:
-    from typing_extensions import Annotated  # pragma: no coverage
+# pylint: disable=too-few-public-methods
 
 
-LaxStr = Annotated[str, BeforeValidator(str_validator)]
-
-
-class WhoisBase(BaseModel, abc.ABC):
+class WhoisBase:
     """Use to normalize WHOIS fields from different sources"""
 
-    source: Optional[str] = None
+    source: ClassVar[str]
+
     domain: Optional[str] = None
     registrar: Optional[str] = None
     organization: Optional[str] = None
@@ -38,10 +31,8 @@ class WhoisBase(BaseModel, abc.ABC):
     dnssec: Optional[str] = None
 
 
-class IpGeoAsnBase(BaseModel, abc.ABC):
+class IpGeoAsnBase(msgspec.Struct, kw_only=True, dict=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
     """Use to normalize IP geolocation and ASN fields"""
-
-    model_config = ConfigDict(coerce_numbers_to_str=True)
 
     ip: str
 
@@ -58,16 +49,36 @@ class IpGeoAsnBase(BaseModel, abc.ABC):
     # Other
     domain: Optional[str] = None
     hostname: Optional[str] = None
-    is_proxy: Optional[LaxStr] = None  # Cast bool to str
-    is_anycast: Optional[LaxStr] = None  # Cast bool to str
+    _is_proxy: Optional[bool] = msgspec.field(name="is_proxy", default=None)
+    _is_anycast: Optional[bool] = msgspec.field(name="is_anycast", default=None)
 
     # Meta
     link: Optional[str] = None
 
+    @cached_property
+    def is_proxy(self) -> Optional[str]:
+        if self._is_proxy is not None:
+            return str(self._is_proxy)
+        return None
 
-class IpGeoAsnMapBase(RootModel, abc.ABC):
-    root: Mapping[str, IpGeoAsnBase]
+    @cached_property
+    def is_anycast(self) -> Optional[str]:
+        if self._is_anycast is not None:
+            return str(self._is_anycast)
+        return None
 
+
+T = TypeVar("T")
+
+
+class MapBase(Dict[str, T]):
     @classmethod
-    def empty(cls) -> IpGeoAsnMapBase:
+    def empty(cls) -> MapBase[T]:
         return cls.model_validate({})  # pragma: no coverage
+
+    @staticmethod
+    def model_validate(d: dict) -> MapBase[T]:
+        obj = MapBase[T]()
+        for k, v in d.items():
+            obj[k] = v
+        return obj
