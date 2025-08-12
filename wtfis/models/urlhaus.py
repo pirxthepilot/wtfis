@@ -16,7 +16,7 @@ class Blacklists(msgspec.Struct):
     surbl: str
 
 
-class Url(msgspec.Struct, dict=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
+class Url(msgspec.Struct, dict=True):  # type: ignore[call-arg]
     id: str
     urlhaus_reference: str
     url: str

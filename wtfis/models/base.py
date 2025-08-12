@@ -31,7 +31,7 @@ class WhoisBase:
     dnssec: Optional[str] = None
 
 
-class IpGeoAsnBase(msgspec.Struct, kw_only=True, dict=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
+class IpGeoAsnBase(msgspec.Struct, kw_only=True, dict=True):  # type: ignore[call-arg]
     """Use to normalize IP geolocation and ASN fields"""
 
     ip: str

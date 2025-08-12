@@ -10,7 +10,7 @@ from .base import MapBase
 # pylint: disable=too-few-public-methods
 
 
-class AbuseIpDb(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
+class AbuseIpDb(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]
     ip_address: str = msgspec.field(name="ipAddress")
     is_public: Optional[bool] = msgspec.field(name="isPublic", default=None)
     ip_version: Optional[int] = msgspec.field(name="ipVersion", default=None)

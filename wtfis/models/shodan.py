@@ -11,7 +11,7 @@ from .base import MapBase
 # pylint: disable=too-few-public-methods
 
 
-class PortData(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
+class PortData(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]
     port: int
     product: Optional[str] = None
     transport: str

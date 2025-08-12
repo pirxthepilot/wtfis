@@ -25,7 +25,7 @@ class Registrar(msgspec.Struct):
     name: Optional[str] = None
 
 
-class WhoisMsg(msgspec.Struct, dict=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
+class WhoisMsg(msgspec.Struct, dict=True):  # type: ignore[call-arg]
     domain: str = ""
     _registrar: Optional[Registrar] = msgspec.field(name="registrar", default=None)
     registrant: Optional[Registrant] = None

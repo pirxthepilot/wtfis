@@ -10,7 +10,7 @@ from wtfis.models.base import WhoisBase
 # pylint: disable=too-few-public-methods
 
 
-class BaseData(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
+class BaseData(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]
     attributes: Any = None
     id_: str = msgspec.field(name="id")
     type_: str = msgspec.field(name="type")

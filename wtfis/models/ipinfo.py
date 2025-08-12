@@ -16,7 +16,7 @@ from wtfis.models.base import IpGeoAsnBase, MapBase
 # pylint: disable=too-few-public-methods
 
 
-class IpInfo(IpGeoAsnBase, kw_only=True, dict=True):  # type: ignore[call-arg]  # https://github.com/python/mypy/issues/11036
+class IpInfo(IpGeoAsnBase, kw_only=True, dict=True):  # type: ignore[call-arg]
     # Metadata
     source = "IPinfo"
 
