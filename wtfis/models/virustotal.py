@@ -1,32 +1,36 @@
-from typing import Any, Dict, List, Optional, Set
+import json
+from datetime import datetime, timezone
+from functools import cached_property
+from typing import Any, Dict, List, Optional, Set, Union
 
-from pydantic import BaseModel, Field, RootModel, field_validator, model_validator
+import msgspec
 
-from wtfis.models.base import LaxStr, WhoisBase
+from wtfis.models.base import WhoisBase
+
+# pylint: disable=too-few-public-methods
 
 
-class BaseData(BaseModel):
+class BaseData(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]
     attributes: Any = None
-    id_: str = Field(alias="id")
-    type_: str = Field(alias="type")
+    id_: str = msgspec.field(name="id")
+    type_: str = msgspec.field(name="type")
 
 
-class Meta(BaseModel):
+class Meta(msgspec.Struct):
     count: int
 
 
-class AnalysisResult(BaseModel):
+class AnalysisResult(msgspec.Struct):
     category: str
     engine_name: str
     method: str
     result: str
 
 
-class LastAnalysisResults(RootModel):
-    root: Dict[str, AnalysisResult]
+LastAnalysisResults = Dict[str, AnalysisResult]
 
 
-class LastAnalysisStats(BaseModel):
+class LastAnalysisStats(msgspec.Struct):
     harmless: int
     malicious: int
     suspicious: int
@@ -34,16 +38,15 @@ class LastAnalysisStats(BaseModel):
     undetected: int
 
 
-class Popularity(BaseModel):
+class Popularity(msgspec.Struct):
     rank: int
     timestamp: int
 
 
-class PopularityRanks(RootModel):
-    root: Dict[str, Popularity]
+PopularityRanks = Dict[str, Popularity]
 
 
-class BaseAttributes(BaseModel):
+class BaseAttributes(msgspec.Struct, kw_only=True):  # type: ignore[call-arg]
     jarm: Optional[str] = None
     last_analysis_results: LastAnalysisResults
     last_analysis_stats: LastAnalysisStats
@@ -53,19 +56,18 @@ class BaseAttributes(BaseModel):
     tags: List[str]
 
 
-class DomainAttributes(BaseAttributes):
-    categories: List[str]
+class DomainAttributes(BaseAttributes, kw_only=True, dict=True):  # type: ignore[call-arg]
+    _categories: Dict[str, str] = msgspec.field(name="categories")
     creation_date: Optional[int] = None
     last_dns_records_date: Optional[int] = None
     last_update_date: Optional[int] = None
     popularity_ranks: PopularityRanks
     registrar: Optional[str] = None
 
-    @field_validator("categories", mode="before")
-    @classmethod
-    def transform_categories(cls, v):
+    @cached_property
+    def categories(self) -> List[str]:
         cats: Set[str] = set()
-        for category in v.values():
+        for category in self._categories.values():
             for delimiter in [", ", ",", "/", " / "]:
                 if delimiter in category:
                     cats = cats | set(category.lower().split(delimiter))
@@ -79,26 +81,40 @@ class DomainData(BaseData):
     attributes: DomainAttributes
 
 
-class Domain(BaseModel):
+class Domain(msgspec.Struct):
     data: DomainData
 
+    @staticmethod
+    def model_validate(d: dict) -> "Domain":
+        obj: Domain = msgspec.json.decode(json.dumps(d), type=Domain)
+        return obj
 
-class IpAttributes(BaseAttributes):
-    asn: Optional[LaxStr] = None
+
+class IpAttributes(BaseAttributes, dict=True):  # type: ignore[call-arg]
+    _asn: Optional[int] = msgspec.field(name="asn", default=None)
     continent: Optional[str] = None
     country: Optional[str] = None
     network: Optional[str] = None
+
+    @cached_property
+    def asn(self) -> Optional[str]:
+        return str(self._asn) if self._asn else None
 
 
 class IpData(BaseData):
     attributes: IpAttributes
 
 
-class IpAddress(BaseModel):
+class IpAddress(msgspec.Struct):
     data: IpData
 
+    @staticmethod
+    def model_validate(d: dict) -> "IpAddress":
+        obj: IpAddress = msgspec.json.decode(json.dumps(d), type=IpAddress)
+        return obj
 
-class ResolutionAttributes(BaseModel):
+
+class ResolutionAttributes(msgspec.Struct):
     date: int
     host_name: str
     resolver: str
@@ -111,7 +127,7 @@ class ResolutionData(BaseData):
     attributes: ResolutionAttributes
 
 
-class Resolutions(BaseModel):
+class Resolutions(msgspec.Struct):
     meta: Meta
     data: List[ResolutionData]
 
@@ -126,82 +142,102 @@ class Resolutions(BaseModel):
                 ips.append(resolution.attributes.ip_address)
         return ips
 
+    @staticmethod
+    def model_validate(d: dict) -> "Resolutions":
+        obj: Resolutions = msgspec.json.decode(json.dumps(d), type=Resolutions)
+        return obj
+
+
+class WhoisMsg(msgspec.Struct):
+    domain: str = msgspec.field(name="Domain Name", default="")
+
+    registrar1: str = msgspec.field(name="registrar_name", default="")
+    registrar2: str = msgspec.field(name="Registrar", default="")
+
+    organization: Optional[str] = msgspec.field(
+        name="Registrant Organization", default=None
+    )
+
+    name1: Optional[str] = msgspec.field(name="registrant_name", default=None)
+    name2: Optional[str] = msgspec.field(name="Registrant Name", default=None)
+
+    email: Optional[str] = msgspec.field(name="Registrant Email", default=None)
+    phone: Optional[str] = msgspec.field(name="Registrant Phone", default=None)
+    street: Optional[str] = msgspec.field(name="Registrant Street", default=None)
+    city: Optional[str] = msgspec.field(name="Registrant City", default=None)
+    state: Optional[str] = msgspec.field(name="Registrant State/Province", default=None)
+
+    country1: Optional[str] = msgspec.field(name="registrant_country", default=None)
+    country2: Optional[str] = msgspec.field(name="Registrant Country", default=None)
+
+    postal_code: Optional[str] = msgspec.field(
+        name="Registrant Postal Code", default=None
+    )
+    name_server: Optional[str] = msgspec.field(name="Name Server", default=None)
+
+    date_created1: Optional[str] = msgspec.field(name="Creation Date", default=None)
+    date_created2: Optional[str] = msgspec.field(name="Registered on", default=None)
+
+    date_changed1: Optional[int] = msgspec.field(name="last_updated", default=None)
+    date_changed2: Optional[str] = msgspec.field(name="Updated Date", default=None)
+    date_changed3: Optional[str] = msgspec.field(name="Last updated", default=None)
+
+    date_expires1: Optional[str] = msgspec.field(name="Expiry Date", default=None)
+    date_expires2: Optional[str] = msgspec.field(
+        name="Registry Expiry Date", default=None
+    )
+    date_expires3: Optional[str] = msgspec.field(name="Expiry date", default=None)
+
+    dnssec: Optional[str] = msgspec.field(name="DNSSEC", default=None)
+
+
+def int2time2str(x: Union[int, str, None]) -> Union[str, None]:
+    if isinstance(x, int):
+        dt = datetime.fromtimestamp(x, timezone.utc)
+        return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return x
+
+
+def dedupe_values(v: Union[str, None]) -> Union[str, None]:
+    if v and "|" in v:
+        return v.split(" | ")[0]
+    return v
+
 
 class Whois(WhoisBase):
-    source: str = "virustotal"
-    domain: str = Field("", alias="Domain Name")
-    registrar: Optional[str] = None
-    organization: Optional[str] = Field(None, alias="Registrant Organization")
-    name: Optional[str] = None
-    email: Optional[str] = Field(None, alias="Registrant Email")
-    phone: Optional[str] = Field(None, alias="Registrant Phone")
-    street: Optional[str] = Field(None, alias="Registrant Street")
-    city: Optional[str] = Field(None, alias="Registrant City")
-    state: Optional[str] = Field(None, alias="Registrant State/Province")
-    country: Optional[str] = None
-    postal_code: Optional[str] = Field(None, alias="Registrant Postal Code")
-    name_servers: List[str] = Field([], alias="Name Server")
-    date_created: Optional[str] = None
-    date_changed: Optional[LaxStr] = None
-    date_expires: Optional[str] = None
-    dnssec: Optional[str] = Field(None, alias="DNSSEC")
+    source = "virustotal"
 
-    @model_validator(mode="before")
-    @classmethod
-    def get_latest_whois_record_and_transform(cls, v):
-        data = v.pop("data")
-        if not data:
-            return {}
-        transformed = data[0].get("attributes", {})
-
+    @staticmethod
+    def model_validate(d: dict) -> "Whois":
+        try:
+            transformed = d["data"][0]["attributes"]
+        except (KeyError, IndexError):
+            transformed = {}
         # Flatten
-        transformed = {**transformed.pop("whois_map"), **transformed}
+        transformed = {**transformed.get("whois_map", {}), **transformed}
 
-        # Normalized fields with multiple possible sources
-        fields_w_multiple_possible_sources = {
-            "date_changed": (
-                transformed.pop("last_updated", None)
-                or transformed.pop("Updated Date", None)
-                or transformed.pop("Last updated", None)
-            ),
-            "date_created": (
-                transformed.pop("Creation Date", None)
-                or transformed.pop("Registered on", None)
-            ),
-            "date_expires": (
-                transformed.pop("Expiry Date", None)
-                or transformed.pop("Registry Expiry Date", None)
-                or transformed.pop("Expiry date", None)
-            ),
-            "name": (
-                transformed.pop("registrant_name", None)
-                or transformed.pop("Registrant Name", None)
-            ),
-            "country": (
-                transformed.pop("registrant_country", None)
-                or transformed.pop("Registrant Country", None)
-            ),
-            "registrar": (
-                transformed.pop("registrar_name", None)
-                or transformed.pop("Registrar", None)
-            ),
-        }
-
-        return {**transformed, **fields_w_multiple_possible_sources}
-
-    @field_validator("name_servers", mode="before")
-    @classmethod
-    def transform_nameservers(cls, v):
-        return v.lower().split(" | ")
-
-    @field_validator("domain", mode="before")
-    @classmethod
-    def lowercase_domain(cls, v):
-        return v.lower()
-
-    @field_validator("*")
-    @classmethod
-    def dedupe_values(cls, v):
-        if v is not None and "|" in v:
-            return v.split(" | ")[0]
-        return v
+        obj: WhoisMsg = msgspec.json.decode(json.dumps(transformed), type=WhoisMsg)
+        whois = Whois()
+        # copy fields
+        whois.domain = dedupe_values(obj.domain.lower())
+        whois.registrar = obj.registrar1 or obj.registrar2
+        whois.organization = obj.organization
+        whois.name = obj.name1 or obj.name2
+        whois.email = obj.email
+        whois.phone = obj.phone
+        whois.street = obj.street
+        whois.city = obj.city
+        whois.state = obj.state
+        whois.country = obj.country1 or obj.country2
+        whois.postal_code = obj.postal_code
+        if v := obj.name_server:
+            whois.name_servers = v.lower().split(" | ")
+        else:
+            whois.name_servers = []
+        whois.date_created = obj.date_created1 or obj.date_created2
+        whois.date_changed = int2time2str(
+            obj.date_changed1 or obj.date_changed2 or obj.date_changed3
+        )
+        whois.date_expires = obj.date_expires1 or obj.date_expires2 or obj.date_expires3
+        whois.dnssec = obj.dnssec
+        return whois

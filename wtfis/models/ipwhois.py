@@ -5,32 +5,37 @@ API doc: https://ipwhois.io/documentation
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+import json
+from typing import Optional
 
-from pydantic import AliasPath, ConfigDict, Field
+import msgspec
 
-from wtfis.models.base import IpGeoAsnBase, IpGeoAsnMapBase
+from wtfis.models.base import IpGeoAsnBase, MapBase
+
+
+def path2str(d: dict, *path) -> Optional[str]:
+    "d[path0][path1]...[pathN] or None"
+    v = None
+    try:
+        for p in path:
+            v = d = d[p]
+    except KeyError:
+        v = None
+    return str(v) if v else None
 
 
 class IpWhois(IpGeoAsnBase):
     # Metadata
-    source: str = "IPWhois"
+    source = "IPWhois"
 
-    # Config
-    model_config = ConfigDict(populate_by_name=True)
-
-    # Results
-    asn: Optional[str] = Field(None, validation_alias=AliasPath("connection", "asn"))
-    org: Optional[str] = Field(None, validation_alias=AliasPath("connection", "org"))
-    isp: Optional[str] = Field(None, validation_alias=AliasPath("connection", "isp"))
-    domain: Optional[str] = Field(
-        None, validation_alias=AliasPath("connection", "domain")
-    )
+    @staticmethod
+    def model_validate(d: dict) -> "IpWhois":
+        d["asn"] = path2str(d, "connection", "asn")
+        d["org"] = path2str(d, "connection", "org")
+        d["isp"] = path2str(d, "connection", "isp")
+        d["domain"] = path2str(d, "connection", "domain")
+        obj: IpWhois = msgspec.json.decode(json.dumps(d), type=IpWhois)
+        return obj
 
 
-class IpWhoisMap(IpGeoAsnMapBase):  # type: ignore[override]
-    root: Dict[str, IpWhois]
-
-    @classmethod
-    def empty(cls) -> IpWhoisMap:
-        return cls.model_validate({})
+IpWhoisMap = MapBase[IpWhois]

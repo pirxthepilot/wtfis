@@ -46,7 +46,7 @@ class BaseView(abc.ABC):
         for (
             key,
             result,
-        ) in self.entity.data.attributes.last_analysis_results.root.items():
+        ) in self.entity.data.attributes.last_analysis_results.items():
             if result.category == "malicious":
                 vendors.append(key)
         return vendors
@@ -159,16 +159,16 @@ class BaseView(abc.ABC):
         return Text(str(reputation), style=rep_style(reputation))
 
     def _gen_vt_popularity(self, popularity_ranks: PopularityRanks) -> Optional[Text]:
-        if len(popularity_ranks.root) == 0:
+        if len(popularity_ranks) == 0:
             return None
 
         text = Text()
-        for source, popularity in popularity_ranks.root.items():
+        for source, popularity in popularity_ranks.items():
             text.append(source, style=self.theme.popularity_source)
             text.append(" (")
             text.append(str(popularity.rank), style=self.theme.inline_stat)
             text.append(")")
-            if source != list(popularity_ranks.root.keys())[-1]:
+            if source != list(popularity_ranks.keys())[-1]:
                 text.append("\n")
         return text
 
@@ -308,19 +308,19 @@ class BaseView(abc.ABC):
         return text
 
     def _get_geoasn_enrichment(self, ip: str) -> Optional[IpGeoAsnType]:
-        return self.geoasn.root[ip] if ip in self.geoasn.root.keys() else None
+        return self.geoasn[ip] if ip in self.geoasn.keys() else None
 
     def _get_shodan_enrichment(self, ip: str) -> Optional[ShodanIp]:
-        return self.shodan.root[ip] if ip in self.shodan.root.keys() else None
+        return self.shodan[ip] if ip in self.shodan.keys() else None
 
     def _get_greynoise_enrichment(self, ip: str) -> Optional[GreynoiseIp]:
-        return self.greynoise.root[ip] if ip in self.greynoise.root.keys() else None
+        return self.greynoise[ip] if ip in self.greynoise.keys() else None
 
     def _get_abuseipdb_enrichment(self, ip: str) -> Optional[AbuseIpDb]:
-        return self.abuseipdb.root[ip] if ip in self.abuseipdb.root.keys() else None
+        return self.abuseipdb[ip] if ip in self.abuseipdb.keys() else None
 
     def _get_urlhaus_enrichment(self, entity: str) -> Optional[UrlHaus]:
-        return self.urlhaus.root[entity] if entity in self.urlhaus.root.keys() else None
+        return self.urlhaus[entity] if entity in self.urlhaus.keys() else None
 
     def _gen_vt_section(self) -> RenderableType:
         """Virustotal section. Applies to both domain and IP views"""

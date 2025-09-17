@@ -929,7 +929,7 @@ class TestFetchData:
     def test_vt_validation_error(self, mock_requests_get, domain_handler, capsys):
         """
         Test main.fetch_data().
-        Test a pydantic data model ValidationError from the VT client. This also tests
+        Test ValidationError from the VT client. This also tests
         the common_exception_handler decorator.
         """
         handler = domain_handler()
@@ -947,9 +947,11 @@ class TestFetchData:
             capture = capsys.readouterr()
 
             assert capture.err.startswith(
-                "Data model validation error: 1 validation error for Domain\ndata\n"
-                "  Field required [type=missing, input_value={'intentionally': "
-                "'wrong data'}, input_type=dict]\n"
+                "Data model validation error: "
+                # "1 validation error for Domain\ndata\n"
+                # "  Field required [type=missing, input_value={'intentionally': "
+                # "'wrong data'}, input_type=dict]\n"
+                "Object missing required field `data`\n"
             )
             assert e.type is SystemExit
             assert e.value.code == 1

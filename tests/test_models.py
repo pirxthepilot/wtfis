@@ -16,7 +16,7 @@ class TestVirustotalModels:
         assert domain.data.attributes.last_analysis_stats.suspicious == 0
         assert domain.data.attributes.last_analysis_stats.harmless == 84
         assert domain.data.attributes.last_analysis_stats.undetected == 10
-        assert list(domain.data.attributes.last_analysis_results.root.keys())[:2] == [
+        assert list(domain.data.attributes.last_analysis_results.keys())[:2] == [
             "CMC Threat Intelligence",
             "Snort IP sample list",
         ]

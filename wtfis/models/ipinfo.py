@@ -5,27 +5,26 @@ API doc: https://ipinfo.io/developers
 
 from __future__ import annotations
 
+import json
 import re
-from typing import Dict, Optional
+from typing import Optional
 
-from pydantic import AliasPath, ConfigDict, Field, model_validator
+import msgspec
 
-from wtfis.models.base import IpGeoAsnBase, IpGeoAsnMapBase, LaxStr
+from wtfis.models.base import IpGeoAsnBase, MapBase
+
+# pylint: disable=too-few-public-methods
 
 
-class IpInfo(IpGeoAsnBase):
+class IpInfo(IpGeoAsnBase, kw_only=True, dict=True):  # type: ignore[call-arg]
     # Metadata
-    source: str = "IPinfo"
-
-    # Config
-    model_config = ConfigDict(populate_by_name=True)
+    source = "IPinfo"
 
     # Other
-    is_anycast: Optional[LaxStr] = Field(None, validation_alias=AliasPath("anycast"))
+    _is_anycast: Optional[bool] = msgspec.field(name="anycast", default=None)
 
-    @model_validator(mode="before")
-    @classmethod
-    def transforms(cls, v):
+    @staticmethod
+    def model_validate(v: dict) -> "IpInfo":
         # Extract ASN and Org from the org field
         regex = r"AS(\d+)\s+(.+)$"
         match = re.search(regex, v.get("org", ""))
@@ -36,12 +35,8 @@ class IpInfo(IpGeoAsnBase):
         # Generate URL to ipinfo.io
         v["link"] = f"https://ipinfo.io/{v['ip']}"
 
-        return v
+        obj: IpInfo = msgspec.json.decode(json.dumps(v), type=IpInfo)
+        return obj
 
 
-class IpInfoMap(IpGeoAsnMapBase):  # type: ignore[override]
-    root: Dict[str, IpInfo]
-
-    @classmethod
-    def empty(cls) -> IpInfoMap:
-        return cls.model_validate({})
+IpInfoMap = MapBase[IpInfo]

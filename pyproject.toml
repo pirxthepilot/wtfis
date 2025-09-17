@@ -31,8 +31,7 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
-    "pydantic~=2.10.6; python_version == '3.8'",
-    "pydantic~=2.11.3; python_version >= '3.9'",
+    "msgspec",
     "python-dotenv~=1.0.1; python_version == '3.8'",
     "python-dotenv>=1.1.0,<2; python_version >= '3.9'",
     "requests>=2.32.3,<3",
@@ -114,17 +113,11 @@ profile = "black"
 
 # mypy
 [tool.mypy]
-plugins = ["pydantic.mypy"]
 check_untyped_defs = true
 ignore_missing_imports = true
 no_implicit_optional = true
 warn_unreachable = true
 pretty = true
-
-[tool.pydantic-mypy]
-init_forbid_extra = true
-init_typed = true
-warn_required_dynamic_aliases = true
 
 # pytest-cov
 [tool.coverage.run]

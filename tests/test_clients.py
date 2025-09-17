@@ -76,7 +76,7 @@ class TestAbuseIpDbClient:
         )
         mock_requests_get.return_value = mock_resp
 
-        abuseipdb = abuseipdb_client.enrich_ips("thisdoesntmatter").root["1.1.1.1"]
+        abuseipdb = abuseipdb_client.enrich_ips("thisdoesntmatter")["1.1.1.1"]
 
         assert abuseipdb.ip_address == "1.1.1.1"
         assert abuseipdb.abuse_confidence_score == 100
@@ -105,7 +105,7 @@ class TestIp2LocationClient:
         ).get("1.1.1.1")
         mock_requests_get.return_value = mock_resp
 
-        ip2location = ip2location_client.enrich_ips("1.1.1.1").root["1.1.1.1"]
+        ip2location = ip2location_client.enrich_ips("1.1.1.1")["1.1.1.1"]
 
         assert ip2location.ip == "1.1.1.1"
         assert ip2location.city == "Brisbane"
@@ -172,7 +172,7 @@ class TestIpInfoClient:
         )
         mock_requests_get.return_value = mock_resp
 
-        ipinfo = ipinfo_client.enrich_ips("1.1.1.1").root["1.1.1.1"]
+        ipinfo = ipinfo_client.enrich_ips("1.1.1.1")["1.1.1.1"]
 
         assert ipinfo.ip == "1.1.1.1"
         assert ipinfo.city == "Brisbane"
@@ -213,7 +213,7 @@ class TestShodanClient:
         ]
         mock_requests_get.return_value = mock_resp
 
-        shodan = shodan_client.enrich_ips("thisdoesntmatter").root["1.1.1.1"]
+        shodan = shodan_client.enrich_ips("thisdoesntmatter")["1.1.1.1"]
 
         assert len(shodan.data) == 13
         assert shodan.ports == [
@@ -264,7 +264,7 @@ class TestUrlhausClient:
         ]
         mock_requests_post.return_value = mock_resp
 
-        urlhaus = urlhaus_client.enrich_ips("thisdoesntmatter").root["1.1.1.1"]
+        urlhaus = urlhaus_client.enrich_ips("thisdoesntmatter")["1.1.1.1"]
 
         assert urlhaus.host == "1.1.1.1"
         assert urlhaus.url_count == 10
