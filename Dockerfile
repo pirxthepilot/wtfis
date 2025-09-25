@@ -12,9 +12,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends git
 
 # Checkout latest tagged commit
-RUN git checkout \
-        tags/$(git describe --tags $(git rev-list --tags --max-count=1)) \
-        -b latest_tag
+# RUN git checkout \
+#         tags/$(git describe --tags $(git rev-list --tags --max-count=1)) \
+#         -b latest_tag
 
 # Ensure latest pip
 RUN python -m pip install --upgrade pip
