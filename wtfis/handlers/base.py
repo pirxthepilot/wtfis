@@ -100,6 +100,31 @@ class BaseHandler(abc.ABC):
         # Warning messages container
         self.warnings: List[str] = []
 
+    def to_dict(self) -> dict:
+        """Serialize fetched data into a JSON‑friendly dict."""
+        def maybe(obj):
+            if obj is None:
+                return None
+            if hasattr(obj, "to_dict"):
+                return obj.to_dict()
+            try:
+                return obj.__dict__
+            except Exception:
+                print(f"Could not serialize {obj} of type {type(obj)}")
+                return str(obj)
+
+        return {
+            "entity": self.entity,
+            "vt_info": maybe(self.vt_info),
+            "geoasn": maybe(self.geoasn),
+            "whois": maybe(self.whois),
+            "shodan": maybe(self.shodan),
+            "greynoise": maybe(self.greynoise),
+            "abuseipdb": maybe(self.abuseipdb),
+            "urlhaus": maybe(self.urlhaus),
+            "warnings": self.warnings,
+        }
+
     @abc.abstractmethod
     def fetch_data(self) -> Generator[Union[Tuple[str, int], int], None, None]:
         """Main method that controls what get fetched"""

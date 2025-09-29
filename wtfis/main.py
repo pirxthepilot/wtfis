@@ -111,9 +111,10 @@ def fetch_data(
             progress.stop()
             error_and_exit(str(e))
 
-
+# print("Here")
 def main():
     # Load config
+    print("HER1E")
     config = Config()
 
     # Instantiate the console
@@ -130,6 +131,9 @@ def main():
 
     # Print fetch warnings, if any
     entity.print_warnings()
+
+    obj = entity.to_dict()
+    print("THIS IS OBJ",obj)
 
     # Output display
     view = generate_view(config, console, entity)
