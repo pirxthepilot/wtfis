@@ -609,8 +609,16 @@ class BaseView(abc.ABC):
             ),
             "reputation": attributes.reputation,
             "last_modification_date": str(Timestamp(attributes.last_modification_date)),
+            "analysis": {
+                "malicious": attributes.last_analysis_stats.malicious,
+                "harmless": attributes.last_analysis_stats.harmless,
+                "suspicious": attributes.last_analysis_stats.suspicious,
+                "timeout": attributes.last_analysis_stats.timeout,
+                "undetected": attributes.last_analysis_stats.undetected,
+                "flagged_vendors": self._vendors_who_flagged_malicious(),
+            },
         }
-
+        
         # Optional VT fields
         if hasattr(attributes, "popularity_ranks") and attributes.popularity_ranks.root:
             vt_section["popularity_ranks"] = {
@@ -626,7 +634,7 @@ class BaseView(abc.ABC):
         result["virustotal"] = vt_section
 
         # =============================
-        # GeoASN
+        # GeoASNF
         # =============================
         geoasn = self._get_geoasn_enrichment(self.entity.data.id_)
         if geoasn:
