@@ -679,7 +679,7 @@ class BaseView(abc.ABC):
                 },
             }
 
-    return result
+        return result
 
     @abc.abstractmethod
     def print(self, one_column: bool = False) -> None:  # pragma: no cover
