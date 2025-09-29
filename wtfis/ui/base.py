@@ -589,16 +589,45 @@ class BaseView(abc.ABC):
         return self._gen_panel(self._gen_group(content))
 
     def to_json_dict(self) -> dict:
-        result = {}
+        result = {
+            "id": self.entity.data.id_
+            # "type": self.entity.data.type,
+        }
 
-        # Entity id and type
-        result["id"] = self.entity.data.id_
-        result["type"] = self.entity.data.type
+        # =============================
+        # VirusTotal
+        # =============================
+        attributes = self.entity.data.attributes
+        vt_section = {
+            "malicious": attributes.last_analysis_stats.malicious,
+            "total": (
+                attributes.last_analysis_stats.harmless
+                + attributes.last_analysis_stats.malicious
+                + attributes.last_analysis_stats.suspicious
+                + attributes.last_analysis_stats.timeout
+                + attributes.last_analysis_stats.undetected
+            ),
+            "reputation": attributes.reputation,
+            "last_modification_date": str(Timestamp(attributes.last_modification_date)),
+        }
 
-        # VirusTotal section
-        result["virustotal"] = self._vt_json()
+        # Optional VT fields
+        if hasattr(attributes, "popularity_ranks") and attributes.popularity_ranks.root:
+            vt_section["popularity_ranks"] = {
+                k: v.rank for k, v in attributes.popularity_ranks.root.items()
+            }
 
-        # GeoASN (IP only)
+        if hasattr(attributes, "categories") and attributes.categories:
+            vt_section["categories"] = list(attributes.categories)
+
+        if hasattr(attributes, "last_dns_records_date"):
+            vt_section["last_seen"] = str(Timestamp(attributes.last_dns_records_date))
+
+        result["virustotal"] = vt_section
+
+        # =============================
+        # GeoASN
+        # =============================
         geoasn = self._get_geoasn_enrichment(self.entity.data.id_)
         if geoasn:
             result["geoasn"] = {
@@ -614,7 +643,9 @@ class BaseView(abc.ABC):
                 "link": geoasn.link,
             }
 
-        # Shodan (IP only)
+        # =============================
+        # Shodan
+        # =============================
         shodan = self._get_shodan_enrichment(self.entity.data.id_)
         if shodan:
             result["shodan"] = {
@@ -625,7 +656,9 @@ class BaseView(abc.ABC):
                 "link": f"{self.shodan_gui_baseurl}/{self.entity.data.id_}",
             }
 
-        # Greynoise (IP only)
+        # =============================
+        # Greynoise
+        # =============================
         gn = self._get_greynoise_enrichment(self.entity.data.id_)
         if gn:
             result["greynoise"] = {
@@ -635,7 +668,9 @@ class BaseView(abc.ABC):
                 "link": gn.link,
             }
 
-        # AbuseIPDB (IP only)
+        # =============================
+        # AbuseIPDB
+        # =============================
         abuse = self._get_abuseipdb_enrichment(self.entity.data.id_)
         if abuse:
             result["abuseipdb"] = {
@@ -644,7 +679,9 @@ class BaseView(abc.ABC):
                 "ip_address": abuse.ip_address,
             }
 
-        # Whois
+        # =============================
+        # WHOIS
+        # =============================
         if self.whois:
             result["whois"] = {
                 "domain": self.whois.domain,
@@ -665,7 +702,9 @@ class BaseView(abc.ABC):
                 "date_expires": str(Timestamp(self.whois.date_expires)),
             }
 
+        # =============================
         # URLhaus
+        # =============================
         urlhaus = self._get_urlhaus_enrichment(self.entity.data.id_)
         if urlhaus:
             result["urlhaus"] = {
@@ -674,12 +713,17 @@ class BaseView(abc.ABC):
                 "urlhaus_reference": urlhaus.urlhaus_reference,
                 "tags": urlhaus.tags,
                 "blacklists": {
-                    "spamhaus": urlhaus.blacklists.spamhaus_dbl if urlhaus.blacklists else None,
-                    "surbl": urlhaus.blacklists.surbl if urlhaus.blacklists else None,
+                    "spamhaus": (
+                        urlhaus.blacklists.spamhaus_dbl if urlhaus.blacklists else None
+                    ),
+                    "surbl": (
+                        urlhaus.blacklists.surbl if urlhaus.blacklists else None
+                    ),
                 },
             }
 
         return result
+
 
     @abc.abstractmethod
     def print(self, one_column: bool = False) -> None:  # pragma: no cover
