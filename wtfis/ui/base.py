@@ -588,6 +588,99 @@ class BaseView(abc.ABC):
             content.append(Text("No WHOIS data was found", style=self.theme.disclaimer))
         return self._gen_panel(self._gen_group(content))
 
+    def to_json_dict(self) -> dict:
+        result = {}
+
+        # Entity id and type
+        result["id"] = self.entity.data.id_
+        result["type"] = self.entity.data.type
+
+        # VirusTotal section
+        result["virustotal"] = self._vt_json()
+
+        # GeoASN (IP only)
+        geoasn = self._get_geoasn_enrichment(self.entity.data.id_)
+        if geoasn:
+            result["geoasn"] = {
+                "asn": geoasn.asn,
+                "org": geoasn.org,
+                "isp": geoasn.isp,
+                "location": smart_join(geoasn.city, geoasn.region, geoasn.country),
+                "domain": geoasn.domain,
+                "hostname": geoasn.hostname,
+                "is_proxy": geoasn.is_proxy,
+                "is_anycast": geoasn.is_anycast,
+                "source": geoasn.source,
+                "link": geoasn.link,
+            }
+
+        # Shodan (IP only)
+        shodan = self._get_shodan_enrichment(self.entity.data.id_)
+        if shodan:
+            result["shodan"] = {
+                "os": shodan.os,
+                "services": [f"{p.port}/{p.transport}" for p in shodan.data],
+                "tags": shodan.tags,
+                "last_scan": str(Timestamp(f"{shodan.last_update}+00:00")),
+                "link": f"{self.shodan_gui_baseurl}/{self.entity.data.id_}",
+            }
+
+        # Greynoise (IP only)
+        gn = self._get_greynoise_enrichment(self.entity.data.id_)
+        if gn:
+            result["greynoise"] = {
+                "riot": gn.riot,
+                "noise": gn.noise,
+                "classification": gn.classification,
+                "link": gn.link,
+            }
+
+        # AbuseIPDB (IP only)
+        abuse = self._get_abuseipdb_enrichment(self.entity.data.id_)
+        if abuse:
+            result["abuseipdb"] = {
+                "abuse_confidence_score": abuse.abuse_confidence_score,
+                "total_reports": abuse.total_reports,
+                "ip_address": abuse.ip_address,
+            }
+
+        # Whois
+        if self.whois:
+            result["whois"] = {
+                "domain": self.whois.domain,
+                "registrar": self.whois.registrar,
+                "organization": self.whois.organization,
+                "name": self.whois.name,
+                "email": self.whois.email,
+                "phone": self.whois.phone,
+                "street": self.whois.street,
+                "city": self.whois.city,
+                "state": self.whois.state,
+                "country": self.whois.country,
+                "postal_code": self.whois.postal_code,
+                "name_servers": self.whois.name_servers,
+                "dnssec": self.whois.dnssec,
+                "date_created": str(Timestamp(self.whois.date_created)),
+                "date_changed": str(Timestamp(self.whois.date_changed)),
+                "date_expires": str(Timestamp(self.whois.date_expires)),
+            }
+
+        # URLhaus
+        urlhaus = self._get_urlhaus_enrichment(self.entity.data.id_)
+        if urlhaus:
+            result["urlhaus"] = {
+                "online_url_count": urlhaus.online_url_count,
+                "url_count": urlhaus.url_count,
+                "urlhaus_reference": urlhaus.urlhaus_reference,
+                "tags": urlhaus.tags,
+                "blacklists": {
+                    "spamhaus": urlhaus.blacklists.spamhaus_dbl if urlhaus.blacklists else None,
+                    "surbl": urlhaus.blacklists.surbl if urlhaus.blacklists else None,
+                },
+            }
+
+    return result
+
     @abc.abstractmethod
     def print(self, one_column: bool = False) -> None:  # pragma: no cover
         pass

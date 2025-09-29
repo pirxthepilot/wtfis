@@ -13,7 +13,7 @@ from wtfis.ui.base import BaseView
 from wtfis.ui.progress import get_progress
 from wtfis.ui.view import DomainView, IpAddressView
 from wtfis.utils import error_and_exit, is_ip
-
+import json 
 
 def generate_entity_handler(
     config: Config,
@@ -57,6 +57,7 @@ def generate_view(
 ) -> BaseView:
     # Output display
     if isinstance(entity, DomainHandler) and isinstance(entity.vt_info, Domain):
+        print("here domain instance")
         view: BaseView = DomainView(
             console,
             entity.vt_info,
@@ -70,6 +71,7 @@ def generate_view(
             max_resolutions=config.max_resolutions,
         )
     elif isinstance(entity, IpAddressHandler) and isinstance(entity.vt_info, IpAddress):
+        print("here ip instance")
         view = IpAddressView(
             console,
             entity.vt_info,
@@ -132,11 +134,30 @@ def main():
     # Print fetch warnings, if any
     entity.print_warnings()
 
-    obj = entity.to_dict()
-    print("THIS IS OBJ",obj)
+    # obj = entity.to_dict()
+    # with open('ip_logs.json', 'r+') as file:
+    #     try:
+    #         # Load existing data
+    #         data = json.load(file)
+    #     except json.JSONDecodeError:
+    #         # If the file is empty or not a valid JSON, initialize an empty list
+    #         data = []
+
+    #     # Append the new object
+    #     data.append(obj)
+
+    #     # Move the cursor to the beginning of the file
+    #     file.seek(0)
+
+    #     # Write the updated data back to the file with indentation for readability
+    #     json.dump(data, file, indent=4)
+    # print("THIS IS OBJ",obj)
 
     # Output display
     view = generate_view(config, console, entity)
+
+    obj = view.to_json_dict()
+    print("thisisobj",obj)
 
     # Finally, print output
     view.print(one_column=config.one_column)
