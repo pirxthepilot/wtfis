@@ -157,6 +157,22 @@ def main():
     view = generate_view(config, console, entity)
 
     obj = view.to_json_dict()
+    with open('ip_logs.json', 'r+') as file:
+        try:
+            # Load existing data
+            data = json.load(file)
+        except json.JSONDecodeError:
+            # If the file is empty or not a valid JSON, initialize an empty list
+            data = []
+
+        # Append the new object
+        data.append(obj)
+
+        # Move the cursor to the beginning of the file
+        file.seek(0)
+
+        # Write the updated data back to the file with indentation for readability
+        json.dump(data, file, indent=4)
     print("thisisobj",obj)
 
     # Finally, print output
