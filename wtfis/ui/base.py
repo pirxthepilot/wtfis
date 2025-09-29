@@ -634,7 +634,7 @@ class BaseView(abc.ABC):
                 "asn": geoasn.asn,
                 "org": geoasn.org,
                 "isp": geoasn.isp,
-                "location": smart_join(geoasn.city, geoasn.region, geoasn.country),
+                "location": str(smart_join(geoasn.city, geoasn.region, geoasn.country)),
                 "domain": geoasn.domain,
                 "hostname": geoasn.hostname,
                 "is_proxy": geoasn.is_proxy,
