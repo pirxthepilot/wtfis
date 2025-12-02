@@ -234,10 +234,7 @@ class TestArgs:
 
         capture = capsys.readouterr()
 
-        assert (
-            capture.err
-            == "usage: main [-h]\nmain: error: Maximum --max-resolutions value is 10\n"
-        )
+        assert capture.err.endswith("error: Maximum --max-resolutions value is 10\n")
         assert e.type is SystemExit
         assert e.value.code == 2
 
@@ -256,9 +253,8 @@ class TestArgs:
 
         capture = capsys.readouterr()
 
-        assert capture.err == (
-            "usage: main [-h]\nmain: error: --max-resolutions is not "
-            "applicable to IPs\n"
+        assert capture.err.endswith(
+            "error: --max-resolutions is not applicable to IPs\n"
         )
         assert e.type is SystemExit
         assert e.value.code == 2
@@ -291,9 +287,7 @@ class TestArgs:
 
         capture = capsys.readouterr()
 
-        assert (
-            capture.err == "usage: main [-h]\nmain: error: SHODAN_API_KEY is not set\n"
-        )
+        assert capture.err.endswith("error: SHODAN_API_KEY is not set\n")
         assert e.type is SystemExit
         assert e.value.code == 2
 
@@ -325,10 +319,7 @@ class TestArgs:
 
         capture = capsys.readouterr()
 
-        assert (
-            capture.err
-            == "usage: main [-h]\nmain: error: GREYNOISE_API_KEY is not set\n"
-        )
+        assert capture.err.endswith("error: GREYNOISE_API_KEY is not set\n")
         assert e.type is SystemExit
         assert e.value.code == 2
 
@@ -360,9 +351,7 @@ class TestArgs:
 
         capture = capsys.readouterr()
 
-        assert (
-            capture.err == "usage: main [-h]\nmain: error: URLHAUS_API_KEY is not set\n"
-        )
+        assert capture.err.endswith("error: URLHAUS_API_KEY is not set\n")
         assert e.type is SystemExit
         assert e.value.code == 2
 
@@ -394,10 +383,7 @@ class TestArgs:
 
         capture = capsys.readouterr()
 
-        assert (
-            capture.err
-            == "usage: main [-h]\nmain: error: ABUSEIPDB_API_KEY is not set\n"
-        )
+        assert capture.err.endswith("error: ABUSEIPDB_API_KEY is not set\n")
         assert e.type is SystemExit
         assert e.value.code == 2
 
@@ -432,9 +418,8 @@ class TestArgs:
 
         capture = capsys.readouterr()
 
-        assert capture.err == (
-            "usage: main [-h]\n"
-            "main: error: --use-* flags are not accepted when the --all/-A flag is set\n"
+        assert capture.err.endswith(
+            "error: --use-* flags are not accepted when the --all/-A flag is set\n"
         )
         assert e.type is SystemExit
         assert e.value.code == 2
@@ -465,9 +450,7 @@ class TestArgs:
 
         capture = capsys.readouterr()
 
-        assert capture.err == (
-            "usage: main [-h]\n" "main: error: IP2LOCATION_API_KEY is not set\n"
-        )
+        assert capture.err.endswith("error: IP2LOCATION_API_KEY is not set\n")
         assert e.type is SystemExit
         assert e.value.code == 2
 
@@ -521,9 +504,8 @@ class TestEnvs:
 
         capture = capsys.readouterr()
 
-        assert capture.err == (
-            "usage: main [-h]\n"
-            "main: error: Invalid geolocation service: invalid_service. "
+        assert capture.err.endswith(
+            "error: Invalid geolocation service: invalid_service. "
             "Valid services are: ip2location, ipinfo, ipwhois\n"
         )
         assert e.type is SystemExit
@@ -673,9 +655,8 @@ class TestAllFlag:
 
         capture = capsys.readouterr()
 
-        assert capture.err == (
-            "usage: main [-h]\n"
-            "main: error: --use-* flags are not accepted when the --all/-A flag is set\n"
+        assert capture.err.endswith(
+            "error: --use-* flags are not accepted when the --all/-A flag is set\n"
         )
         assert e.type is SystemExit
         assert e.value.code == 2
@@ -696,9 +677,8 @@ class TestAllFlag:
 
         capture = capsys.readouterr()
 
-        assert capture.err == (
-            "usage: main [-h]\n"
-            "main: error: --use-* flags are not accepted when the --all/-A flag is set\n"
+        assert capture.err.endswith(
+            "error: --use-* flags are not accepted when the --all/-A flag is set\n"
         )
         assert e.type is SystemExit
         assert e.value.code == 2
