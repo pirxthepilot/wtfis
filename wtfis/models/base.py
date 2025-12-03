@@ -2,15 +2,32 @@ from __future__ import annotations
 
 import abc
 import sys
-from typing import List, Mapping, Optional
+from decimal import Decimal
+from enum import Enum
+from typing import Any, List, Mapping, Optional, Union
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, RootModel
-from pydantic.v1.validators import str_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, RootModel, ValidationError
 
 if sys.version_info >= (3, 9):
     from typing import Annotated
 else:
     from typing_extensions import Annotated  # pragma: no coverage
+
+
+def str_validator(v: Any) -> Union[str]:
+    """Lazy conversion to string type (adopted from pydantic v1)"""
+    if isinstance(v, str):
+        if isinstance(v, Enum):
+            return v.value
+        else:
+            return v
+    elif isinstance(v, (float, int, Decimal)):
+        # is there anything else we want to add here? If you think so, create an issue.
+        return str(v)
+    elif isinstance(v, (bytes, bytearray)):
+        return v.decode()
+    else:
+        raise ValidationError("Cannot be cast to string")
 
 
 LaxStr = Annotated[str, BeforeValidator(str_validator)]
