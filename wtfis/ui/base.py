@@ -1,6 +1,6 @@
 import abc
 from dataclasses import dataclass
-from typing import Any, ClassVar, Generator, List, Optional, Tuple, Union
+from typing import ClassVar, Generator, List, Optional, Tuple, Union
 
 from rich.console import Console, Group, RenderableType, group
 from rich.panel import Panel
@@ -14,7 +14,12 @@ from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
 from wtfis.models.types import IpGeoAsnMapType, IpGeoAsnType
 from wtfis.models.urlhaus import UrlHaus, UrlHausMap
-from wtfis.models.virustotal import LastAnalysisStats, PopularityRanks
+from wtfis.models.virustotal import (
+    Domain,
+    IpAddress,
+    LastAnalysisStats,
+    PopularityRanks,
+)
 from wtfis.ui.theme import Theme
 from wtfis.utils import Timestamp, is_ip, smart_join
 
@@ -26,7 +31,8 @@ class BaseView(abc.ABC):
     """
 
     console: Console
-    entity: Any
+    entity: str
+    vt: Optional[Union[Domain, IpAddress]]
     geoasn: IpGeoAsnMapType
     whois: Optional[WhoisBase]
     shodan: ShodanIpMap
@@ -43,10 +49,8 @@ class BaseView(abc.ABC):
 
     def _vendors_who_flagged_malicious(self) -> List[str]:
         vendors = []
-        for (
-            key,
-            result,
-        ) in self.entity.data.attributes.last_analysis_results.root.items():
+        results = self.vt.data.attributes.last_analysis_results.root if self.vt else {}
+        for key, result in results.items():
             if result.category == "malicious":
                 vendors.append(key)
         return vendors
@@ -322,13 +326,14 @@ class BaseView(abc.ABC):
     def _get_urlhaus_enrichment(self, entity: str) -> Optional[UrlHaus]:
         return self.urlhaus.root[entity] if entity in self.urlhaus.root.keys() else None
 
-    def _gen_vt_section(self) -> RenderableType:
+    def _gen_vt_section(self) -> Optional[RenderableType]:
         """Virustotal section. Applies to both domain and IP views"""
-        attributes = self.entity.data.attributes
+        if self.vt is None:
+            return None
+
+        attributes = self.vt.data.attributes
         baseurl = (
-            self.vt_gui_baseurl_ip
-            if is_ip(self.entity.data.id_)
-            else self.vt_gui_baseurl_domain
+            self.vt_gui_baseurl_ip if is_ip(self.entity) else self.vt_gui_baseurl_domain
         )
 
         # Analysis (IP and domain)
@@ -336,7 +341,7 @@ class BaseView(abc.ABC):
             attributes.last_analysis_stats, self._vendors_who_flagged_malicious()
         )
         analysis_field = self._gen_linked_field_name(
-            "Analysis", hyperlink=f"{baseurl}/{self.entity.data.id_}"
+            "Analysis", hyperlink=f"{baseurl}/{self.entity}"
         )
 
         # Reputation (IP and domain)
@@ -379,7 +384,7 @@ class BaseView(abc.ABC):
 
     def _gen_geoasn_section(self) -> Optional[RenderableType]:
         """IP location and ASN section. Applies to IP views only"""
-        enrich = self._get_geoasn_enrichment(self.entity.data.id_)
+        enrich = self._get_geoasn_enrichment(self.entity)
 
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
@@ -408,7 +413,7 @@ class BaseView(abc.ABC):
 
     def _gen_shodan_section(self) -> Optional[RenderableType]:
         """Shodan section. Applies to IP views only"""
-        enrich = self._get_shodan_enrichment(self.entity.data.id_)
+        enrich = self._get_shodan_enrichment(self.entity)
 
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
@@ -419,7 +424,7 @@ class BaseView(abc.ABC):
             )
             services_field = self._gen_linked_field_name(
                 "Services",
-                hyperlink=f"{self.shodan_gui_baseurl}/{self.entity.data.id_}",
+                hyperlink=f"{self.shodan_gui_baseurl}/{self.entity}",
             )
             data += [
                 ("OS:", enrich.os),
@@ -455,7 +460,7 @@ class BaseView(abc.ABC):
             text.append(" in ").append(blocklist, style=self.theme.urlhaus_bl_name)
             return text
 
-        enrich = self._get_urlhaus_enrichment(self.entity.data.id_)
+        enrich = self._get_urlhaus_enrichment(self.entity)
 
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
@@ -523,12 +528,12 @@ class BaseView(abc.ABC):
         data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = []
 
         # Greynoise
-        greynoise = self._get_greynoise_enrichment(self.entity.data.id_)
+        greynoise = self._get_greynoise_enrichment(self.entity)
         if greynoise:
             data.append(self._gen_greynoise_tuple(greynoise))
 
         # abuseIPDB
-        abuseipdb = self._get_abuseipdb_enrichment(ip=self.entity.data.id_)
+        abuseipdb = self._get_abuseipdb_enrichment(ip=self.entity)
         if abuseipdb:
             data.append(self._gen_abuseipdb_tuple(abuseipdb))
 
@@ -580,13 +585,13 @@ class BaseView(abc.ABC):
             ("Expires:", Timestamp(self.whois.date_expires).render),
         )
 
-        content: List[RenderableType] = [self._gen_heading_text("Whois")]
-
         if body:
-            content.append(self._gen_section(body, heading))
-        else:
-            content.append(Text("No WHOIS data was found", style=self.theme.disclaimer))
-        return self._gen_panel(self._gen_group(content))
+            content: List[RenderableType] = [
+                self._gen_heading_text("Whois"),
+                self._gen_section(body, heading),
+            ]
+            return self._gen_panel(self._gen_group(content))
+        return None
 
     @abc.abstractmethod
     def print(self, one_column: bool = False) -> None:  # pragma: no cover

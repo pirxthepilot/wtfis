@@ -71,7 +71,8 @@ def view01(
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         geoasn=geoasn_enrich,
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_1.1.1.1.json"))),
         shodan=shodan_enrich,
@@ -108,7 +109,8 @@ def view02(test_data, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         geoasn=geoasn_enrich,
         whois=MagicMock(),
         shodan=shodan_enrich,
@@ -124,6 +126,7 @@ def view03(test_data):
     return IpAddressView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         geoasn=MagicMock(),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_1.1.1.1.json"))),
         shodan=MagicMock(),
@@ -141,7 +144,8 @@ def view04(test_data):
     """
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(
+        entity="142.251.220.110",
+        vt=IpAddress.model_validate(
             json.loads(test_data("vt_ip_142.251.220.110.json"))
         ),
         geoasn=IpWhoisMap.model_validate({}),
@@ -166,7 +170,8 @@ def view05(test_data, mock_greynoise_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
         shodan=MagicMock(),
@@ -190,7 +195,8 @@ def view06(test_data, mock_greynoise_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
         shodan=MagicMock(),
@@ -213,7 +219,8 @@ def view07(test_data, mock_abuseipdb_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
         shodan=MagicMock(),
@@ -236,7 +243,8 @@ def view08(test_data, mock_abuseipdb_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
         shodan=MagicMock(),
@@ -259,7 +267,8 @@ def view09(test_data, mock_ip2location_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         geoasn=geoasn_enrich,
         whois=MagicMock(),
         shodan=MagicMock(),
@@ -282,7 +291,8 @@ def view10(test_data, mock_ipinfo_get):
 
     return IpAddressView(
         console=Console(),
-        entity=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
         geoasn=geoasn_enrich,
         whois=MagicMock(),
         shodan=MagicMock(),

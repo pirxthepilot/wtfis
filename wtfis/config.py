@@ -41,15 +41,8 @@ def parse_env() -> None:
     load_dotenv(DEFAULT_ENV_FILE)
 
     # Exit if required environment variables don't exist
-    for envvar in (VT_API_KEY_VAR,):
-        if not os.environ.get(envvar):
-            error = f"Error: Environment variable {envvar} not set"
-            if not DEFAULT_ENV_FILE.exists():
-                error += (
-                    f"\nEnv file {DEFAULT_ENV_FILE} was not found either. "
-                    "Did you forget?"
-                )
-            error_and_exit(error)
+    if not DEFAULT_ENV_FILE.exists():
+        error_and_exit(f"Env file {DEFAULT_ENV_FILE} was not found. Did you forget?")
 
 
 def parse_args() -> Namespace:
@@ -175,7 +168,7 @@ def parse_args() -> Namespace:
         or parsed.use_urlhaus
     ):
         argparse.ArgumentParser().error(
-            "--use-* flags are not accepted when the " "--all/-A flag is set"
+            "--use-* flags are not accepted when the --all/-A flag is set"
         )
 
     return parsed
@@ -215,8 +208,10 @@ class Config:
         return self.args.one_column
 
     @property
-    def vt_client(self) -> VTClient:
-        return VTClient(self.vt_api_key)
+    def vt_client(self) -> Optional[VTClient]:
+        if self.vt_api_key:
+            return VTClient(self.vt_api_key)
+        return None
 
     @property
     def ip_geoasn_client(self) -> IpGeoAsnClientType:
@@ -228,14 +223,17 @@ class Config:
         return IpWhoisClient()
 
     @property
-    def whois_client(self) -> Union[Ip2WhoisClient, VTClient]:
+    def whois_client(self) -> Optional[Union[Ip2WhoisClient, VTClient]]:
         # Whois client selector
         # Order of use based on set envvars:
         #    1. IP2Whois (Domain only)
         #    2. Virustotal (fallback)
+        # If neither are set, return None
         if self.ip2whois_api_key and not is_ip(self.entity):
             return Ip2WhoisClient(self.ip2whois_api_key)
-        return self.vt_client
+        if self.vt_api_key:
+            return VTClient(self.vt_api_key)
+        return None
 
     @property
     def abuseipdb_client(self) -> Optional[AbuseIpDbClient]:

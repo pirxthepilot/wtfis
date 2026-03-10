@@ -8,7 +8,6 @@ from wtfis.exceptions import HandlerException, WtfisException
 from wtfis.handlers.base import BaseHandler
 from wtfis.handlers.domain import DomainHandler
 from wtfis.handlers.ip import IpAddressHandler
-from wtfis.models.virustotal import Domain, IpAddress
 from wtfis.ui.base import BaseView
 from wtfis.ui.progress import get_progress
 from wtfis.ui.view import DomainView, IpAddressView
@@ -21,7 +20,7 @@ def generate_entity_handler(
 ) -> BaseHandler:
     # Domain / FQDN handler
     if not is_ip(config.entity):
-        entity: BaseHandler = DomainHandler(
+        handler: BaseHandler = DomainHandler(
             entity=config.entity,
             console=console,
             vt_client=config.vt_client,
@@ -35,7 +34,7 @@ def generate_entity_handler(
         )
     # IP address handler
     else:
-        entity = IpAddressHandler(
+        handler = IpAddressHandler(
             entity=config.entity,
             console=console,
             vt_client=config.vt_client,
@@ -47,38 +46,40 @@ def generate_entity_handler(
             urlhaus_client=config.urlhaus_client,
         )
 
-    return entity
+    return handler
 
 
 def generate_view(
     config: Config,
     console: Console,
-    entity: BaseHandler,
+    handler: BaseHandler,
 ) -> BaseView:
     # Output display
-    if isinstance(entity, DomainHandler) and isinstance(entity.vt_info, Domain):
+    if isinstance(handler, DomainHandler):
         view: BaseView = DomainView(
             console,
-            entity.vt_info,
-            entity.geoasn,
-            entity.whois,
-            entity.shodan,
-            entity.greynoise,
-            entity.abuseipdb,
-            entity.urlhaus,
-            entity.resolutions,
+            handler.entity,
+            handler.vt_info,
+            handler.geoasn,
+            handler.whois,
+            handler.shodan,
+            handler.greynoise,
+            handler.abuseipdb,
+            handler.urlhaus,
+            handler.resolutions,
             max_resolutions=config.max_resolutions,
         )
-    elif isinstance(entity, IpAddressHandler) and isinstance(entity.vt_info, IpAddress):
+    elif isinstance(handler, IpAddressHandler):
         view = IpAddressView(
             console,
-            entity.vt_info,
-            entity.geoasn,
-            entity.whois,
-            entity.shodan,
-            entity.greynoise,
-            entity.abuseipdb,
-            entity.urlhaus,
+            handler.entity,
+            handler.vt_info,
+            handler.geoasn,
+            handler.whois,
+            handler.shodan,
+            handler.greynoise,
+            handler.abuseipdb,
+            handler.urlhaus,
         )
     else:
         raise WtfisException("Unsupported entity!")
@@ -88,7 +89,7 @@ def generate_view(
 
 def fetch_data(
     progress: Progress,
-    entity: BaseHandler,
+    handler: BaseHandler,
 ):
 
     def _finish_task():
@@ -98,7 +99,7 @@ def fetch_data(
     task: Optional[TaskID] = None
     with progress:
         try:
-            for x in entity.fetch_data():
+            for x in handler.fetch_data():
                 if isinstance(x, tuple):  # (str, int)
                     _finish_task()
                     descr, adv = x
@@ -123,16 +124,16 @@ def main():
     progress = get_progress(console)
 
     # Entity handler
-    entity = generate_entity_handler(config, console)
+    handler = generate_entity_handler(config, console)
 
     # Fetch data
-    fetch_data(progress, entity)
+    fetch_data(progress, handler)
 
     # Print fetch warnings, if any
-    entity.print_warnings()
+    handler.print_warnings()
 
     # Output display
-    view = generate_view(config, console, entity)
+    view = generate_view(config, console, handler)
 
     # Finally, print output
     view.print(one_column=config.one_column)

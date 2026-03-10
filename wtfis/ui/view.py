@@ -9,7 +9,7 @@ from rich.text import Text
 
 from wtfis.models.virustotal import Resolutions
 from wtfis.ui.base import BaseView
-from wtfis.utils import Timestamp, smart_join
+from wtfis.utils import Timestamp, generate_notice, smart_join
 
 
 @dataclass
@@ -21,14 +21,22 @@ class DomainView(BaseView):
     resolutions: Optional[Resolutions]
     max_resolutions: int = 3
 
-    def domain_panel(self) -> Panel:
-        content = [self._gen_vt_section()]  # VT section
-        for section in (self._gen_urlhaus_section(),):  # URLhaus section
+    def domain_panel(self) -> Optional[Panel]:
+        content: List[RenderableType] = []
+        for idx, section in enumerate(
+            [
+                self._gen_vt_section(),  # VT section
+                self._gen_urlhaus_section(),  # URLhaus section
+            ]
+        ):
             if section is not None:
-                content.append("")
+                if idx > 0:
+                    content.append("")
                 content.append(section)
 
-        return self._gen_panel(self._gen_group(content), self.entity.data.id_)
+        if len(content) > 0:
+            return self._gen_panel(self._gen_group(content), self.entity)
+        return None
 
     def resolutions_panel(self) -> Optional[Panel]:
         # Skip if no resolutions data
@@ -143,7 +151,7 @@ class DomainView(BaseView):
                     f"+{self.resolutions.meta.count - self.max_resolutions} more",
                     style=(
                         f"{self.theme.footer} "
-                        f"link {self.vt_gui_baseurl_domain}/{self.entity.data.id_}"
+                        f"link {self.vt_gui_baseurl_domain}/{self.entity}"
                         "/relations"
                     ),
                 )
@@ -167,6 +175,10 @@ class DomainView(BaseView):
             if i is not None
         ]
 
+        if len(renderables) == 0:
+            self.console.print(generate_notice("No data was found"))
+            return
+
         if one_column:
             self.console.print(Group(*([""] + renderables)))  # type: ignore
         else:
@@ -178,19 +190,25 @@ class IpAddressView(BaseView):
     Handler for IP Address lookup output
     """
 
-    def ip_panel(self) -> Panel:
-        content = [self._gen_vt_section()]  # VT section
-        for section in (
-            self._gen_geoasn_section(),  # IP location and ASN section
-            self._gen_shodan_section(),  # Shodan section
-            self._gen_urlhaus_section(),  # URLhaus section
-            self._gen_ip_other_section(),  # Other section
+    def ip_panel(self) -> Optional[Panel]:
+        content: List[RenderableType] = []
+        for idx, section in enumerate(
+            [
+                self._gen_vt_section(),  # VT section
+                self._gen_geoasn_section(),  # IP location and ASN section
+                self._gen_shodan_section(),  # Shodan section
+                self._gen_urlhaus_section(),  # URLhaus section
+                self._gen_ip_other_section(),  # Other section
+            ]
         ):
             if section is not None:
-                content.append("")
+                if idx > 0:
+                    content.append("")
                 content.append(section)
 
-        return self._gen_panel(self._gen_group(content), self.entity.data.id_)
+        if len(content) > 0:
+            return self._gen_panel(self._gen_group(content), self.entity)
+        return None
 
     def print(self, one_column: bool = False) -> None:
         renderables = [
@@ -201,6 +219,10 @@ class IpAddressView(BaseView):
             )
             if i is not None
         ]
+
+        if len(renderables) == 0:
+            self.console.print(generate_notice("No data was found"))
+            return
 
         if one_column:
             self.console.print(Group(*([""] + renderables)))  # type: ignore

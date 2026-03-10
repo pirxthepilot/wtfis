@@ -65,7 +65,7 @@ class TestDomainHandler:
         assert handler.geoasn.root == {}
 
     @patch.object(requests.Session, "get")
-    def test_vt_http_error(self, mock_requests_get, domain_handler):
+    def test_vt_http_error(self, mock_requests_get, domain_handler, capsys):
         """
         Test a requests HTTPError from the VT client. This also tests the
         common_exception_handler decorator.
@@ -76,19 +76,17 @@ class TestDomainHandler:
         mock_resp.status_code = 401
         mock_requests_get.return_value = mock_resp
 
-        # Thorough test of first _fetch_* method
-        with pytest.raises(HandlerException) as e:
-            handler._fetch_vt_domain()
+        handler._fetch_vt_domain()
 
-        assert (
-            e.value.args[0]
-            == "Error fetching data: 401 Client Error: None for url: None"
+        assert handler.warnings[0].startswith(
+            "Could not fetch Virustotal: 401 Client Error:"
         )
-        assert e.type is HandlerException  # ruff E721
 
-        # Extra: just make sure program exits correctly
-        with pytest.raises(HandlerException) as e:
-            handler._fetch_vt_resolutions()
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith(
+            "WARN: Could not fetch Virustotal: 401 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_vt_validation_error(self, mock_requests_get, domain_handler):
@@ -197,13 +195,13 @@ class TestDomainHandler:
 
         handler._fetch_vt_resolutions()
         assert handler.warnings[0].startswith(
-            "Could not fetch Virustotal resolutions: 429 Client Error:"
+            "Could not fetch Virustotal: 429 Client Error:"
         )
 
         handler.print_warnings()
         capture = capsys.readouterr()
         assert capture.out.startswith(
-            "WARN: Could not fetch Virustotal resolutions: 429 Client Error:"
+            "WARN: Could not fetch Virustotal: 429 Client Error:"
         )
 
     @patch.object(requests.Session, "get")
@@ -388,22 +386,23 @@ class TestIpAddressHandler:
         handler._fetch_abuseipdb.assert_called_once()
 
     @patch.object(requests.Session, "get")
-    def test_vt_http_error(self, mock_requests_get, ip_handler):
+    def test_vt_http_error(self, mock_requests_get, ip_handler, capsys):
         handler = ip_handler()
         mock_resp = requests.models.Response()
 
         mock_resp.status_code = 404
         mock_requests_get.return_value = mock_resp
 
-        # Thorough test of first _fetch_* method
-        with pytest.raises(HandlerException) as e:
-            handler._fetch_vt_ip_address()
-
-        assert (
-            e.value.args[0]
-            == "Error fetching data: 404 Client Error: None for url: None"
+        handler._fetch_vt_ip_address()
+        assert handler.warnings[0].startswith(
+            "Could not fetch Virustotal: 404 Client Error:"
         )
-        assert e.type is HandlerException
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith(
+            "WARN: Could not fetch Virustotal: 404 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_vt_validation_error(self, mock_requests_get, ip_handler):
@@ -505,26 +504,6 @@ class TestIpAddressHandler:
         handler.print_warnings()
         capture = capsys.readouterr()
         assert capture.out.startswith("WARN: Could not fetch Shodan: 401 Client Error:")
-
-    @patch.object(requests.Session, "get")
-    def test_greynoise_http_error(self, mock_requests_get, ip_handler):
-        """
-        Test Greynoise HTTP error that results in a SystemExit
-        """
-        handler = ip_handler()
-        mock_resp = requests.models.Response()
-
-        mock_resp.status_code = 401
-        mock_requests_get.return_value = mock_resp
-
-        with pytest.raises(HandlerException) as e:
-            handler._fetch_vt_ip_address()
-
-        assert (
-            e.value.args[0]
-            == "Error fetching data: 401 Client Error: None for url: None"
-        )
-        assert e.type is HandlerException
 
     @patch.object(requests.Session, "get")
     def test_greynoise_429_error(self, mock_requests_get, ip_handler, capsys):

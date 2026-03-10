@@ -484,9 +484,7 @@ class TestEnvs:
         capture = capsys.readouterr()
 
         assert capture.err == (
-            "Error: Environment variable VT_API_KEY not set\n"
-            f"Env file {Path().home() / '.env.wtfis'} was not found either. "
-            "Did you forget?\n"
+            f"Env file {Path().home() / '.env.wtfis'} was not found. Did you forget?\n"
         )
         assert e.type is SystemExit
         assert e.value.code == 1
@@ -890,20 +888,16 @@ class TestFetchData:
         mock_requests_get.return_value = mock_resp
 
         # Thorough test of first _fetch_* method
-        with pytest.raises(SystemExit) as e:
-            fetch_data(MagicMock(), handler)
-
-        capture = capsys.readouterr()
-
-        assert (
-            capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        fetch_data(MagicMock(), handler)
+        assert handler.warnings[0].startswith(
+            "Could not fetch Virustotal: 401 Client Error:"
         )
-        assert e.type is SystemExit  # ruff E721
-        assert e.value.code == 1
 
-        # Extra: just make sure program exits correctly
-        with pytest.raises(HandlerException) as e:
-            handler._fetch_vt_resolutions()
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith(
+            "WARN: Could not fetch Virustotal: 401 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_vt_validation_error(self, mock_requests_get, domain_handler, capsys):
