@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "wtfis"
 description = "Passive hostname, domain and IP lookup tool for non-robots"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = "MIT"
 keywords = [
     "abuseipdb",
@@ -31,12 +31,10 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
-    "pydantic~=2.10.6; python_version == '3.8'",
-    "pydantic~=2.12.5; python_version >= '3.9'",
-    "python-dotenv~=1.0.1; python_version == '3.8'",
-    "python-dotenv>=1.1.0,<2; python_version >= '3.9'",
-    "requests>=2.32.3,<3",
-    "rich>=14.0.0,<15",
+    "pydantic~=2.12.5",
+    "python-dotenv>=1.2.2,<2",
+    "requests>=2.32.5,<3",
+    "rich>=14.3.3,<15",
 ]
 dynamic = ["version"]
 
@@ -63,15 +61,15 @@ disable = true
 [tool.hatch.envs.default]
 dependencies = [
     "bandit",
-    "black~=24.8.0",
-    "flake8>=7.1.2",
-    "flake8-bugbear~=24.12.12",
+    "black~=26.3.0",
+    "flake8>=7.3.0",
+    "flake8-bugbear~=25.11.29",
     "freezegun",
-    "isort~=5.13.2",
+    "isort~=8.0.1",
     "mypy",
     "pytest",
     "pytest-cov",
-    "types-requests>=2.32.0,<3",
+    "types-requests>=2.32.4,<3",
 ]
 [tool.hatch.envs.default.scripts]
 typecheck = "mypy -p {args:wtfis}"
@@ -84,17 +82,17 @@ test-all = [
 
 # Hatch test env
 [[tool.hatch.envs.test.matrix]]
-python = ["38", "39", "310", "311", "312", "313", "314"]
+python = ["310", "311", "312", "313", "314"]
 
 # Hatch lint env
 [tool.hatch.envs.lint]
 detached = true
 dependencies = [  # Make sure the respective versions are synced with default!
     "bandit",
-    "black~=24.8.0",
-    "flake8>=7.1.2",
-    "flake8-bugbear~=24.12.12",
-    "isort~=5.13.2",
+    "black~=26.3.0",
+    "flake8>=7.3.0",
+    "flake8-bugbear~=25.11.29",
+    "isort~=8.0.1",
 ]
 [tool.hatch.envs.lint.scripts]
 black_check = "black --check wtfis tests"
