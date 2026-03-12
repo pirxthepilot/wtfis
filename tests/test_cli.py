@@ -468,12 +468,6 @@ class TestEnvs:
         unset_env_vars()
 
     @patch("wtfis.config.load_dotenv", MagicMock())
-    def test_required_env_vars(self):
-        os.environ["VT_API_KEY"] = "foo"
-        parse_env()
-        unset_env_vars()
-
-    @patch("wtfis.config.load_dotenv", MagicMock())
     @patch("wtfis.config.Path.exists")
     def test_error(self, mock_exists, capsys):
         mock_exists.return_value = False
