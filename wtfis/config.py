@@ -35,14 +35,8 @@ GEOLOCATION_SERVICE_VAR = "GEOLOCATION_SERVICE"
 
 
 def parse_env() -> None:
-    DEFAULT_ENV_FILE = Path().home() / ".env.wtfis"
-
-    # Load the file
-    load_dotenv(DEFAULT_ENV_FILE)
-
-    # Exit if required environment variables don't exist
-    if not DEFAULT_ENV_FILE.exists():
-        error_and_exit(f"Env file {DEFAULT_ENV_FILE} was not found. Did you forget?")
+    # This will not throw an error if the file doesn't exist
+    load_dotenv(Path().home() / ".env.wtfis")
 
 
 def parse_args() -> Namespace:

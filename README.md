@@ -23,7 +23,7 @@ The project name is a play on "whois".
 
 | Service | Used in lookup | Required | Free Tier |
 | --- | --- | --- | --- |
-| [Virustotal](https://virustotal.com) | All | Yes | [Yes](https://www.virustotal.com/gui/join-us) |
+| [Virustotal](https://virustotal.com) | All | No | [Yes](https://www.virustotal.com/gui/join-us) |
 | [AbuseIPDB](https://www.abuseipdb.com/)| IP address | No | [Yes](https://www.abuseipdb.com/register?plan=free)
 | [Greynoise](https://greynoise.io) | IP address | No | [Yes](https://www.greynoise.io/plans/community)
 | [IP2Location](https://www.ip2location.io) | IP address | No | [Yes](https://www.ip2location.io/pricing)
@@ -143,17 +143,17 @@ brew install wtfis
 
 ## Setup
 
-wtfis uses these environment variables:
+wtfis uses these environment variables (all optional):
 
-* `VT_API_KEY` (required) - Virustotal API key
-* `ABUSEIPDB_API_KEY` (optional) - AbuseIPDB API key
-* `IP2LOCATION_API_KEY` (optional) - IP2Location API key
-* `IP2WHOIS_API_KEY` (optional) - IP2Whois API key
-* `GREYNOISE_API_KEY` (optional) - Greynoise API key
-* `SHODAN_API_KEY` (optional) - Shodan API key
-* `URLHAUS_API_KEY` (optional) - URLhaus API key
-* `WTFIS_DEFAULTS` (optional) - Default boolean arguments
-* `GEOLOCATION_SERVICE` (optional) - Geolocation / ASN lookup service to use
+* `VT_API_KEY` - Virustotal API key
+* `ABUSEIPDB_API_KEY` - AbuseIPDB API key
+* `IP2LOCATION_API_KEY` - IP2Location API key
+* `IP2WHOIS_API_KEY` - IP2Whois API key
+* `GREYNOISE_API_KEY` - Greynoise API key
+* `SHODAN_API_KEY` - Shodan API key
+* `URLHAUS_API_KEY` - URLhaus API key
+* `WTFIS_DEFAULTS` - Default boolean arguments
+* `GEOLOCATION_SERVICE` - Geolocation / ASN lookup service to use
 
 Set these using your own method.
 

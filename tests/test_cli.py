@@ -467,22 +467,6 @@ class TestEnvs:
             assert os.environ["ABUSEIPDB_API_KEY"] == "dummy"
         unset_env_vars()
 
-    @patch("wtfis.config.load_dotenv", MagicMock())
-    @patch("wtfis.config.Path.exists")
-    def test_error(self, mock_exists, capsys):
-        mock_exists.return_value = False
-
-        with pytest.raises(SystemExit) as e:
-            parse_env()
-
-        capture = capsys.readouterr()
-
-        assert capture.err == (
-            f"Env file {Path().home() / '.env.wtfis'} was not found. Did you forget?\n"
-        )
-        assert e.type is SystemExit
-        assert e.value.code == 1
-
     @patch("sys.argv", ["main", "1.1.1.1"])
     def test_geolocation_service_invalid(
         self, capsys, fake_load_dotenv_geolocation_service_invalid
@@ -768,8 +752,10 @@ class TestGenEntityHandler:
         unset_env_vars()
 
     @patch("sys.argv", ["main", "1.1.1.1", "--geolocation-service", "ip2location"])
-    def test_handler_ip_3(self, fake_load_dotenv_1):
+    @patch("wtfis.config.Path.exists")
+    def test_handler_ip_3(self, m_exists, fake_load_dotenv_1):
         """IP with ip2location geolocation service"""
+        m_exists.return_value = True
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
             conf = Config()
             console = Console()
