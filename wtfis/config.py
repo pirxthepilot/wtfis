@@ -20,7 +20,7 @@ from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.types import IpGeoAsnClientType
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
-from wtfis.utils import error_and_exit, is_ip
+from wtfis.utils import is_ip
 from wtfis.version import get_version
 
 ABUSEIPDB_API_KEY_VAR = "ABUSEIPDB_API_KEY"
