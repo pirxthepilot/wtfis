@@ -23,14 +23,12 @@ class DomainView(BaseView):
 
     def domain_panel(self) -> Optional[Panel]:
         content: List[RenderableType] = []
-        for idx, section in enumerate(
-            [
-                self._gen_vt_section(),  # VT section
-                self._gen_urlhaus_section(),  # URLhaus section
-            ]
-        ):
+        for section in [
+            self._gen_vt_section(),
+            self._gen_urlhaus_section(),
+        ]:
             if section is not None:
-                if idx > 0:
+                if len(content) > 0:
                     content.append("")
                 content.append(section)
 
@@ -192,17 +190,15 @@ class IpAddressView(BaseView):
 
     def ip_panel(self) -> Optional[Panel]:
         content: List[RenderableType] = []
-        for idx, section in enumerate(
-            [
-                self._gen_vt_section(),  # VT section
-                self._gen_geoasn_section(),  # IP location and ASN section
-                self._gen_shodan_section(),  # Shodan section
-                self._gen_urlhaus_section(),  # URLhaus section
-                self._gen_ip_other_section(),  # Other section
-            ]
-        ):
+        for section in [
+            self._gen_vt_section(),
+            self._gen_geoasn_section(),
+            self._gen_shodan_section(),
+            self._gen_urlhaus_section(),
+            self._gen_ip_other_section(),
+        ]:
             if section is not None:
-                if idx > 0:
+                if len(content) > 0:
                     content.append("")
                 content.append(section)
 
