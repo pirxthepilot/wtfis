@@ -67,9 +67,9 @@ def failopen_exception_handler(client_attr_name: str) -> Callable:
 class BaseHandler(abc.ABC):
     entity: str
     console: Console
-    vt_client: VTClient
     ip_geoasn_client: IpGeoAsnClientType
-    whois_client: IpWhoisClientType
+    whois_client: Optional[IpWhoisClientType]
+    vt_client: Optional[VTClient]
     shodan_client: Optional[ShodanClient]
     greynoise_client: Optional[GreynoiseClient]
     abuseipdb_client: Optional[AbuseIpDbClient]
@@ -89,7 +89,7 @@ class BaseHandler(abc.ABC):
         self._urlhaus = self.urlhaus_client
 
         # Dataset containers
-        self.vt_info: Union[Domain, IpAddress]
+        self.vt_info: Optional[Union[Domain, IpAddress]] = None
         self.geoasn: IpGeoAsnMapType = IpWhoisMap.empty()  # Default to ipwhois
         self.whois: WhoisBase = WhoisBase()
         self.shodan: ShodanIpMap = ShodanIpMap.empty()
@@ -131,7 +131,8 @@ class BaseHandler(abc.ABC):
     @common_exception_handler
     @failopen_exception_handler("_whois")
     def _fetch_whois(self) -> None:
-        self.whois = self._whois.get_whois(self.entity)
+        if self._whois:
+            self.whois = self._whois.get_whois(self.entity)
 
     def print_warnings(self):
         for message in self.warnings:

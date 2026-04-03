@@ -1,6 +1,5 @@
 import json
 import os
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -467,30 +466,6 @@ class TestEnvs:
             assert os.environ["ABUSEIPDB_API_KEY"] == "dummy"
         unset_env_vars()
 
-    @patch("wtfis.config.load_dotenv", MagicMock())
-    def test_required_env_vars(self):
-        os.environ["VT_API_KEY"] = "foo"
-        parse_env()
-        unset_env_vars()
-
-    @patch("wtfis.config.load_dotenv", MagicMock())
-    @patch("wtfis.config.Path.exists")
-    def test_error(self, mock_exists, capsys):
-        mock_exists.return_value = False
-
-        with pytest.raises(SystemExit) as e:
-            parse_env()
-
-        capture = capsys.readouterr()
-
-        assert capture.err == (
-            "Error: Environment variable VT_API_KEY not set\n"
-            f"Env file {Path().home() / '.env.wtfis'} was not found either. "
-            "Did you forget?\n"
-        )
-        assert e.type is SystemExit
-        assert e.value.code == 1
-
     @patch("sys.argv", ["main", "1.1.1.1"])
     def test_geolocation_service_invalid(
         self, capsys, fake_load_dotenv_geolocation_service_invalid
@@ -514,6 +489,28 @@ class TestEnvs:
 
 
 class TestDefaults:
+    @patch("sys.argv", ["main", "www.example.com"])
+    def test_defaults_0(self):
+        """No config/API keys"""
+        conf = Config()
+        assert conf.entity == "www.example.com"
+        assert conf.max_resolutions == 3
+        assert conf.no_color is False
+        assert conf.one_column is False
+        assert conf.vt_client is None
+        assert conf.shodan_client is None
+        assert conf.greynoise_client is None
+        assert conf.abuseipdb_client is None
+        assert conf.urlhaus_client is None
+        assert conf.whois_client is None
+        assert isinstance(conf.ip_geoasn_client, IpWhoisClient)
+        assert conf.vt_api_key == ""
+        assert conf.shodan_api_key == ""
+        assert conf.abuseipdb_api_key == ""
+        assert conf.greynoise_api_key == ""
+        assert conf.ip2whois_api_key == ""
+        unset_env_vars()
+
     def test_defaults_1(self, fake_load_dotenv_2):
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_2):
             with patch(
@@ -776,8 +773,10 @@ class TestGenEntityHandler:
         unset_env_vars()
 
     @patch("sys.argv", ["main", "1.1.1.1", "--geolocation-service", "ip2location"])
-    def test_handler_ip_3(self, fake_load_dotenv_1):
+    @patch("wtfis.config.Path.exists")
+    def test_handler_ip_3(self, m_exists, fake_load_dotenv_1):
         """IP with ip2location geolocation service"""
+        m_exists.return_value = True
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
             conf = Config()
             console = Console()
@@ -884,26 +883,29 @@ class TestFetchData:
         common_exception_handler decorator.
         """
         handler = domain_handler()
-        mock_resp = requests.models.Response()
+        handler._fetch_vt_resolutions = MagicMock()
+        handler._fetch_geoasn = MagicMock()
+        handler._fetch_whois = MagicMock()
+        handler._fetch_shodan = MagicMock()
+        handler._fetch_greynoise = MagicMock()
+        handler._fetch_urlhaus = MagicMock()
+        handler._fetch_abuseipdb = MagicMock()
 
+        mock_resp = requests.models.Response()
         mock_resp.status_code = 401
         mock_requests_get.return_value = mock_resp
 
         # Thorough test of first _fetch_* method
-        with pytest.raises(SystemExit) as e:
-            fetch_data(MagicMock(), handler)
-
-        capture = capsys.readouterr()
-
-        assert (
-            capture.err == "Error fetching data: 401 Client Error: None for url: None\n"
+        fetch_data(MagicMock(), handler)
+        assert handler.warnings[0].startswith(
+            "Could not fetch Virustotal: 401 Client Error:"
         )
-        assert e.type is SystemExit  # ruff E721
-        assert e.value.code == 1
 
-        # Extra: just make sure program exits correctly
-        with pytest.raises(HandlerException) as e:
-            handler._fetch_vt_resolutions()
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith(
+            "WARN: Could not fetch Virustotal: 401 Client Error:"
+        )
 
     @patch.object(requests.Session, "get")
     def test_vt_validation_error(self, mock_requests_get, domain_handler, capsys):
@@ -913,6 +915,13 @@ class TestFetchData:
         the common_exception_handler decorator.
         """
         handler = domain_handler()
+        handler._fetch_geoasn = MagicMock()
+        handler._fetch_whois = MagicMock()
+        handler._fetch_shodan = MagicMock()
+        handler._fetch_greynoise = MagicMock()
+        handler._fetch_urlhaus = MagicMock()
+        handler._fetch_abuseipdb = MagicMock()
+
         mock_resp = requests.models.Response()
 
         with patch.object(mock_resp, "json") as mock_resp_json:

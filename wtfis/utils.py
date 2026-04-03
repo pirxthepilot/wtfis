@@ -122,3 +122,7 @@ def is_ip(text: str) -> bool:
         return ip_address(refang(text)).is_global
     except ValueError:
         return False
+
+
+def generate_notice(message: str) -> Text:
+    return Text(message, style=Theme().warn)

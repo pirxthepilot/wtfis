@@ -27,7 +27,7 @@ from wtfis.ui.view import DomainView
 
 @pytest.fixture()
 def view01(test_data, mock_ipwhois_get):
-    """gist.github.com with PT whois. Complete test of all panels. Also test print()."""
+    """gist.github.com. Complete test of all panels. Also test print()."""
     resolutions = Resolutions.model_validate(
         json.loads(test_data("vt_resolutions_gist.json"))
     )
@@ -41,7 +41,8 @@ def view01(test_data, mock_ipwhois_get):
 
     return DomainView(
         console=Console(),
-        entity=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
+        entity="gist.github.com",
+        vt=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
         resolutions=resolutions,
         geoasn=geoasn_enrich,
         whois=Ip2Whois.model_validate(
@@ -63,6 +64,7 @@ def view02(test_data):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=Resolutions.model_validate(
             json.loads(test_data("vt_resolutions_gist.json"))
         ),
@@ -82,6 +84,7 @@ def view03(test_data):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=MagicMock(),
         geoasn=MagicMock(),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_bbc.json"))),
@@ -100,7 +103,8 @@ def view04(test_data):
     """
     return DomainView(
         console=Console(),
-        entity=Domain.model_validate(json.loads(test_data("vt_domain_google.json"))),
+        entity="google.com",
+        vt=Domain.model_validate(json.loads(test_data("vt_domain_google.json"))),
         resolutions=None,
         geoasn=MagicMock(),
         whois=MagicMock(),
@@ -117,7 +121,8 @@ def view05(test_data):
     popularity."""
     return DomainView(
         console=Console(),
-        entity=Domain.model_validate(json.loads(test_data("vt_domain_tucows.json"))),
+        entity="tucows.com",
+        vt=Domain.model_validate(json.loads(test_data("vt_domain_tucows.json"))),
         resolutions=MagicMock(),
         geoasn=MagicMock(),
         whois=MagicMock(),
@@ -134,6 +139,7 @@ def view06(test_data):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=MagicMock(),
         geoasn=MagicMock(),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_example_2.json"))),
@@ -168,6 +174,7 @@ def view07(test_data, mock_ipwhois_get, mock_shodan_get_ip):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=resolutions,
         geoasn=geoasn_enrich,
         whois=MagicMock(),
@@ -195,6 +202,7 @@ def view08(test_data, mock_shodan_get_ip):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=resolutions,
         geoasn=IpWhoisMap.model_validate({}),
         whois=MagicMock(),
@@ -238,6 +246,7 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=resolutions,
         geoasn=MagicMock(),
         whois=MagicMock(),
@@ -255,6 +264,7 @@ def view10(test_data):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=MagicMock(),
         geoasn=MagicMock(),
         whois=VTWhois.model_validate(json.loads(test_data("vt_whois_foo.json"))),
@@ -282,6 +292,7 @@ def view11(test_data, mock_shodan_get_ip):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=resolutions,
         geoasn=MagicMock(),
         whois=MagicMock(),
@@ -298,6 +309,7 @@ def view12(test_data):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=MagicMock(),
         geoasn=MagicMock(),
         whois=Ip2Whois.model_validate(
@@ -316,6 +328,7 @@ def view13(test_data):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=MagicMock(),
         geoasn=MagicMock(),
         whois=Ip2Whois.model_validate(json.loads(test_data("ip2whois_whois_bbc.json"))),
@@ -349,7 +362,8 @@ def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
 
     return DomainView(
         console=Console(),
-        entity=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
+        entity="gist.github.com",
+        vt=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
         resolutions=resolutions,
         geoasn=geoasn_enrich,
         whois=Ip2Whois.model_validate(
@@ -379,6 +393,7 @@ def view15(test_data, mock_ip2location_get):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=resolutions,
         geoasn=geoasn_enrich,
         whois=MagicMock(),
@@ -406,8 +421,47 @@ def view16(test_data, mock_ipinfo_get):
     return DomainView(
         console=Console(),
         entity=MagicMock(),
+        vt=MagicMock(),
         resolutions=resolutions,
         geoasn=geoasn_enrich,
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view17(test_data):
+    """gist.github.com with no explicit API definitions."""
+    return DomainView(
+        console=Console(),
+        entity="gist.github.com",
+        vt=None,
+        resolutions=None,
+        geoasn=IpWhoisMap.model_validate({}),
+        whois=Ip2Whois.model_validate({}),
+        shodan=ShodanIpMap.model_validate({}),
+        greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=AbuseIpDbMap.model_validate({}),
+        urlhaus=UrlHausMap.model_validate({}),
+    )
+
+
+@pytest.fixture()
+def view18(test_data, mock_ipwhois_get):
+    """gist.github.com with 0 resolutions. Test resolutions panel only."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_no_result.json"))
+    )
+
+    return DomainView(
+        console=Console(),
+        entity="gist.github.com",
+        vt=MagicMock(),
+        resolutions=resolutions,
+        geoasn=MagicMock(),
         whois=MagicMock(),
         shodan=MagicMock(),
         greynoise=MagicMock(),
@@ -1033,20 +1087,7 @@ class TestView05:
 class TestView06:
     def test_whois_panel(self, view06, theme):
         whois = view06.whois_panel()
-        assert type(whois) is Panel
-        assert whois.title is None
-
-        # Sections
-        title = whois.renderable.renderables[0]
-        content = whois.renderable.renderables[1]
-
-        # Title
-        assert title == Text("Whois")
-        assert title.style == theme.heading_h1
-
-        # Warning message
-        assert content == Text("No WHOIS data was found")
-        assert content.style == theme.disclaimer
+        assert whois is None
 
 
 class TestView07:
@@ -1469,22 +1510,9 @@ class TestView09:
 
 
 class TestView10:
-    def test_whois_panel(self, view10, theme):
+    def test_whois_panel(self, view10):
         whois = view10.whois_panel()
-        assert type(whois) is Panel
-        assert whois.title is None
-
-        # Sections
-        title = whois.renderable.renderables[0]
-        content = whois.renderable.renderables[1]
-
-        # Title
-        assert title == Text("Whois")
-        assert title.style == theme.heading_h1
-
-        # Warning message
-        assert content == Text("No WHOIS data was found")
-        assert content.style == theme.disclaimer
+        assert whois is None
 
 
 class TestView11:
@@ -1826,3 +1854,28 @@ class TestIPInfoOnly:
             str(table.columns[1]._cells[4])
             == "ec2-13-234-176-102.ap-south-1.compute.amazonaws.com"
         )
+
+
+class TestNoApiKeys:
+    def test_domain_panel(self, view17):
+        domain = view17.domain_panel()
+        assert domain is None
+
+    def test_resolutions_panel(self, view17):
+        res = view17.resolutions_panel()
+        assert res is None
+
+    def test_whois_panel(self, view17):
+        whois = view17.whois_panel()
+        assert whois is None
+
+    def test_print(self, view17, capsys):
+        view17.print()
+        capture = capsys.readouterr()
+        assert capture.out.endswith("No data was found\n")
+
+
+class TestNoResolutions:
+    def test_resolutions_panel(self, view18):
+        res = view18.resolutions_panel()
+        assert res is None

@@ -20,7 +20,7 @@ from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.types import IpGeoAsnClientType
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
-from wtfis.utils import error_and_exit, is_ip
+from wtfis.utils import is_ip
 from wtfis.version import get_version
 
 ABUSEIPDB_API_KEY_VAR = "ABUSEIPDB_API_KEY"
@@ -35,21 +35,8 @@ GEOLOCATION_SERVICE_VAR = "GEOLOCATION_SERVICE"
 
 
 def parse_env() -> None:
-    DEFAULT_ENV_FILE = Path().home() / ".env.wtfis"
-
-    # Load the file
-    load_dotenv(DEFAULT_ENV_FILE)
-
-    # Exit if required environment variables don't exist
-    for envvar in (VT_API_KEY_VAR,):
-        if not os.environ.get(envvar):
-            error = f"Error: Environment variable {envvar} not set"
-            if not DEFAULT_ENV_FILE.exists():
-                error += (
-                    f"\nEnv file {DEFAULT_ENV_FILE} was not found either. "
-                    "Did you forget?"
-                )
-            error_and_exit(error)
+    # This will not throw an error if the file doesn't exist
+    load_dotenv(Path().home() / ".env.wtfis")
 
 
 def parse_args() -> Namespace:
@@ -175,7 +162,7 @@ def parse_args() -> Namespace:
         or parsed.use_urlhaus
     ):
         argparse.ArgumentParser().error(
-            "--use-* flags are not accepted when the " "--all/-A flag is set"
+            "--use-* flags are not accepted when the --all/-A flag is set"
         )
 
     return parsed
@@ -215,8 +202,10 @@ class Config:
         return self.args.one_column
 
     @property
-    def vt_client(self) -> VTClient:
-        return VTClient(self.vt_api_key)
+    def vt_client(self) -> Optional[VTClient]:
+        if self.vt_api_key:
+            return VTClient(self.vt_api_key)
+        return None
 
     @property
     def ip_geoasn_client(self) -> IpGeoAsnClientType:
@@ -228,14 +217,17 @@ class Config:
         return IpWhoisClient()
 
     @property
-    def whois_client(self) -> Union[Ip2WhoisClient, VTClient]:
+    def whois_client(self) -> Optional[Union[Ip2WhoisClient, VTClient]]:
         # Whois client selector
         # Order of use based on set envvars:
         #    1. IP2Whois (Domain only)
         #    2. Virustotal (fallback)
+        # If neither are set, return None
         if self.ip2whois_api_key and not is_ip(self.entity):
             return Ip2WhoisClient(self.ip2whois_api_key)
-        return self.vt_client
+        if self.vt_api_key:
+            return VTClient(self.vt_api_key)
+        return None
 
     @property
     def abuseipdb_client(self) -> Optional[AbuseIpDbClient]:

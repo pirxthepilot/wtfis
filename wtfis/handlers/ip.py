@@ -11,8 +11,10 @@ from wtfis.handlers.base import (
 
 class IpAddressHandler(BaseHandler):
     @common_exception_handler
+    @failopen_exception_handler("_vt")
     def _fetch_vt_ip_address(self) -> None:
-        self.vt_info = self._vt.get_ip_address(self.entity)
+        if self._vt:
+            self.vt_info = self._vt.get_ip_address(self.entity)
 
     @common_exception_handler
     @failopen_exception_handler("_urlhaus")
@@ -21,11 +23,12 @@ class IpAddressHandler(BaseHandler):
             self.urlhaus = self._urlhaus.enrich_ips(self.entity)
 
     def fetch_data(self):
-        yield "Fetching data from Virustotal", 50
-        self._fetch_vt_ip_address()
-
         yield f"Fetching IP location and ASN from {self._geoasn.name}", 50
         self._fetch_geoasn(self.entity)
+
+        if self._vt:
+            yield f"Fetching data from {self._vt.name}", 50
+            self._fetch_vt_ip_address()
 
         if self._shodan:
             yield f"Fetching IP data from {self._shodan.name}", 50
@@ -43,5 +46,6 @@ class IpAddressHandler(BaseHandler):
             yield f"Fetching IP data from {self._abuseipdb.name}", 50
             self._fetch_abuseipdb(self.entity)
 
-        yield f"Fetching IP whois from {self._whois.name}", 50
-        self._fetch_whois()
+        if self._whois:
+            yield f"Fetching IP whois from {self._whois.name}", 50
+            self._fetch_whois()
