@@ -489,6 +489,28 @@ class TestEnvs:
 
 
 class TestDefaults:
+    @patch("sys.argv", ["main", "www.example.com"])
+    def test_defaults_0(self):
+        """No config/API keys"""
+        conf = Config()
+        assert conf.entity == "www.example.com"
+        assert conf.max_resolutions == 3
+        assert conf.no_color is False
+        assert conf.one_column is False
+        assert conf.vt_client is None
+        assert conf.shodan_client is None
+        assert conf.greynoise_client is None
+        assert conf.abuseipdb_client is None
+        assert conf.urlhaus_client is None
+        assert conf.whois_client is None
+        assert isinstance(conf.ip_geoasn_client, IpWhoisClient)
+        assert conf.vt_api_key == ""
+        assert conf.shodan_api_key == ""
+        assert conf.abuseipdb_api_key == ""
+        assert conf.greynoise_api_key == ""
+        assert conf.ip2whois_api_key == ""
+        unset_env_vars()
+
     def test_defaults_1(self, fake_load_dotenv_2):
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_2):
             with patch(
@@ -861,8 +883,15 @@ class TestFetchData:
         common_exception_handler decorator.
         """
         handler = domain_handler()
-        mock_resp = requests.models.Response()
+        handler._fetch_vt_resolutions = MagicMock()
+        handler._fetch_geoasn = MagicMock()
+        handler._fetch_whois = MagicMock()
+        handler._fetch_shodan = MagicMock()
+        handler._fetch_greynoise = MagicMock()
+        handler._fetch_urlhaus = MagicMock()
+        handler._fetch_abuseipdb = MagicMock()
 
+        mock_resp = requests.models.Response()
         mock_resp.status_code = 401
         mock_requests_get.return_value = mock_resp
 
@@ -886,6 +915,13 @@ class TestFetchData:
         the common_exception_handler decorator.
         """
         handler = domain_handler()
+        handler._fetch_geoasn = MagicMock()
+        handler._fetch_whois = MagicMock()
+        handler._fetch_shodan = MagicMock()
+        handler._fetch_greynoise = MagicMock()
+        handler._fetch_urlhaus = MagicMock()
+        handler._fetch_abuseipdb = MagicMock()
+
         mock_resp = requests.models.Response()
 
         with patch.object(mock_resp, "json") as mock_resp_json:

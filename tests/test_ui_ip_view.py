@@ -302,6 +302,46 @@ def view10(test_data, mock_ipinfo_get):
     )
 
 
+@pytest.fixture()
+def view11(test_data, mock_ipwhois_get):
+    """1.1.1.1 with no explicit API definitions."""
+    ip = "1.1.1.1"
+    geoasn_pool = json.loads(test_data("ipwhois_1.1.1.1.json"))
+    geoasn_client = IpWhoisClient()
+    geoasn_client._get_ipwhois = MagicMock(
+        side_effect=lambda ip: mock_ipwhois_get(ip, geoasn_pool)
+    )
+    geoasn_enrich = geoasn_client.enrich_ips("1.1.1.1")
+
+    return IpAddressView(
+        console=Console(),
+        entity=ip,
+        vt=None,
+        geoasn=geoasn_enrich,
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view12():
+    """IP with no data."""
+    return IpAddressView(
+        console=Console(),
+        entity="1.1.1.1",
+        vt=None,
+        geoasn=IpWhoisMap.empty(),
+        whois=None,
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+    )
+
+
 class TestView01:
     def test_ip_panel(self, view01, theme, display_timestamp):
         ip = view01.ip_panel()
@@ -1098,3 +1138,20 @@ class TestIPInfoOnly:
         assert str(table.columns[1]._cells[1]) == "Brisbane, Queensland, AU"
         assert str(table.columns[1]._cells[2]) == "one.one.one.one"
         assert str(table.columns[1]._cells[3]) == "True"
+
+
+class TestNoApiKeys:
+    def test_ip_panel_with_whois(self, view11, theme):
+        ip = view11.ip_panel()
+        assert type(ip) is Panel
+        assert ip.title == Text("1.1.1.1")
+        assert ip.title.style == theme.panel_title
+
+    def test_ip_panel_without_data(self, view12):
+        ip = view12.ip_panel()
+        assert ip is None
+
+    def test_print_no_data(self, view12, capsys):
+        view12.print()
+        capture = capsys.readouterr()
+        assert capture.out.endswith("No data was found\n")

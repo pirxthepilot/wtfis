@@ -27,7 +27,7 @@ from wtfis.ui.view import DomainView
 
 @pytest.fixture()
 def view01(test_data, mock_ipwhois_get):
-    """gist.github.com with PT whois. Complete test of all panels. Also test print()."""
+    """gist.github.com. Complete test of all panels. Also test print()."""
     resolutions = Resolutions.model_validate(
         json.loads(test_data("vt_resolutions_gist.json"))
     )
@@ -424,6 +424,44 @@ def view16(test_data, mock_ipinfo_get):
         vt=MagicMock(),
         resolutions=resolutions,
         geoasn=geoasn_enrich,
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view17(test_data):
+    """gist.github.com with no explicit API definitions."""
+    return DomainView(
+        console=Console(),
+        entity="gist.github.com",
+        vt=None,
+        resolutions=None,
+        geoasn=IpWhoisMap.model_validate({}),
+        whois=Ip2Whois.model_validate({}),
+        shodan=ShodanIpMap.model_validate({}),
+        greynoise=GreynoiseIpMap.model_validate({}),
+        abuseipdb=AbuseIpDbMap.model_validate({}),
+        urlhaus=UrlHausMap.model_validate({}),
+    )
+
+
+@pytest.fixture()
+def view18(test_data, mock_ipwhois_get):
+    """gist.github.com with 0 resolutions. Test resolutions panel only."""
+    resolutions = Resolutions.model_validate(
+        json.loads(test_data("vt_resolutions_no_result.json"))
+    )
+
+    return DomainView(
+        console=Console(),
+        entity="gist.github.com",
+        vt=MagicMock(),
+        resolutions=resolutions,
+        geoasn=MagicMock(),
         whois=MagicMock(),
         shodan=MagicMock(),
         greynoise=MagicMock(),
@@ -1816,3 +1854,28 @@ class TestIPInfoOnly:
             str(table.columns[1]._cells[4])
             == "ec2-13-234-176-102.ap-south-1.compute.amazonaws.com"
         )
+
+
+class TestNoApiKeys:
+    def test_domain_panel(self, view17):
+        domain = view17.domain_panel()
+        assert domain is None
+
+    def test_resolutions_panel(self, view17):
+        res = view17.resolutions_panel()
+        assert res is None
+
+    def test_whois_panel(self, view17):
+        whois = view17.whois_panel()
+        assert whois is None
+
+    def test_print(self, view17, capsys):
+        view17.print()
+        capture = capsys.readouterr()
+        assert capture.out.endswith("No data was found\n")
+
+
+class TestNoResolutions:
+    def test_resolutions_panel(self, view18):
+        res = view18.resolutions_panel()
+        assert res is None

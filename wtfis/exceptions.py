@@ -3,3 +3,6 @@ class WtfisException(Exception):
 
 
 class HandlerException(WtfisException): ...
+
+
+class ModelException(WtfisException): ...

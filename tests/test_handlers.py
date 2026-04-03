@@ -31,6 +31,7 @@ class TestDomainHandler:
         handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
+        handler._fetch_abuseipdb = MagicMock()
 
         fetch_data(MagicMock(), handler)
         handler._fetch_vt_domain.assert_called_once()
@@ -51,6 +52,7 @@ class TestDomainHandler:
         handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
+        handler._fetch_abuseipdb = MagicMock()
 
         fetch_data(MagicMock(), handler)
         handler._fetch_vt_domain.assert_called_once()
