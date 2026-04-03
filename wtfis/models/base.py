@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import abc
 from decimal import Decimal
-from typing import Any, List, Mapping, Optional, Union
+from typing import Annotated, Any, List, Mapping, Optional, Union
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, RootModel
-
-from typing import Annotated
 
 from wtfis.exceptions import ModelException
 
