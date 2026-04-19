@@ -171,6 +171,13 @@ def fake_load_dotenv_geolocation_service_invalid(tmp_path):
     return fake_load_dotenv(tmp_path, fake_env_vars)
 
 
+@pytest.fixture()
+def fake_load_dotenv_empty(tmp_path):
+    fake_env_vars = {}
+    yield fake_load_dotenv(tmp_path, fake_env_vars)
+    unset_env_vars()
+
+
 class TestArgs:
     def test_basic(self):
         with patch(
@@ -490,9 +497,10 @@ class TestEnvs:
 
 class TestDefaults:
     @patch("sys.argv", ["main", "www.example.com"])
-    def test_defaults_0(self):
+    def test_defaults_0(self, fake_load_dotenv_empty):
         """No config/API keys"""
-        conf = Config()
+        with patch("wtfis.config.load_dotenv", fake_load_dotenv_empty):
+            conf = Config()
         assert conf.entity == "www.example.com"
         assert conf.max_resolutions == 3
         assert conf.no_color is False
@@ -509,7 +517,6 @@ class TestDefaults:
         assert conf.abuseipdb_api_key == ""
         assert conf.greynoise_api_key == ""
         assert conf.ip2whois_api_key == ""
-        unset_env_vars()
 
     def test_defaults_1(self, fake_load_dotenv_2):
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_2):
