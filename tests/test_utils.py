@@ -77,3 +77,9 @@ class TestUtils:
     def test_is_ip(self):
         assert is_ip("1.1.1.1") is True
         assert is_ip("foo.example.com") is False
+
+    def test_is_ip_private_and_reserved(self):
+        assert is_ip("192.168.1.1") is True
+        assert is_ip("10.0.0.1") is True
+        assert is_ip("127.0.0.1") is True
+        assert is_ip("::1") is True
