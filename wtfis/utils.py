@@ -117,9 +117,10 @@ def refang(text: str) -> str:
 
 
 def is_ip(text: str) -> bool:
-    """Detect whether text is IPv4 or not"""
+    """Detect whether text is an IP address (v4 or v6) or not"""
     try:
-        return ip_address(refang(text)).is_global
+        ip_address(refang(text))
+        return True
     except ValueError:
         return False
 
