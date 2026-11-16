@@ -26,6 +26,7 @@ The project name is a play on "whois".
 | [Virustotal](https://virustotal.com) | All | No | [Yes](https://www.virustotal.com/gui/join-us) |
 | [AbuseIPDB](https://www.abuseipdb.com/)| IP address | No | [Yes](https://www.abuseipdb.com/register?plan=free)
 | [Greynoise](https://greynoise.io) | IP address | No | [Yes](https://www.greynoise.io/plans/community)
+| [InternetData](https://internetdata.io) | IP address | No | Yes (no signup)
 | [IP2Location](https://www.ip2location.io) | IP address | No | [Yes](https://www.ip2location.io/pricing)
 | [IP2Whois](https://www.ip2whois.com) | Domain/FQDN | No | [Yes](https://www.ip2location.io/pricing)
 | [IPinfo](https://ipinfo.io) | IP Address | No | Yes (no signup)
@@ -55,6 +56,16 @@ The primary source of information. Retrieves:
 
 * Abuse confidence score (0-100)
 * Number of reports
+
+### InternetData
+
+Another alternative Geolocation and ASN lookup source for IP addresses. Retrieves:
+
+* Country
+* ASN and Org
+* Domain
+* Hostname
+* Anycast (true or false)
 
 ### IP2Location
 
@@ -163,7 +174,7 @@ Alternatively, create a file in your home directory `~/.env.wtfis` with the abov
 ## Usage
 
 ```
-usage: wtfis [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] [--geolocation-service {ip2location,ipinfo,ipwhois}] entity
+usage: wtfis [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] [--geolocation-service {internetdata,ip2location,ipinfo,ipwhois}] entity
 
 positional arguments:
   entity                Hostname, domain or IP
@@ -180,7 +191,7 @@ options:
   -n, --no-color        Show output without colors
   -1, --one-column      Display results in one column
   -V, --version         Print version number
-  --geolocation-service {ip2location,ipinfo,ipwhois}
+  --geolocation-service {internetdata,ip2location,ipinfo,ipwhois}
                         Geolocation service to use (default: ipwhois)
 ```
 

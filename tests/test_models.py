@@ -4,6 +4,7 @@ import pytest
 
 from wtfis.exceptions import ModelException
 from wtfis.models.base import str_validator
+from wtfis.models.internetdata import InternetData, InternetDataMap
 from wtfis.models.ip2location import Ip2Location, Ip2LocationMap
 from wtfis.models.ipinfo import IpInfo, IpInfoMap
 from wtfis.models.ipwhois import IpWhois
@@ -82,6 +83,19 @@ class TestIp2LocationModels:
 
     def test_empty_map(self):
         assert Ip2LocationMap.empty() == Ip2LocationMap.model_validate({})
+
+
+class TestInternetDataModels:
+    def test_special_fields(self, test_data):
+        internetdata = InternetData.model_validate(
+            json.loads(test_data("internetdata_1.1.1.1.json")).get("1.1.1.1")
+        )
+        assert internetdata.country == "Australia"
+        assert internetdata.is_anycast == "True"
+        assert internetdata.link == "https://internetdata.io/1.1.1.1"
+
+    def test_empty_map(self):
+        assert InternetDataMap.empty() == InternetDataMap.model_validate({})
 
 
 class TestIpInfoModels:
