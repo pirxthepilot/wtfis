@@ -17,6 +17,7 @@ from rich.progress import (
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.internetdata import InternetDataClient
 from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipinfo import IpInfoClient
@@ -488,7 +489,7 @@ class TestEnvs:
 
         assert capture.err.endswith(
             "error: Invalid geolocation service: invalid_service. "
-            "Valid services are: ip2location, ipinfo, ipwhois\n"
+            "Valid services are: internetdata, ip2location, ipinfo, ipwhois\n"
         )
         assert e.type is SystemExit
         assert e.value.code == 2
@@ -799,6 +800,16 @@ class TestGenEntityHandler:
             console = Console()
             entity = generate_entity_handler(conf, console)
         assert isinstance(entity._geoasn, IpInfoClient)
+        unset_env_vars()
+
+    @patch("sys.argv", ["main", "1.1.1.1", "--geolocation-service", "internetdata"])
+    def test_handler_ip_5(self, fake_load_dotenv_1):
+        """IP with internetdata geolocation service"""
+        with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
+            conf = Config()
+            console = Console()
+            entity = generate_entity_handler(conf, console)
+        assert isinstance(entity._geoasn, InternetDataClient)
         unset_env_vars()
 
 

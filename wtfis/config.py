@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.internetdata import InternetDataClient
 from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipinfo import IpInfoClient
@@ -41,6 +42,7 @@ def parse_env() -> None:
 
 def parse_args() -> Namespace:
     GEOLOCATION_SERVICES = (
+        "internetdata",
         "ip2location",
         "ipinfo",
         "ipwhois",
@@ -214,6 +216,8 @@ class Config:
             return Ip2LocationClient(self.ip2location_api_key)
         if self.args.geolocation_service == "ipinfo":
             return IpInfoClient()
+        if self.args.geolocation_service == "internetdata":
+            return InternetDataClient()
         return IpWhoisClient()
 
     @property

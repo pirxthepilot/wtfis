@@ -6,6 +6,7 @@ from typing import Union
 
 from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.greynoise import GreynoiseIpMap
+from wtfis.models.internetdata import InternetData, InternetDataMap
 from wtfis.models.ip2location import Ip2Location, Ip2LocationMap
 from wtfis.models.ipinfo import IpInfo, IpInfoMap
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
@@ -16,6 +17,7 @@ from wtfis.models.urlhaus import UrlHausMap
 IpEnrichmentType = Union[
     AbuseIpDbMap,
     GreynoiseIpMap,
+    InternetDataMap,
     Ip2LocationMap,
     IpInfoMap,
     IpWhoisMap,
@@ -28,12 +30,14 @@ DomainEnrichmentType = Union[UrlHausMap,]
 
 # IP geolocation and ASN types
 IpGeoAsnType = Union[
+    InternetData,
     Ip2Location,
     IpInfo,
     IpWhois,
 ]
 
 IpGeoAsnMapType = Union[
+    InternetDataMap,
     Ip2LocationMap,
     IpInfoMap,
     IpWhoisMap,

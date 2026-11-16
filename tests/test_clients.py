@@ -6,6 +6,7 @@ import pytest
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.base import requests
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.internetdata import InternetDataClient
 from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipinfo import IpInfoClient
@@ -35,6 +36,11 @@ def ip2location_client():
 @pytest.fixture()
 def ip2whois_client():
     return Ip2WhoisClient("dummykey")
+
+
+@pytest.fixture()
+def internetdata_client():
+    return InternetDataClient()
 
 
 @pytest.fixture()
@@ -157,6 +163,31 @@ class TestIp2WhoisClient:
             with pytest.raises(requests.exceptions.HTTPError) as err:
                 ip2whois_client.get_whois("thisdoesntmatter")
             assert err.value.response.json()["error"]["error_code"] == 10008
+
+
+class TestInternetDataClient:
+    def test_init(self, internetdata_client):
+        assert internetdata_client.name == "InternetData"
+
+    @patch.object(requests.Session, "get")
+    def test_enrich_ips(self, mock_requests_get, test_data, internetdata_client):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(
+            test_data("internetdata_1.1.1.1.json")
+        ).get("1.1.1.1")
+        mock_requests_get.return_value = mock_resp
+
+        internetdata = internetdata_client.enrich_ips("1.1.1.1").root["1.1.1.1"]
+
+        assert internetdata.ip == "1.1.1.1"
+        assert internetdata.country == "Australia"
+        assert internetdata.asn == "13335"
+        assert internetdata.org == "Cloudflare, Inc."
+        assert internetdata.domain == "cloudflare.com"
+        assert internetdata.hostname == "one.one.one.one"
+        assert internetdata.is_anycast == "True"
+        assert internetdata.link == "https://internetdata.io/1.1.1.1"
 
 
 class TestIpInfoClient:

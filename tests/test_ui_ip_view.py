@@ -9,6 +9,7 @@ from rich.text import Span, Text
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.internetdata import InternetDataClient
 from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
@@ -335,6 +336,30 @@ def view12():
         vt=None,
         geoasn=IpWhoisMap.empty(),
         whois=None,
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view13(test_data, mock_internetdata_get):
+    """1.1.1.1 with InternetData. Test InternetData only."""
+    ip = "1.1.1.1"
+    geoasn_pool = json.loads(test_data("internetdata_1.1.1.1.json"))
+    geoasn_client = InternetDataClient()
+    geoasn_client._get_internetdata = MagicMock(
+        side_effect=lambda ip: mock_internetdata_get(ip, geoasn_pool)
+    )
+    geoasn_enrich = geoasn_client.enrich_ips(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=geoasn_enrich,
+        whois=MagicMock(),
         shodan=MagicMock(),
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
@@ -1138,6 +1163,27 @@ class TestIPInfoOnly:
         assert str(table.columns[1]._cells[1]) == "Brisbane, Queensland, AU"
         assert str(table.columns[1]._cells[2]) == "one.one.one.one"
         assert str(table.columns[1]._cells[3]) == "True"
+
+
+class TestInternetDataOnly:
+    def test_ip_panel(self, view13):
+        ip = view13.ip_panel()
+
+        internetdata_section = ip.renderable.renderables[2]
+
+        # Table
+        table = internetdata_section.renderables[1]
+        assert len(table.columns[0]._cells) == 5
+        assert str(table.columns[0]._cells[0]) == "ASN:"
+        assert str(table.columns[0]._cells[1]) == "Location:"
+        assert str(table.columns[0]._cells[2]) == "Domain:"
+        assert str(table.columns[0]._cells[3]) == "Hostname:"
+        assert str(table.columns[0]._cells[4]) == "Anycast:"
+        assert str(table.columns[1]._cells[0]) == "13335 (Cloudflare, Inc.)"
+        assert str(table.columns[1]._cells[1]) == "Australia"
+        assert str(table.columns[1]._cells[2]) == "cloudflare.com"
+        assert str(table.columns[1]._cells[3]) == "one.one.one.one"
+        assert str(table.columns[1]._cells[4]) == "True"
 
 
 class TestNoApiKeys:
