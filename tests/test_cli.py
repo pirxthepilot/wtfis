@@ -21,6 +21,7 @@ from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.netapi import NetApiClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -122,6 +123,15 @@ def fake_load_dotenv_4(tmp_path):
 
 
 @pytest.fixture()
+def fake_load_dotenv_5(tmp_path):
+    fake_env_vars = {
+        "VT_API_KEY": "foo",
+        "WTFIS_DEFAULTS": "-N",
+    }
+    return fake_load_dotenv(tmp_path, fake_env_vars)
+
+
+@pytest.fixture()
 def fake_load_dotenv_vt_whois(tmp_path):
     fake_env_vars = {
         "VT_API_KEY": "foo",
@@ -195,6 +205,7 @@ class TestArgs:
             assert args.use_shodan is False
             assert args.use_greynoise is False
             assert args.use_urlhaus is False
+            assert args.use_netapi is False
             assert args.use_abuseipdb is False
             assert args.all is False
 
@@ -361,6 +372,19 @@ class TestArgs:
         assert e.type is SystemExit
         assert e.value.code == 2
 
+    def test_netapi_ok(self):
+        """No API key is needed"""
+        with patch(
+            "sys.argv",
+            [
+                "main",
+                "www.example.com",
+                "-N",
+            ],
+        ):
+            args = parse_args()
+            assert args.use_netapi is True
+
     def test_abuseipdb_ok(self):
         os.environ["ABUSEIPDB_API_KEY"] = "foo"
         with patch(
@@ -510,6 +534,7 @@ class TestDefaults:
         assert conf.greynoise_client is None
         assert conf.abuseipdb_client is None
         assert conf.urlhaus_client is None
+        assert conf.netapi_client is None
         assert conf.whois_client is None
         assert isinstance(conf.ip_geoasn_client, IpWhoisClient)
         assert conf.vt_api_key == ""
@@ -605,6 +630,35 @@ class TestDefaults:
                 assert conf.abuseipdb_api_key == "dummy"
         unset_env_vars()
 
+    def test_defaults_5(self, fake_load_dotenv_5):
+        """NetAPI as a default"""
+        with patch("wtfis.config.load_dotenv", fake_load_dotenv_5):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                ],
+            ):
+                conf = Config()
+                assert isinstance(conf.netapi_client, NetApiClient)
+        unset_env_vars()
+
+    def test_defaults_6(self, fake_load_dotenv_5):
+        """NetAPI as a default, negated by the argument"""
+        with patch("wtfis.config.load_dotenv", fake_load_dotenv_5):
+            with patch(
+                "sys.argv",
+                [
+                    "main",
+                    "www.example.com",
+                    "--use-netapi",
+                ],
+            ):
+                conf = Config()
+                assert conf.netapi_client is None
+        unset_env_vars()
+
 
 class TestAllFlag:
     def test_1_ok(self, fake_load_dotenv_1):
@@ -623,6 +677,7 @@ class TestAllFlag:
                 assert isinstance(conf.greynoise_client, GreynoiseClient)
                 assert isinstance(conf.abuseipdb_client, AbuseIpDbClient)
                 assert isinstance(conf.urlhaus_client, UrlHausClient)
+                assert isinstance(conf.netapi_client, NetApiClient)
         unset_env_vars()
 
     def test_2_ok(self, fake_load_dotenv_all_ok):
@@ -640,6 +695,7 @@ class TestAllFlag:
                 assert isinstance(conf.greynoise_client, GreynoiseClient)
                 assert isinstance(conf.abuseipdb_client, AbuseIpDbClient)
                 assert isinstance(conf.urlhaus_client, UrlHausClient)
+                assert isinstance(conf.netapi_client, NetApiClient)
         unset_env_vars()
 
     def test_3_error(self, fake_load_dotenv_1, capsys):
@@ -653,6 +709,30 @@ class TestAllFlag:
                         "www.example.com",
                         "-A",
                         "-s",
+                    ],
+                ):
+                    _ = Config()
+
+        capture = capsys.readouterr()
+
+        assert capture.err.endswith(
+            "error: --use-* flags are not accepted when the --all/-A flag is set\n"
+        )
+        assert e.type is SystemExit
+        assert e.value.code == 2
+        unset_env_vars()
+
+    def test_3_error_netapi(self, fake_load_dotenv_1, capsys):
+        """Invalid arguments (NetAPI)"""
+        with pytest.raises(SystemExit) as e:
+            with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
+                with patch(
+                    "sys.argv",
+                    [
+                        "main",
+                        "www.example.com",
+                        "-A",
+                        "-N",
                     ],
                 ):
                     _ = Config()
@@ -709,10 +789,11 @@ class TestGenEntityHandler:
         assert entity._shodan is None
         assert entity._greynoise is None
         assert entity._urlhaus is None
+        assert entity._netapi is None
         assert entity._abuseipdb is None
         unset_env_vars()
 
-    @patch("sys.argv", ["main", "www.example[.]com", "-s", "-g", "-u", "-m", "5"])
+    @patch("sys.argv", ["main", "www.example[.]com", "-s", "-g", "-u", "-N", "-m", "5"])
     def test_handler_domain_2(self, fake_load_dotenv_1):
         """Domain with Shodan and Greynoise and non-default max_resolutions"""
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
@@ -725,6 +806,7 @@ class TestGenEntityHandler:
         assert isinstance(entity._shodan, ShodanClient)
         assert isinstance(entity._greynoise, GreynoiseClient)
         assert isinstance(entity._urlhaus, UrlHausClient)
+        assert isinstance(entity._netapi, NetApiClient)
         unset_env_vars()
 
     @patch("sys.argv", ["main", "www.example[.]com"])
@@ -762,9 +844,10 @@ class TestGenEntityHandler:
         assert isinstance(entity._whois, VTClient)
         assert entity._greynoise is None
         assert entity._urlhaus is None
+        assert entity._netapi is None
         unset_env_vars()
 
-    @patch("sys.argv", ["main", "1[.]1[.]1[.]1", "-s", "-g", "-u", "-a"])
+    @patch("sys.argv", ["main", "1[.]1[.]1[.]1", "-s", "-g", "-u", "-N", "-a"])
     def test_handler_ip_2(self, fake_load_dotenv_1):
         """IP with various options"""
         with patch("wtfis.config.load_dotenv", fake_load_dotenv_1):
@@ -776,6 +859,7 @@ class TestGenEntityHandler:
         assert isinstance(entity._shodan, ShodanClient)
         assert isinstance(entity._greynoise, GreynoiseClient)
         assert isinstance(entity._urlhaus, UrlHausClient)
+        assert isinstance(entity._netapi, NetApiClient)
         assert isinstance(entity._abuseipdb, AbuseIpDbClient)
         unset_env_vars()
 
@@ -818,6 +902,7 @@ class TestGenView:
             greynoise_client=MagicMock(),
             abuseipdb_client=MagicMock(),
             urlhaus_client=MagicMock(),
+            netapi_client=MagicMock(),
         )
         entity.vt_info = Domain.model_validate(
             json.loads(test_data("vt_domain_gist.json"))
@@ -840,6 +925,7 @@ class TestGenView:
             greynoise_client=MagicMock(),
             abuseipdb_client=MagicMock(),
             urlhaus_client=MagicMock(),
+            netapi_client=MagicMock(),
         )
         entity.vt_info = IpAddress.model_validate(
             json.loads(test_data("vt_ip_1.1.1.1.json"))
@@ -896,6 +982,7 @@ class TestFetchData:
         handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
+        handler._fetch_netapi = MagicMock()
         handler._fetch_abuseipdb = MagicMock()
 
         mock_resp = requests.models.Response()
@@ -927,6 +1014,7 @@ class TestFetchData:
         handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
+        handler._fetch_netapi = MagicMock()
         handler._fetch_abuseipdb = MagicMock()
 
         mock_resp = requests.models.Response()

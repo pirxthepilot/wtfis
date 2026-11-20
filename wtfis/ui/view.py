@@ -26,6 +26,7 @@ class DomainView(BaseView):
         for section in [
             self._gen_vt_section(),
             self._gen_urlhaus_section(),
+            self._gen_netapi_section(),
         ]:
             if section is not None:
                 if len(content) > 0:
@@ -195,6 +196,7 @@ class IpAddressView(BaseView):
             self._gen_geoasn_section(),
             self._gen_shodan_section(),
             self._gen_urlhaus_section(),
+            self._gen_netapi_section(),
             self._gen_ip_other_section(),
         ]:
             if section is not None:

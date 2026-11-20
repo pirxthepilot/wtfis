@@ -7,6 +7,7 @@ from wtfis.models.base import str_validator
 from wtfis.models.ip2location import Ip2Location, Ip2LocationMap
 from wtfis.models.ipinfo import IpInfo, IpInfoMap
 from wtfis.models.ipwhois import IpWhois
+from wtfis.models.netapi import NetApi, NetApiMap
 from wtfis.models.virustotal import Domain, Resolutions
 
 
@@ -103,3 +104,43 @@ class TestIpWhoisModels:
             json.loads(test_data("ipwhois_1.1.1.1.json")).get("1.1.1.1")
         )
         assert ipwhois.domain == "cloudflare.com"
+
+
+class TestNetApiModels:
+    def test_special_fields_ip(self, test_data):
+        netapi = NetApi.model_validate(
+            json.loads(test_data("netapi_1.1.1.1_listed.json")).get("1.1.1.1")
+        )
+        assert netapi.last_seen == "2026-11-20T05:28:24Z"
+        assert netapi.link == "https://netapi.com/lookup-ip/1.1.1.1/"
+
+    def test_special_fields_domain(self, test_data):
+        netapi = NetApi.model_validate(
+            json.loads(test_data("netapi_gist.json")).get("gist.github.com")
+        )
+        assert netapi.last_seen == "2026-11-20T01:05:38Z"
+        assert netapi.link == "https://netapi.com/lookup-domain/gist.github.com/"
+
+    def test_not_listed(self, test_data):
+        netapi = NetApi.model_validate(
+            json.loads(test_data("netapi_1.1.1.1.json")).get("1.1.1.1")
+        )
+        assert netapi.listed_now is False
+        assert netapi.listed_ever is False
+        assert netapi.last_seen is None
+
+    def test_last_seen_other_format(self):
+        """A last_seen value in another format is kept as is"""
+        netapi = NetApi.model_validate(
+            {
+                "value": "1.1.1.1",
+                "type": "ip",
+                "listed_now": True,
+                "listed_ever": True,
+                "last_seen": "2026-11-20",
+            }
+        )
+        assert netapi.last_seen == "2026-11-20"
+
+    def test_empty_map(self):
+        assert NetApiMap.empty() == NetApiMap.model_validate({})

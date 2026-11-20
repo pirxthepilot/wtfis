@@ -41,6 +41,12 @@ class DomainHandler(BaseHandler):
         if self._urlhaus:
             self.urlhaus = self._urlhaus.enrich_domains(self.entity)
 
+    @common_exception_handler
+    @failopen_exception_handler("_netapi")
+    def _fetch_netapi(self) -> None:
+        if self._netapi:
+            self.netapi = self._netapi.enrich_domains(self.entity)
+
     def fetch_data(self):
         if self._vt:
             yield f"Fetching data from {self._vt.name}", 33
@@ -72,6 +78,10 @@ class DomainHandler(BaseHandler):
         if self._urlhaus:
             yield f"Fetching domain data from {self._urlhaus.name}", 50
             self._fetch_urlhaus()
+
+        if self._netapi:
+            yield f"Fetching domain data from {self._netapi.name}", 50
+            self._fetch_netapi()
 
         if self._whois:
             yield f"Fetching domain whois from {self._whois.name}", 50

@@ -30,6 +30,7 @@ The project name is a play on "whois".
 | [IP2Whois](https://www.ip2whois.com) | Domain/FQDN | No | [Yes](https://www.ip2location.io/pricing)
 | [IPinfo](https://ipinfo.io) | IP Address | No | Yes (no signup)
 | [IPWhois](https://ipwhois.io) | IP address | No | Yes (no signup) |
+| [NetAPI](https://netapi.com) | All | No | Yes (no signup) |
 | [Shodan](https://shodan.io) | IP address | No | [No](https://account.shodan.io/billing) |
 | [URLhaus](https://urlhaus.abuse.ch/) | All | No | [Yes](https://urlhaus-api.abuse.ch/#auth_key)
 
@@ -117,6 +118,14 @@ GETs data from the `/shodan/host/{ip}` endpoint (see [doc](https://developer.sho
 * Operating system (if available)
 * Tags (assigned by Shodan)
 
+### NetAPI
+
+[NetAPI](https://netapi.com) publishes two free blocklists: [compromised domains](https://netapi.com/compromised-urls/) (malware, phishing and C2 domains) and [compromised IPs](https://netapi.com/compromised-ips/) (addresses that attacked its honeypot sensors in the last 30 days). No API key is needed. For the queried hostname, domain or IP, wtfis shows:
+
+* Whether it is listed now, was listed in the past or is not listed
+* The reason of the listing
+* The dates it was first and last seen
+
 ### URLhaus
 
 [URLhaus](https://urlhaus.abuse.ch/) is a crowd-sourced database of reported malicious URLs. This enrichment provides insight on whether the queried hostname or IP is being or was used for malware distribution via HTTP or HTTPS. Data that is provided include:
@@ -163,7 +172,7 @@ Alternatively, create a file in your home directory `~/.env.wtfis` with the abov
 ## Usage
 
 ```
-usage: wtfis [-h] [-A] [-s] [-g] [-a] [-u] [-m N] [-n] [-1] [-V] [--geolocation-service {ip2location,ipinfo,ipwhois}] entity
+usage: wtfis [-h] [-A] [-s] [-g] [-a] [-u] [-N] [-m N] [-n] [-1] [-V] [--geolocation-service {ip2location,ipinfo,ipwhois}] entity
 
 positional arguments:
   entity                Hostname, domain or IP
@@ -175,6 +184,7 @@ options:
   -g, --use-greynoise   Enable Greynoise for IPs
   -a, --use-abuseipdb   Enable AbuseIPDB for IPs
   -u, --use-urlhaus     Enable URLhaus for IPs and domains
+  -N, --use-netapi      Enable NetAPI for IPs and domains
   -m N, --max-resolutions N
                         Maximum number of resolutions to show (default: 3)
   -n, --no-color        Show output without colors
@@ -215,6 +225,12 @@ To enable Greynoise, invoke with the `-g` or `--use-greynoise` flag. Because the
 ![](https://github.com/pirxthepilot/wtfis/blob/main/imgs/example-greynoise.png?raw=true)
 
 The `GreyNoise` field name is also a hyperlink (if terminal-supported) that points to the IP entry in the Greynoise web interface, where more context is shown.
+
+### NetAPI
+
+Use the `-N` or `--use-netapi` flag to enable NetAPI enrichment for hostnames, domains and IPs. It works without an API key (up to 30 lookups a minute and 1,000 a day).
+
+The `Blocklist` field name is a hyperlink (if terminal-supported) that takes you to the NetAPI lookup page for your query. For a hostname, a `Matched` row shows the listed parent domain.
 
 ### Shodan
 

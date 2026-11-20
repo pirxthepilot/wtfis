@@ -16,6 +16,7 @@ from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.netapi import NetApiClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.types import IpGeoAsnClientType
 from wtfis.clients.urlhaus import UrlHausClient
@@ -72,6 +73,12 @@ def parse_args() -> Namespace:
         action="store_true",
     )
     parser.add_argument(
+        "-N",
+        "--use-netapi",
+        help="Enable NetAPI for IPs and domains",
+        action="store_true",
+    )
+    parser.add_argument(
         "-m",
         "--max-resolutions",
         metavar="N",
@@ -116,6 +123,8 @@ def parse_args() -> Namespace:
             parsed.use_abuseipdb = not parsed.use_abuseipdb
         elif option in ("-u", "--use-urlhaus"):
             parsed.use_urlhaus = not parsed.use_urlhaus
+        elif option in ("-N", "--use-netapi"):
+            parsed.use_netapi = not parsed.use_netapi
         elif option in ("-n", "--no-color"):
             parsed.no_color = not parsed.no_color
         elif option in ("-1", "--one-column"):
@@ -160,6 +169,7 @@ def parse_args() -> Namespace:
         or parsed.use_greynoise
         or parsed.use_abuseipdb
         or parsed.use_urlhaus
+        or parsed.use_netapi
     ):
         argparse.ArgumentParser().error(
             "--use-* flags are not accepted when the --all/-A flag is set"
@@ -251,4 +261,11 @@ class Config:
     def urlhaus_client(self) -> Optional[UrlHausClient]:
         if self.args.use_urlhaus or self.args.all and bool(self.urlhaus_api_key):
             return UrlHausClient(self.urlhaus_api_key)
+        return None
+
+    @property
+    def netapi_client(self) -> Optional[NetApiClient]:
+        # No API key needed
+        if self.args.use_netapi or self.args.all:
+            return NetApiClient()
         return None

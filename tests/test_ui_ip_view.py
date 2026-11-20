@@ -12,10 +12,12 @@ from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.netapi import NetApiClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
+from wtfis.models.netapi import NetApiMap
 from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import IpAddress
 from wtfis.models.virustotal import Whois as VTWhois
@@ -79,6 +81,7 @@ def view01(
         greynoise=greynoise_enrich,
         abuseipdb=abuseipdb_enrich,
         urlhaus=urlhaus_enrich,
+        netapi=NetApiMap.model_validate({}),
     )
 
 
@@ -117,6 +120,7 @@ def view02(test_data, mock_ipwhois_get, mock_shodan_get_ip, mock_greynoise_get):
         greynoise=greynoise_enrich,
         abuseipdb=MagicMock(),
         urlhaus=UrlHausMap.model_validate({}),
+        netapi=NetApiMap.model_validate({}),
     )
 
 
@@ -133,6 +137,7 @@ def view03(test_data):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -154,6 +159,7 @@ def view04(test_data):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=MagicMock(),
         urlhaus=UrlHausMap.model_validate({}),
+        netapi=NetApiMap.model_validate({}),
     )
 
 
@@ -178,6 +184,7 @@ def view05(test_data, mock_greynoise_get):
         greynoise=greynoise_enrich,
         abuseipdb=MagicMock(),
         urlhaus=UrlHausMap.model_validate({}),
+        netapi=NetApiMap.model_validate({}),
     )
 
 
@@ -203,6 +210,7 @@ def view06(test_data, mock_greynoise_get):
         greynoise=greynoise_enrich,
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -227,6 +235,7 @@ def view07(test_data, mock_abuseipdb_get):
         greynoise=MagicMock(),
         abuseipdb=abuseipdb_enrich,
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -251,6 +260,7 @@ def view08(test_data, mock_abuseipdb_get):
         greynoise=MagicMock(),
         abuseipdb=abuseipdb_enrich,
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -275,6 +285,7 @@ def view09(test_data, mock_ip2location_get):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -299,6 +310,7 @@ def view10(test_data, mock_ipinfo_get):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -323,6 +335,7 @@ def view11(test_data, mock_ipwhois_get):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -339,6 +352,82 @@ def view12():
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view13(test_data, mock_netapi_check):
+    """1.1.1.1 listed in NetAPI. Test NetAPI only."""
+    ip = "1.1.1.1"
+    netapi_pool = json.loads(test_data("netapi_1.1.1.1_listed.json"))
+    netapi_client = NetApiClient()
+    netapi_client._check = MagicMock(
+        side_effect=lambda ip: mock_netapi_check(ip, netapi_pool)
+    )
+    netapi_enrich = netapi_client.enrich_ips(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=IpWhoisMap.model_validate({}),
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+        netapi=netapi_enrich,
+    )
+
+
+@pytest.fixture()
+def view14(test_data, mock_netapi_check):
+    """1.1.1.1 listed in NetAPI in the past. Test NetAPI only."""
+    ip = "1.1.1.1"
+    netapi_pool = json.loads(test_data("netapi_1.1.1.1_past.json"))
+    netapi_client = NetApiClient()
+    netapi_client._check = MagicMock(
+        side_effect=lambda ip: mock_netapi_check(ip, netapi_pool)
+    )
+    netapi_enrich = netapi_client.enrich_ips(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=IpWhoisMap.model_validate({}),
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+        netapi=netapi_enrich,
+    )
+
+
+@pytest.fixture()
+def view15(test_data, mock_netapi_check):
+    """1.1.1.1 not listed in NetAPI. Test NetAPI only."""
+    ip = "1.1.1.1"
+    netapi_pool = json.loads(test_data("netapi_1.1.1.1.json"))
+    netapi_client = NetApiClient()
+    netapi_client._check = MagicMock(
+        side_effect=lambda ip: mock_netapi_check(ip, netapi_pool)
+    )
+    netapi_enrich = netapi_client.enrich_ips(ip)
+
+    return IpAddressView(
+        console=Console(),
+        entity="1.1.1.1",
+        vt=IpAddress.model_validate(json.loads(test_data("vt_ip_1.1.1.1.json"))),
+        geoasn=IpWhoisMap.model_validate({}),
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=MagicMock(),
+        netapi=netapi_enrich,
     )
 
 
@@ -1100,6 +1189,67 @@ class TestAbuseIpDbOnly:
                 Span(19, 33, theme.table_value),
             ],
         )
+
+
+class TestNetApiOnly:
+    def test_netapi_listed(self, view13, theme, display_timestamp):
+        ip = view13.ip_panel()
+
+        netapi_section = ip.renderable.renderables[2]
+
+        # Heading
+        assert netapi_section.renderables[0] == Text("NetAPI")
+        assert netapi_section.renderables[0].style == theme.heading_h1
+
+        # Table
+        table = netapi_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == theme.table_field
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            Text(
+                "Blocklist:",
+                spans=[Span(0, 9, "link https://netapi.com/lookup-ip/1.1.1.1/")],
+            ),
+            "Reason:",
+            "First Seen:",
+            "Last Seen:",
+        ]
+        assert table.columns[1].style == theme.table_value
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text("listed"),
+            "NetAPI network sensors: service exploit",
+            "2026-10-29",
+            display_timestamp("2026-11-20T05:28:24Z"),
+        ]
+        assert table.columns[1]._cells[0].style == theme.error
+
+    def test_netapi_past(self, view14, theme, display_timestamp):
+        ip = view14.ip_panel()
+
+        netapi_section = ip.renderable.renderables[2]
+
+        # Table
+        table = netapi_section.renderables[1]
+        assert table.columns[1]._cells == [
+            Text("listed in the past"),
+            "NetAPI network sensors: service exploit",
+            "2026-11-01",
+            display_timestamp("2026-11-01T17:26:37Z"),
+        ]
+        assert table.columns[1]._cells[0].style == theme.warn
+
+    def test_netapi_not_listed(self, view15, theme):
+        ip = view15.ip_panel()
+
+        netapi_section = ip.renderable.renderables[2]
+
+        # Table
+        table = netapi_section.renderables[1]
+        assert [str(c) for c in table.columns[0]._cells] == ["Blocklist:"]
+        assert table.columns[1]._cells == [Text("not listed")]
+        assert table.columns[1]._cells[0].style == theme.info
 
 
 class TestIP2LocationOnly:

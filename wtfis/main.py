@@ -30,6 +30,7 @@ def generate_entity_handler(
             greynoise_client=config.greynoise_client,
             abuseipdb_client=config.abuseipdb_client,
             urlhaus_client=config.urlhaus_client,
+            netapi_client=config.netapi_client,
             max_resolutions=config.max_resolutions,
         )
     # IP address handler
@@ -44,6 +45,7 @@ def generate_entity_handler(
             greynoise_client=config.greynoise_client,
             abuseipdb_client=config.abuseipdb_client,
             urlhaus_client=config.urlhaus_client,
+            netapi_client=config.netapi_client,
         )
 
     return handler
@@ -66,6 +68,7 @@ def generate_view(
             handler.greynoise,
             handler.abuseipdb,
             handler.urlhaus,
+            handler.netapi,
             handler.resolutions,
             max_resolutions=config.max_resolutions,
         )
@@ -80,6 +83,7 @@ def generate_view(
             handler.greynoise,
             handler.abuseipdb,
             handler.urlhaus,
+            handler.netapi,
         )
     else:
         raise WtfisException("Unsupported entity!")

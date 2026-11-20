@@ -11,6 +11,7 @@ from wtfis.exceptions import WtfisException
 from wtfis.models.abuseipdb import AbuseIpDb, AbuseIpDbMap
 from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIp, GreynoiseIpMap
+from wtfis.models.netapi import NetApi, NetApiMap
 from wtfis.models.shodan import ShodanIp, ShodanIpMap
 from wtfis.models.types import IpGeoAsnMapType, IpGeoAsnType
 from wtfis.models.urlhaus import UrlHaus, UrlHausMap
@@ -39,6 +40,7 @@ class BaseView(abc.ABC):
     greynoise: GreynoiseIpMap
     abuseipdb: AbuseIpDbMap
     urlhaus: UrlHausMap
+    netapi: NetApiMap
 
     vt_gui_baseurl_domain: ClassVar[str] = "https://virustotal.com/gui/domain"
     vt_gui_baseurl_ip: ClassVar[str] = "https://virustotal.com/gui/ip-address"
@@ -326,6 +328,9 @@ class BaseView(abc.ABC):
     def _get_urlhaus_enrichment(self, entity: str) -> Optional[UrlHaus]:
         return self.urlhaus.root[entity] if entity in self.urlhaus.root.keys() else None
 
+    def _get_netapi_enrichment(self, entity: str) -> Optional[NetApi]:
+        return self.netapi.root[entity] if entity in self.netapi.root.keys() else None
+
     def _gen_vt_section(self) -> Optional[RenderableType]:
         """Virustotal section. Applies to both domain and IP views"""
         if self.vt is None:
@@ -519,6 +524,43 @@ class BaseView(abc.ABC):
 
             return self._gen_section(
                 self._gen_table(*data), self._gen_heading_text("URLhaus")
+            )
+
+        return None  # No enrichment data
+
+    def _gen_netapi_section(self) -> Optional[RenderableType]:
+        """NetAPI"""
+        enrich = self._get_netapi_enrichment(self.entity)
+
+        if enrich:
+            if enrich.listed_now:
+                status = Text("listed", style=self.theme.error)
+            elif enrich.listed_ever:
+                status = Text("listed in the past", style=self.theme.warn)
+            else:
+                status = Text("not listed", style=self.theme.info)
+
+            data: List[Tuple[Union[str, Text], Union[RenderableType, None]]] = [
+                (
+                    self._gen_linked_field_name("Blocklist", hyperlink=enrich.link),
+                    status,
+                ),
+                # Only relevant if the listed entry is a parent domain of the entity
+                (
+                    "Matched:",
+                    (
+                        enrich.matched_value
+                        if enrich.matched_value != enrich.value
+                        else None
+                    ),
+                ),
+                ("Reason:", enrich.block_reason),
+                ("First Seen:", enrich.first_seen),
+                ("Last Seen:", Timestamp(enrich.last_seen).render),
+            ]
+
+            return self._gen_section(
+                self._gen_table(*data), self._gen_heading_text("NetAPI")
             )
 
         return None  # No enrichment data
