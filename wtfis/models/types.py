@@ -9,6 +9,7 @@ from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ip2location import Ip2Location, Ip2LocationMap
 from wtfis.models.ipinfo import IpInfo, IpInfoMap
 from wtfis.models.ipwhois import IpWhois, IpWhoisMap
+from wtfis.models.netapi import NetApiMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.urlhaus import UrlHausMap
 
@@ -19,12 +20,16 @@ IpEnrichmentType = Union[
     Ip2LocationMap,
     IpInfoMap,
     IpWhoisMap,
+    NetApiMap,
     ShodanIpMap,
     UrlHausMap,
 ]
 
 # Domain/FQDN enrichment map types
-DomainEnrichmentType = Union[UrlHausMap,]
+DomainEnrichmentType = Union[
+    NetApiMap,
+    UrlHausMap,
+]
 
 # IP geolocation and ASN types
 IpGeoAsnType = Union[

@@ -14,6 +14,7 @@ from rich.console import Console
 
 from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
+from wtfis.clients.netapi import NetApiClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.types import IpGeoAsnClientType, IpWhoisClientType
 from wtfis.clients.urlhaus import UrlHausClient
@@ -23,6 +24,7 @@ from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.base import WhoisBase
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ipwhois import IpWhoisMap
+from wtfis.models.netapi import NetApiMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.types import IpGeoAsnMapType
 from wtfis.models.urlhaus import UrlHausMap
@@ -74,6 +76,7 @@ class BaseHandler(abc.ABC):
     greynoise_client: Optional[GreynoiseClient]
     abuseipdb_client: Optional[AbuseIpDbClient]
     urlhaus_client: Optional[UrlHausClient]
+    netapi_client: Optional[NetApiClient]
 
     def __post_init__(self):
         # Process-specific
@@ -87,6 +90,7 @@ class BaseHandler(abc.ABC):
         self._greynoise = self.greynoise_client
         self._abuseipdb = self.abuseipdb_client
         self._urlhaus = self.urlhaus_client
+        self._netapi = self.netapi_client
 
         # Dataset containers
         self.vt_info: Optional[Union[Domain, IpAddress]] = None
@@ -96,6 +100,7 @@ class BaseHandler(abc.ABC):
         self.greynoise: GreynoiseIpMap = GreynoiseIpMap.empty()
         self.abuseipdb: AbuseIpDbMap = AbuseIpDbMap.empty()
         self.urlhaus: UrlHausMap = UrlHausMap.empty()
+        self.netapi: NetApiMap = NetApiMap.empty()
 
         # Warning messages container
         self.warnings: List[str] = []

@@ -10,6 +10,7 @@ from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.netapi import NetApiClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -45,6 +46,11 @@ def ipinfo_client():
 @pytest.fixture()
 def ipwhois_client():
     return IpWhoisClient()
+
+
+@pytest.fixture()
+def netapi_client():
+    return NetApiClient()
 
 
 @pytest.fixture()
@@ -249,6 +255,60 @@ class TestShodanClient:
             shodan_client.enrich_ips("thisdoesntmatter")
 
         assert err.value.response.status_code == 401
+
+
+class TestNetApiClient:
+    def test_init(self, netapi_client):
+        assert netapi_client.name == "NetAPI"
+
+    @patch.object(requests.Session, "get")
+    def test_enrich_ips(self, mock_requests_get, test_data, netapi_client):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(
+            test_data("netapi_1.1.1.1_listed.json")
+        )["1.1.1.1"]
+        mock_requests_get.return_value = mock_resp
+
+        netapi = netapi_client.enrich_ips("1.1.1.1").root["1.1.1.1"]
+
+        mock_requests_get.assert_called_once_with(
+            "https://netapi.com/api-json/",
+            params={"method": "compromised-check", "value": "1.1.1.1"},
+            headers=None,
+        )
+        assert netapi.value == "1.1.1.1"
+        assert netapi.listed_now is True
+        assert netapi.listed_ever is True
+        assert netapi.block_reason == "NetAPI network sensors: service exploit"
+        assert netapi.first_seen == "2026-10-29"
+        assert netapi.last_seen == "2026-11-20T05:28:24Z"
+
+    @patch.object(requests.Session, "get")
+    def test_enrich_domains(self, mock_requests_get, test_data, netapi_client):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(test_data("netapi_gist.json"))[
+            "gist.github.com"
+        ]
+        mock_requests_get.return_value = mock_resp
+
+        netapi = netapi_client.enrich_domains("gist.github.com").root["gist.github.com"]
+
+        assert netapi.value == "gist.github.com"
+        assert netapi.matched_value == "github.com"
+        assert netapi.listed_now is True
+
+    @patch.object(requests.Session, "get")
+    def test_http_error(self, mock_requests_get, netapi_client):
+        mock_resp = requests.models.Response()
+        mock_resp.status_code = 429
+        mock_requests_get.return_value = mock_resp
+
+        with pytest.raises(requests.exceptions.HTTPError) as err:
+            netapi_client.enrich_ips("1.1.1.1")
+
+        assert err.value.response.status_code == 429
 
 
 class TestUrlhausClient:

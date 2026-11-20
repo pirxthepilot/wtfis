@@ -22,6 +22,12 @@ class IpAddressHandler(BaseHandler):
         if self._urlhaus:
             self.urlhaus = self._urlhaus.enrich_ips(self.entity)
 
+    @common_exception_handler
+    @failopen_exception_handler("_netapi")
+    def _fetch_netapi(self) -> None:
+        if self._netapi:
+            self.netapi = self._netapi.enrich_ips(self.entity)
+
     def fetch_data(self):
         yield f"Fetching IP location and ASN from {self._geoasn.name}", 50
         self._fetch_geoasn(self.entity)
@@ -37,6 +43,10 @@ class IpAddressHandler(BaseHandler):
         if self._urlhaus:
             yield f"Fetching IP data from {self._urlhaus.name}", 50
             self._fetch_urlhaus()
+
+        if self._netapi:
+            yield f"Fetching IP data from {self._netapi.name}", 50
+            self._fetch_netapi()
 
         if self._greynoise:
             yield f"Fetching IP data from {self._greynoise.name}", 50

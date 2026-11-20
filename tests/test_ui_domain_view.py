@@ -12,12 +12,14 @@ from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2location import Ip2LocationClient
 from wtfis.clients.ipinfo import IpInfoClient
 from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.netapi import NetApiClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.models.abuseipdb import AbuseIpDbMap
 from wtfis.models.greynoise import GreynoiseIpMap
 from wtfis.models.ip2whois import Whois as Ip2Whois
 from wtfis.models.ipwhois import IpWhoisMap
+from wtfis.models.netapi import NetApiMap
 from wtfis.models.shodan import ShodanIpMap
 from wtfis.models.urlhaus import UrlHausMap
 from wtfis.models.virustotal import Domain, Resolutions
@@ -52,6 +54,7 @@ def view01(test_data, mock_ipwhois_get):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=UrlHausMap.model_validate({}),
+        netapi=NetApiMap.model_validate({}),
     )
 
 
@@ -74,6 +77,7 @@ def view02(test_data):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
         max_resolutions=1,
     )
 
@@ -92,6 +96,7 @@ def view03(test_data):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -112,6 +117,7 @@ def view04(test_data):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -130,6 +136,7 @@ def view05(test_data):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -147,6 +154,7 @@ def view06(test_data):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -182,6 +190,7 @@ def view07(test_data, mock_ipwhois_get, mock_shodan_get_ip):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -210,6 +219,7 @@ def view08(test_data, mock_shodan_get_ip):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
         max_resolutions=1,
     )
 
@@ -254,6 +264,7 @@ def view09(test_data, mock_shodan_get_ip, mock_greynoise_get, mock_abuseipdb_get
         greynoise=greynoise_enrich,
         abuseipdb=abuseipdb_enrich,
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
         max_resolutions=1,
     )
 
@@ -272,6 +283,7 @@ def view10(test_data):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -300,6 +312,7 @@ def view11(test_data, mock_shodan_get_ip):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -319,6 +332,7 @@ def view12(test_data):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -336,6 +350,7 @@ def view13(test_data):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -373,6 +388,7 @@ def view14(test_data, mock_ipwhois_get, mock_urlhaus_get):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=urlhaus_enrich,
+        netapi=NetApiMap.model_validate({}),
     )
 
 
@@ -401,6 +417,7 @@ def view15(test_data, mock_ip2location_get):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -429,6 +446,7 @@ def view16(test_data, mock_ipinfo_get):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
     )
 
 
@@ -446,6 +464,7 @@ def view17(test_data):
         greynoise=GreynoiseIpMap.model_validate({}),
         abuseipdb=AbuseIpDbMap.model_validate({}),
         urlhaus=UrlHausMap.model_validate({}),
+        netapi=NetApiMap.model_validate({}),
     )
 
 
@@ -467,6 +486,32 @@ def view18(test_data, mock_ipwhois_get):
         greynoise=MagicMock(),
         abuseipdb=MagicMock(),
         urlhaus=MagicMock(),
+        netapi=MagicMock(),
+    )
+
+
+@pytest.fixture()
+def view19(test_data, mock_netapi_check):
+    """gist.github.com with NetAPI enrichment. Test NetAPI only."""
+    netapi_pool = json.loads(test_data("netapi_gist.json"))
+    netapi_client = NetApiClient()
+    netapi_client._check = MagicMock(
+        side_effect=lambda domain: mock_netapi_check(domain, netapi_pool)
+    )
+    netapi_enrich = netapi_client.enrich_domains("gist.github.com")
+
+    return DomainView(
+        console=Console(),
+        entity="gist.github.com",
+        vt=Domain.model_validate(json.loads(test_data("vt_domain_gist.json"))),
+        resolutions=None,
+        geoasn=IpWhoisMap.model_validate({}),
+        whois=MagicMock(),
+        shodan=MagicMock(),
+        greynoise=MagicMock(),
+        abuseipdb=MagicMock(),
+        urlhaus=UrlHausMap.model_validate({}),
+        netapi=netapi_enrich,
     )
 
 
@@ -1718,6 +1763,44 @@ class TestView14:
                 ],
             ),
         ]
+
+
+class TestNetApiOnly:
+    def test_domain_panel_netapi(self, view19, theme, display_timestamp):
+        domain = view19.domain_panel()
+        netapi_section = domain.renderable.renderables[2]
+
+        # Heading
+        assert netapi_section.renderables[0] == Text("NetAPI")
+        assert netapi_section.renderables[0].style == theme.heading_h1
+
+        # Table
+        table = netapi_section.renderables[1]
+        assert type(table) is Table
+        assert table.columns[0].style == theme.table_field
+        assert table.columns[0].justify == "left"
+        assert table.columns[0]._cells == [
+            Text(
+                "Blocklist:",
+                spans=[
+                    Span(0, 9, "link https://netapi.com/lookup-domain/gist.github.com/")
+                ],
+            ),
+            "Matched:",
+            "Reason:",
+            "First Seen:",
+            "Last Seen:",
+        ]
+        assert table.columns[1].style == theme.table_value
+        assert table.columns[1].justify == "left"
+        assert table.columns[1]._cells == [
+            Text("listed"),
+            "github.com",
+            "blackbook",
+            "2023-02-25",
+            display_timestamp("2026-11-20T01:05:38Z"),
+        ]
+        assert table.columns[1]._cells[0].style == theme.error
 
 
 class TestIP2LocationOnly:

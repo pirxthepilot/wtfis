@@ -31,6 +31,7 @@ class TestDomainHandler:
         handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
+        handler._fetch_netapi = MagicMock()
         handler._fetch_abuseipdb = MagicMock()
 
         fetch_data(MagicMock(), handler)
@@ -41,6 +42,7 @@ class TestDomainHandler:
         handler._fetch_shodan.assert_called_once()
         handler._fetch_greynoise.assert_called_once()
         handler._fetch_urlhaus.assert_called_once()
+        handler._fetch_netapi.assert_called_once()
 
     def test_fetch_data_2(self, domain_handler):
         """Test with max_resolutions = 0"""
@@ -52,6 +54,7 @@ class TestDomainHandler:
         handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
+        handler._fetch_netapi = MagicMock()
         handler._fetch_abuseipdb = MagicMock()
 
         fetch_data(MagicMock(), handler)
@@ -62,6 +65,7 @@ class TestDomainHandler:
         handler._fetch_shodan.assert_not_called()
         handler._fetch_greynoise.assert_not_called()
         handler._fetch_urlhaus.assert_called_once()
+        handler._fetch_netapi.assert_called_once()
 
         assert handler.geoasn == IpWhoisMap.model_validate({})
         assert handler.geoasn.root == {}
@@ -362,6 +366,55 @@ class TestDomainHandler:
         capture = capsys.readouterr()
         assert capture.out.startswith("WARN: Could not fetch URLhaus: Foo bar message")
 
+    @patch.object(requests.Session, "get")
+    def test_netapi_http_error(self, mock_requests_get, domain_handler, capsys):
+        """
+        Test exception behavior of NetAPI with non-HTTPError requests exception
+        """
+        handler = domain_handler()
+        mock_requests_get.side_effect = ConnectionError("Foo bar message")
+
+        handler._fetch_netapi()
+        assert handler.warnings[0] == "Could not fetch NetAPI: Foo bar message"
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch NetAPI: Foo bar message")
+
+    @patch.object(requests.Session, "get")
+    def test_netapi_429_error(self, mock_requests_get, domain_handler, capsys):
+        """
+        Test fail open behavior of NetAPI when rate limited
+        """
+        handler = domain_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 429
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_netapi()
+        assert handler.warnings[0].startswith(
+            "Could not fetch NetAPI: 429 Client Error:"
+        )
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch NetAPI: 429 Client Error:")
+
+    @patch.object(requests.Session, "get")
+    def test_netapi_ok(self, mock_requests_get, domain_handler, test_data):
+        handler = domain_handler()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(test_data("netapi_gist.json"))[
+            "gist.github.com"
+        ]
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_netapi()
+        assert handler.warnings == []
+        assert handler.netapi.root["www.example.com"].listed_now is True
+
 
 class TestIpAddressHandler:
     def test_entity_refang(self, ip_handler):
@@ -376,6 +429,7 @@ class TestIpAddressHandler:
         handler._fetch_shodan = MagicMock()
         handler._fetch_greynoise = MagicMock()
         handler._fetch_urlhaus = MagicMock()
+        handler._fetch_netapi = MagicMock()
         handler._fetch_abuseipdb = MagicMock()
 
         fetch_data(MagicMock(), handler)
@@ -385,6 +439,7 @@ class TestIpAddressHandler:
         handler._fetch_shodan.assert_called_once()
         handler._fetch_greynoise.assert_called_once()
         handler._fetch_urlhaus.assert_called_once()
+        handler._fetch_netapi.assert_called_once()
         handler._fetch_abuseipdb.assert_called_once()
 
     @patch.object(requests.Session, "get")
@@ -616,6 +671,55 @@ class TestIpAddressHandler:
         handler.print_warnings()
         capture = capsys.readouterr()
         assert capture.out.startswith("WARN: Could not fetch URLhaus: Foo bar message")
+
+    @patch.object(requests.Session, "get")
+    def test_netapi_http_error(self, mock_requests_get, ip_handler, capsys):
+        """
+        Test exception behavior of NetAPI with non-HTTPError requests exception
+        """
+        handler = ip_handler()
+        mock_requests_get.side_effect = ConnectionError("Foo bar message")
+
+        handler._fetch_netapi()
+        assert handler.warnings[0] == "Could not fetch NetAPI: Foo bar message"
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch NetAPI: Foo bar message")
+
+    @patch.object(requests.Session, "get")
+    def test_netapi_429_error(self, mock_requests_get, ip_handler, capsys):
+        """
+        Test fail open behavior of NetAPI when rate limited
+        """
+        handler = ip_handler()
+        mock_resp = requests.models.Response()
+
+        mock_resp.status_code = 429
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_netapi()
+        assert handler.warnings[0].startswith(
+            "Could not fetch NetAPI: 429 Client Error:"
+        )
+
+        handler.print_warnings()
+        capture = capsys.readouterr()
+        assert capture.out.startswith("WARN: Could not fetch NetAPI: 429 Client Error:")
+
+    @patch.object(requests.Session, "get")
+    def test_netapi_ok(self, mock_requests_get, ip_handler, test_data):
+        handler = ip_handler()
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = json.loads(
+            test_data("netapi_1.1.1.1_listed.json")
+        )["1.1.1.1"]
+        mock_requests_get.return_value = mock_resp
+
+        handler._fetch_netapi()
+        assert handler.warnings == []
+        assert handler.netapi.root["1.1.1.1"].listed_now is True
 
     @patch.object(requests.Session, "get")
     def test_abuseipdb_429_error(self, mock_requests_get, ip_handler, capsys):

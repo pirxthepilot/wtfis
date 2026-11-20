@@ -9,6 +9,7 @@ from wtfis.clients.abuseipdb import AbuseIpDbClient
 from wtfis.clients.greynoise import GreynoiseClient
 from wtfis.clients.ip2whois import Ip2WhoisClient
 from wtfis.clients.ipwhois import IpWhoisClient
+from wtfis.clients.netapi import NetApiClient
 from wtfis.clients.shodan import ShodanClient
 from wtfis.clients.urlhaus import UrlHausClient
 from wtfis.clients.virustotal import VTClient
@@ -19,6 +20,7 @@ from wtfis.models.greynoise import GreynoiseIp
 from wtfis.models.ip2location import Ip2Location
 from wtfis.models.ipinfo import IpInfo
 from wtfis.models.ipwhois import IpWhois
+from wtfis.models.netapi import NetApi
 from wtfis.models.shodan import ShodanIp
 from wtfis.models.urlhaus import UrlHaus
 
@@ -89,6 +91,11 @@ def ipwhois_get(ip, pool) -> IpWhois:
     return IpWhois.model_validate(pool[ip])
 
 
+def netapi_check(entity, pool) -> NetApi:
+    """Mock replacement for NetApiClient()._check()"""
+    return NetApi.model_validate(pool[entity])
+
+
 def shodan_get_ip(ip, pool) -> ShodanIp:
     """Mock replacement for ShodanClient().get_ip()"""
     return ShodanIp.model_validate(pool[ip])
@@ -149,6 +156,11 @@ def mock_ipwhois_get():
 
 
 @pytest.fixture(scope="module")
+def mock_netapi_check():
+    return netapi_check
+
+
+@pytest.fixture(scope="module")
 def mock_shodan_get_ip():
     return shodan_get_ip
 
@@ -174,6 +186,7 @@ def generate_domain_handler(max_resolutions=3):
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),
         urlhaus_client=UrlHausClient("dummykey"),
+        netapi_client=NetApiClient(),
         max_resolutions=max_resolutions,
     )
 
@@ -194,6 +207,7 @@ def generate_ip_handler():
         greynoise_client=GreynoiseClient("dummykey"),
         abuseipdb_client=AbuseIpDbClient("dummykey"),
         urlhaus_client=UrlHausClient("dummykey"),
+        netapi_client=NetApiClient(),
     )
 
 
